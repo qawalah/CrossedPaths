@@ -7,6 +7,12 @@ migration), MINOR for new features, PATCH for bugfixes. Pre-1.0, expect MINOR bu
 To check what's running on your server, visit `/api/config` — it reports the running
 `version`. That's the number to compare against this file when deciding whether to update.
 
+## 0.11.2
+- **New icon.** A map pin over a green and blue cross (two paths crossing), replacing the X.
+  Updated in the web client (tab icon, install icons, header logo), the Android app (launcher,
+  adaptive, round and notification icons) and the Play Store listing. All sizes are generated
+  by `store-listing/icon-src/make-icons.js`.
+
 ## 0.11.1
 - **App: main + backup address, switching automatically.** Account → Server addresses now
   takes the server's address and (optionally) a backup address. With "Switch
