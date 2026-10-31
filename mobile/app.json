@@ -37,7 +37,7 @@
       "package": "com.example.crosspaths",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#0b1220"
+        "backgroundColor": "#f5f1e8"
       },
       "permissions": [
         "NOTIFICATIONS"
