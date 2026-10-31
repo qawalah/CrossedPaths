@@ -27,7 +27,7 @@ WHAT YOU SEE
 - Filter by type, year, city, place or length, and sort by newest, oldest or longest.
 
 PRIVATE BY DESIGN
-- Runs on your own server (for example a home NAS), not on someone else's cloud.
+- Runs on a CrossPaths server you or someone you trust controls.
 - Nothing is compared until both people agree to each check.
 - You only ever see your own path. The other person sees only when and roughly where you crossed, never your route.
 - Times are rounded to 15 minutes and places blurred to about 100 metres. Home and work areas are detected and left out automatically.
@@ -38,9 +38,9 @@ ALSO
 - Meet in person: scan a QR code, share an invite link or shake phones to connect and run the check in one go.
 - My Timeline: browse your own history by year, month and day on a map, and search for every visit to a place.
 - Light and dark themes with five accent colours.
-- Works at home and away: give the app your server's home address and its Tailscale address and it switches automatically.
+- Give the app a main and a backup address for your server and it switches automatically.
 
-CrossPaths needs a CrossPaths server. The server is free and runs in Docker; setup takes a few minutes on a Synology or any home server.
+CrossPaths needs a CrossPaths server. The server is free and runs in Docker; setup takes a few minutes on any Docker host or cloud server.
 
 CrossPaths is not affiliated with or endorsed by Google. Google Maps is a trademark of Google LLC.
 

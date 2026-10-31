@@ -2,10 +2,10 @@ import * as SecureStore from "expo-secure-store";
 import Constants from "expo-constants";
 import { AppState } from "react-native";
 
-// ---------- which address to use: home network, or Tailscale when you're away ----------
-// You can give the app two addresses of the same server: the NAS's LAN address and its
-// Tailscale address. With "switch automatically" on, the app uses the home address when it
-// answers (faster, no VPN needed) and Tailscale otherwise - checked at start-up, whenever the
+// ---------- which address to use: the main address, or the backup when it can't be reached ----------
+// You can give the app two addresses of the same server: a main address and a backup one.
+// With "switch automatically" on, the app uses the main address when it answers and the
+// backup otherwise - checked at start-up, whenever the
 // app comes back to the foreground, and whenever a request can't reach the server.
 let HOME_URL = (Constants.expoConfig && Constants.expoConfig.extra && Constants.expoConfig.extra.apiUrl) || "";
 let ALT_URL = "";
@@ -21,13 +21,13 @@ const INSTANCE_KEY = "crosspaths_instance";
 
 const clean = (u) => (u || "").trim().replace(/\/+$/, "");
 const listeners = new Set();
-/** Subscribe to address changes (e.g. switching to Tailscale). Returns an unsubscribe function. */
+/** Subscribe to address changes (e.g. switching to the backup address). Returns an unsubscribe function. */
 export function onServerChange(fn) {
   listeners.add(fn);
   return () => listeners.delete(fn);
 }
 export function getServerState() {
-  return { home: HOME_URL, alt: ALT_URL, auto: AUTO, active: ACTIVE, via: ALT_URL && ACTIVE === ALT_URL && ACTIVE !== HOME_URL ? "tailscale" : "home" };
+  return { home: HOME_URL, alt: ALT_URL, auto: AUTO, active: ACTIVE, via: ALT_URL && ACTIVE === ALT_URL && ACTIVE !== HOME_URL ? "backup" : "home" };
 }
 function setActive(url) {
   if (!url || url === ACTIVE) return;
@@ -58,7 +58,7 @@ export async function loadStoredApiUrl() {
   return ACTIVE;
 }
 
-/** Save the addresses. `home` is required, `alt` (Tailscale) optional. */
+/** Save the addresses. `home` is required, `alt` (backup) optional. */
 export async function setServerAddresses({ home, alt, auto }) {
   const h = clean(home), a = clean(alt);
   if (h !== HOME_URL) INSTANCE = null; // a different server: learn its identity again
@@ -78,7 +78,7 @@ export async function setServerAddresses({ home, alt, auto }) {
   listeners.forEach((fn) => fn(getServerState()));
   return resolveServer({ force: true });
 }
-// Kept for older callers: just the home address.
+// Kept for older callers: just the main address.
 export async function setApiUrl(url) {
   return setServerAddresses({ home: url, alt: ALT_URL, auto: AUTO });
 }
@@ -118,7 +118,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 let resolving = null;
 let lastResolved = 0;
-/** Pick the address to use now. Home wins whenever it answers; Tailscale otherwise. */
+/** Pick the address to use now. The main address wins whenever it answers; the backup otherwise. */
 export function resolveServer({ force } = {}) {
   if (resolving) return resolving;
   if (!AUTO || !ALT_URL || !HOME_URL || ALT_URL === HOME_URL) {
@@ -140,7 +140,7 @@ export function resolveServer({ force } = {}) {
         if (good(a)) pick = a;
       }
     } else if (good(first)) {
-      // Tailscale answered first; give home a moment, since at home it's the better route.
+      // The backup answered first; give the main address a moment, since it's preferred.
       const h = await Promise.race([ph, sleep(600).then(() => null)]);
       pick = good(h) ? h : first;
     } else {
@@ -191,9 +191,9 @@ class ApiError extends Error {
   }
 }
 
-// React Native sets no network timeout, so an address that silently drops packets (Tailscale
-// off, wrong Wi-Fi) would hang for the OS connect timeout - about 2 minutes. Uploads get longer
-// because a big Timeline file can take a while to send and parse on a small NAS.
+// React Native sets no network timeout, so an address that silently drops packets (VPN
+// off, firewall) would hang for the OS connect timeout - about 2 minutes. Uploads get longer
+// because a big Timeline file can take a while to send and parse on a small server.
 const TIMEOUT_MS = 12000;
 const UPLOAD_TIMEOUT_MS = 180000;
 
@@ -222,7 +222,7 @@ async function request(path, opts = {}, retried = false) {
   } catch (e) {
     const timedOut = ctrl.signal.aborted;
     clearTimeout(timer);
-    // Unreachable: maybe we've left (or come back to) the home network. Check the other address,
+    // Unreachable: maybe the address we're on has gone down. Check the other address,
     // and try again there - except a change that may already have reached the server before it
     // timed out, which must not be sent twice.
     if (!retried && AUTO && ALT_URL) {
@@ -232,9 +232,9 @@ async function request(path, opts = {}, retried = false) {
     const two = AUTO && ALT_URL;
     throw new ApiError(
       two
-        ? "Couldn't reach your server at home or through Tailscale. Away from home? Check Tailscale is switched on."
+        ? "Couldn't reach your server at either address. Check your connection."
         : timedOut
-        ? "The server didn't answer in time. Check the address and that you're on the right network."
+        ? "The server didn't answer in time. Check the address and your connection."
         : "Couldn't reach the server. Check the address and your connection.",
       0
     );

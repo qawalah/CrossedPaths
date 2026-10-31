@@ -13,7 +13,7 @@ from .places import places_for
 from .notifications import send_expo_push
 from .store import delete_points, load_points
 
-_one_at_a_time = threading.Semaphore(1)   # keep RAM bounded on a small NAS
+_one_at_a_time = threading.Semaphore(1)   # keep RAM bounded on a small server
 
 
 def _trim(points, df, dt):

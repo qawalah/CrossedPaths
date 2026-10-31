@@ -115,7 +115,7 @@ def create_app(overrides=None, start_background=True):
                         "invite_required": bool(c["INVITE_CODE"]), "registration_open": c["ALLOW_REGISTRATION"],
                         "upload_ttl_hours": c["UPLOAD_TTL_HOURS"], "results_ttl_days": c["RESULTS_TTL_DAYS"],
                         "upload_keep_options": retention.keep_options(c),
-                        # Same value at every address of this server (LAN, Tailscale, tunnel), different on any
+                        # Same value at every address of this server (main, backup, tunnel), different on any
                         # other server: lets the app switch addresses without ever sending its token elsewhere.
                         "instance": hashlib.sha256(("instance:" + c["SECRET_KEY"]).encode()).hexdigest()[:16],
                         "version": c["VERSION"]})
@@ -239,7 +239,7 @@ def create_app(overrides=None, start_background=True):
         limit("upload", app.config["LIMIT_UPLOADS_PER_DAY"])
         mb = app.config["MAX_UPLOAD_MB"] * 1024 * 1024
         try:
-            # Zips are read one file at a time; cap what they may expand to on a small NAS.
+            # Zips are read one file at a time; cap what they may expand to on a small host.
             track, imported = parse_files(((f.filename, f.read()) for f in files),
                                         Limits(max_entry_bytes=2 * mb, max_total_bytes=8 * mb))
         except ValueError:

@@ -43,7 +43,7 @@
         "NOTIFICATIONS"
       ],
       "usesCleartextTraffic": true,
-      "versionCode": 8
+      "versionCode": 9
     },
     "plugins": [
       "expo-secure-store",
@@ -86,7 +86,7 @@
       "./plugins/withCrossPathsAndroid"
     ],
     "extra": {
-      "apiUrl": "https://your-nas-or-tunnel-address.example.com"
+      "apiUrl": "https://crosspaths.example.com"
     },
     "scheme": "crosspaths"
   }
