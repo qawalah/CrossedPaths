@@ -271,6 +271,12 @@ export const Api = {
     form.append("file", { uri: fileUri, name: fileName || "timeline.json", type: "application/json" });
     return request("/api/uploads", { method: "POST", form });
   },
+  // Several files in one upload (GPX, FIT, zips…): the server combines them into one timeline.
+  uploadFiles: (files) => {
+    const form = new FormData();
+    files.forEach((f) => form.append("file", { uri: f.uri, name: f.name || "location-file", type: f.type || "application/octet-stream" }));
+    return request("/api/uploads", { method: "POST", form });
+  },
   deleteUpload: (id) => request(`/api/uploads/${id}`, { method: "DELETE" }),
   putZones: (id, zones) => request(`/api/uploads/${id}/zones`, { method: "PUT", body: { zones } }),
   uploadSummary: (id, tz = 0) => request(`/api/uploads/${id}/summary?tz=${tz}`),

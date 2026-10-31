@@ -1,6 +1,7 @@
 # CrossPaths
 
-"Did our paths ever cross?" Two people upload location histories, both agree to a check, and the
+"Did our paths ever cross?" Two people upload location histories (Google Timeline, GPX/FIT/CSV
+from fitness apps, Swarm check-ins or photo GPS), both agree to a check, and the
 server lists every time they were within ~100 m in the same 15 minutes.
 
 **Read `HANDOVER.md` first.** It has the full picture: identity, signing, data layout, secrets,
@@ -9,7 +10,8 @@ known issues and the decisions not to undo.
 ## Layout
 
 - `server/`: Flask + SQLite API and the single-page web client (`server/server/static/index.html`).
-  Matching engine is the `crosspaths/` package. Runs in Docker on a Synology NAS, port 8787.
+  Matching engine is the `crosspaths/` package
+  (`parser.py` = Google formats, `importers.py` = every other file type, zips, multi-file uploads). Runs in Docker on a Synology NAS, port 8787.
 - `mobile/`: Expo SDK 51 / React Native 0.74 Android app. The prebuilt `android/` folder is
   committed. `ios/` exists but has never been built.
 - `store-listing/`: Play Store images and text. Not code.
@@ -20,7 +22,7 @@ Server (from `server/`):
 
 ```bash
 pip install -r requirements.txt pytest
-python -m pytest -q                  # 35 tests, no network (PLACE_NAMES=False)
+python -m pytest -q                  # 55 tests, no network (PLACE_NAMES=False)
 DATA_DIR=./data python -c "from server.app import create_app; create_app().run(port=8787)"
 ```
 

@@ -11,6 +11,7 @@ import NewCheckModal from "../screens/NewCheckModal";
 import ReviewCheckModal from "../screens/ReviewCheckModal";
 import ResultsScreen from "../screens/ResultsScreen";
 import MyTimelineScreen from "../screens/MyTimelineScreen";
+import ImportModal from "../screens/ImportModal";
 import PhotoScanModal from "../screens/PhotoScanModal";
 import AddNearbyScreen, { codeFrom } from "../screens/AddNearbyScreen";
 import MainTabs from "./MainTabs";
@@ -104,6 +105,9 @@ export default function RootNavigator() {
             <Stack.Screen name="Settings" component={SettingsScreen} options={{ presentation: "modal", headerShown: true, title: "Server addresses" }} />
             <Stack.Screen name="AddNearby" options={{ presentation: "modal" }}>
               {(props) => <AddNearbyScreen {...props} uploads={data.uploads} loaded={data.loaded} onDone={data.refresh} />}
+            </Stack.Screen>
+            <Stack.Screen name="Import" options={{ presentation: "modal" }}>
+              {(props) => <ImportModal {...props} cfg={data.cfg} onDone={data.refresh} />}
             </Stack.Screen>
             <Stack.Screen name="PhotoScan" options={{ presentation: "modal" }}>
               {(props) => <PhotoScanModal {...props} cfg={data.cfg} onDone={data.refresh} />}

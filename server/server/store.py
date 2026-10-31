@@ -8,7 +8,7 @@ from crosspaths.parser import Point
 
 from .security import fernet
 
-_SRC = ["record", "path", "visit", "activity"]
+_SRC = ["record", "path", "visit", "activity", "track"]  # append only: stored files use the index
 
 
 def _path(data_dir, upload_id):

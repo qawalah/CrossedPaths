@@ -3,7 +3,8 @@
 ## What the app does
 
 CrossPaths answers "did our paths ever cross?". Two people each upload a location history (a
-Google Maps Timeline export, or one built on the phone from the GPS data in their photos), agree
+Google Maps Timeline export, GPX/TCX/FIT/KML/GeoJSON/CSV files from fitness and GPS apps, Swarm
+check-ins, or one built from the GPS data in their photos), agree
 to a check, and the server finds every time they were within 100 m of each other within the same
 15 minutes. Results open on a summary dashboard and drill into a map and list.
 
@@ -30,7 +31,17 @@ Main features:
   check in one step.
 - **My Timeline:** browse your own upload by year, month and day on a map, with replay, and
   search for every visit to a place.
-- **Photo scan (mobile):** builds a timeline JSON from geotagged photos on the phone.
+- **Adding a timeline:** two choices on both clients.
+  - *Import a timeline*: pick a source (Google Maps, Strava, Apple Health, Samsung Health,
+    Garmin, Fitbit/Google Fit, Swarm, other apps) to see how to export from it, then choose one
+    file, several, or a .zip. `crosspaths/importers.py` recognises each file by content: GPX, TCX,
+    FIT (own minimal reader), KML/KMZ, GeoJSON, CSV (any lat/lon/time column names), Swarm
+    check-ins, generic JSON point lists (Samsung `location_data.json`, OwnTracks, Dawarich) and
+    Google's formats. Zips (also nested, e.g. Garmin) and .gz are opened; all files become one
+    timeline. The guide text lives in `mobile/src/importSources.js` and `SOURCES` in the web
+    client; keep them in step.
+  - *Scan my photos*: the app scans the phone's library; the web client reads EXIF from photos
+    the user picks, in the browser. Only `{t, lat, lon}` points are uploaded.
 - **Settings:**
   - theme: system, dark or light, plus five accent colours;
   - per-user upload retention: 24 h (default), 7 days, 30 days, or until deleted;
@@ -52,7 +63,7 @@ Main features:
 - `applicationId` / namespace: `com.example.crosspaths`. **This must change before Play**: Play
   rejects `com.example.*`. The suggested name is `com.abu.crosspaths`. Changing it makes it a new
   app for anyone with the sideloaded version, so they'll need to install it fresh.
-- `versionCode` **7**, `versionName` **1.6.0** (in `mobile/app.json` and
+- `versionCode` **8**, `versionName` **1.7.0** (in `mobile/app.json` and
   `mobile/android/app/build.gradle`). `package.json` still says 1.0.0; ignore it.
 - **Signing:** there's no own key yet. Release builds are signed with React Native's stock
   **debug keystore** (`android/app/debug.keystore`, alias `androiddebugkey`; deliberately not in
@@ -65,7 +76,7 @@ Main features:
 planned), `buildNumber` 4. Waiting on the owner's Apple Developer enrollment; plan was EAS build
 and then TestFlight. `eas.json` exists, but there's no EAS `projectId` yet.
 
-**Server:** version in `server/VERSION`, currently **0.11.1**, reported at `GET /api/config`.
+**Server:** version in `server/VERSION`, currently **0.12.0**, reported at `GET /api/config`.
 Entry point `server/wsgi.py` → `server.app:create_app()`. Run by gunicorn: 1 worker, 8 threads,
 port 8787.
 
@@ -85,7 +96,7 @@ docker compose up -d --build        # first time, or when requirements.txt / Doc
 So **most updates are "copy those four in, restart the container"**, with no rebuild. Never touch
 `./data`.
 
-Tests (35 passing), from `server/`:
+Tests (55 passing), from `server/`:
 ```bash
 pip install -r requirements.txt pytest
 python -m pytest -q
@@ -202,7 +213,17 @@ cd android
 - Some ESLint warnings for unused imports (no errors).
 - The owner once sent "Change serving answer"; it was never clarified, so it's open.
 
+**Importers:** written from documentation and synthetic files, not real exports. Check one real
+export each from Strava, Apple Health, Samsung Health, Garmin and Swarm. Unconfirmed details: Swarm's
+`createdAt` text dates are assumed to be UTC, and Samsung's `location_data.json` field names
+(`start_time`, `latitude`, `longitude`) come from third-party notes. Whole exports with photos
+(Strava) or ECGs (Apple) are often over `MAX_UPLOAD_MB`; the guides tell people to pick just the
+route files then. Separate workouts close together in place (within 200 m and 6 h) are joined as
+"stayed put" by the matcher, the same as Google data.
+
 **Ideas raised but not built:**
+- Read Health Connect exercise routes directly on Android (live, no export needed).
+- Flights, ride-hailing trips, calendar and ticket history as "same event" matches.
 - Push a notification when a check finishes.
 - Real phone screenshots for the store.
 

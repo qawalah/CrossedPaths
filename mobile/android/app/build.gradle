@@ -115,8 +115,8 @@ android {
         applicationId 'com.example.crosspaths'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 7
-        versionName "1.6.0"
+        versionCode 8
+        versionName "1.7.0"
     }
     signingConfigs {
         debug {
