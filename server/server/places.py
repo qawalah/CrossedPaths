@@ -65,7 +65,7 @@ def _arabic_alt(alternates: str) -> str:
 
 class _Index:
     """Points + names + a KD-tree over unit-sphere xyz for nearest-neighbour lookups.
-    Compact numpy columns, since a world list of towns is ~200k rows on a small NAS."""
+    Compact numpy columns, since a world list of towns is ~200k rows on a small server."""
 
     def __init__(self, lat, lon, name, name_ar, code, pop, cc):
         self.lat = np.asarray(lat, dtype=np.float64)
@@ -163,13 +163,13 @@ class Places:
             if not path:
                 return None
             self._countries[cc] = self._read(path, keep)
-            if len(self._countries) > 4:   # small LRU: NAS RAM is precious
+            if len(self._countries) > 4:   # small LRU: keep RAM low
                 self._countries.pop(next(iter(self._countries)))
         return self._countries[cc]
 
     def release(self):
         """Drop the in-memory indexes (~100 MB); they're rebuilt from disk in ~2 s when next
-        needed. Called after naming a batch, so the NAS doesn't carry them between checks."""
+        needed. Called after naming a batch, so the server doesn't carry them between checks."""
         with self._lock:
             self._cities = None
             self._countries.clear()

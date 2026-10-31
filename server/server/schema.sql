@@ -1,4 +1,4 @@
--- SQLite schema for the proof-of-concept server (single container on a NAS).
+-- SQLite schema for the proof-of-concept server (single container).
 -- The PostgreSQL/PostGIS equivalent for the scaled-up version is ../sql/schema.sql
 PRAGMA journal_mode = WAL;
 

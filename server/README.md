@@ -5,8 +5,8 @@ accept a request and consent to a check, the app lists every place and time thei
 crossed, on a map with an animated replay.
 
 What's here: the **engine** (parser, matcher, privacy layer, spoof scoring), a **Flask API +
-SQLite server**, an installable **web app (PWA)** for iPhone/Android/desktop, and Docker files for a
-Synology NAS. A native Expo app and the Postgres/PostGIS path are the next steps.
+SQLite server**, an installable **web app (PWA)** for iPhone/Android/desktop, and Docker files for
+deployment. A native Expo app and the Postgres/PostGIS path are the next steps.
 
 ```
 crosspaths/            python package
@@ -18,7 +18,7 @@ crosspaths/            python package
   secure.py            prototype: ECDH + HMAC token exchange, no raw timeline ever leaves the phone
   cli.py               python -m crosspaths.cli a.json b.json
 server/                Flask API, SQLite schema, encrypted storage, background runner, web app (static/)
-wsgi.py, Dockerfile, docker-compose.yml, .env.example, DEPLOY-SYNOLOGY.md
+wsgi.py, Dockerfile, docker-compose.yml, .env.example, DEPLOY.md
 sql/schema.sql         Postgres + PostGIS schema for the scaled-up version (not used by the PoC server)
 tests/                 synthetic two-person week; engine + API + secure-prototype tests (23 total)
 samples/               generated demo files
@@ -74,7 +74,7 @@ Defaults: 100 m, 15 min, all adjustable per check. Measured: 52 weeks of synthet
 
 ```bash
 DATA_DIR=./data python3 -m flask --app wsgi run --port 8787      # dev
-docker compose up -d --build                                    # NAS / production (see DEPLOY-SYNOLOGY.md)
+docker compose up -d --build                                    # production (see DEPLOY.md)
 ```
 
 ## API surface (implemented in server/app.py)
@@ -146,7 +146,7 @@ Design notes shared by both:
 ## Known limits
 
 - **Web app not tested in a real browser** (only JS syntax-checked; the API is fully tested). Expect small UI fixes.
-- **Docker/Synology deployment not tested** on real hardware; map tiles need internet from the phone.
+- **Docker deployment not tested** in production; map tiles need internet from the phone.
 - The server's login tokens live in the browser's localStorage; fine for a PoC with friends, use passkeys/httpOnly cookies before going public.
 - **Export schema:** written from knowledge of Google's formats, tested only on synthetic data.
   Google has changed the format before; check a real export from each platform before launch.

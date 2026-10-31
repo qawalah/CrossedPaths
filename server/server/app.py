@@ -115,7 +115,7 @@ def create_app(overrides=None, start_background=True):
                         "invite_required": bool(c["INVITE_CODE"]), "registration_open": c["ALLOW_REGISTRATION"],
                         "upload_ttl_hours": c["UPLOAD_TTL_HOURS"], "results_ttl_days": c["RESULTS_TTL_DAYS"],
                         "upload_keep_options": retention.keep_options(c),
-                        # Same value at every address of this server (LAN, Tailscale, tunnel), different on any
+                        # Same value at every address of this server (main, backup, tunnel), different on any
                         # other server: lets the app switch addresses without ever sending its token elsewhere.
                         "instance": hashlib.sha256(("instance:" + c["SECRET_KEY"]).encode()).hexdigest()[:16],
                         "version": c["VERSION"]})
