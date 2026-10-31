@@ -129,7 +129,7 @@ export default function PhotoScanModal({ navigation, cfg, onDone }) {
     >
       <Text style={{ color: colors.text, fontSize: 20, fontWeight: "800" }}>Build timeline from photos</Text>
       <Text style={{ color: colors.muted, marginTop: 8, lineHeight: 20 }}>
-        An alternative to exporting a Google Timeline file: CrossPaths reads the GPS location and
+        An alternative to importing a timeline file: CrossPaths reads the GPS location and
         date already saved in your photos' metadata and turns that into a timeline, right here on
         your phone. Photos with no location (screenshots, downloaded images, some messaging apps)
         are skipped.

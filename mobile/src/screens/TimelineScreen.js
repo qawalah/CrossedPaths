@@ -1,6 +1,5 @@
-import * as DocumentPicker from "expo-document-picker";
-import React, { useState } from "react";
-import { ActivityIndicator, FlatList, Text, View } from "react-native";
+import React from "react";
+import { FlatList, Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Button from "../components/Button";
 import Card from "../components/Card";
@@ -16,27 +15,6 @@ export default function TimelineScreen({ data, navigation }) {
   const { user } = useAuth();
   const insets = useSafeAreaInsets();
   const toast = useToast();
-  const [busy, setBusy] = useState(false);
-
-  async function pickAndUpload() {
-    const res = await DocumentPicker.getDocumentAsync({ type: "application/json", copyToCacheDirectory: true });
-    if (res.canceled || !res.assets || !res.assets[0]) return;
-    const file = res.assets[0];
-    if (cfg.max_upload_mb && file.size && file.size > cfg.max_upload_mb * 1048576) {
-      toast(`That file is too large. The limit is ${cfg.max_upload_mb} MB — trim it to a shorter period.`, true);
-      return;
-    }
-    setBusy(true);
-    try {
-      const u = await Api.upload(file.uri, file.name);
-      toast("Timeline added · " + trustLabel(u.trust.level));
-      await refresh();
-    } catch (e) {
-      toast(e.message, true);
-    } finally {
-      setBusy(false);
-    }
-  }
 
   async function removeZone(upload, i) {
     if (!(await confirm("Include this area?", "Crossings inside it will no longer be hidden from future checks.", "Include"))) return;
@@ -70,26 +48,23 @@ export default function TimelineScreen({ data, navigation }) {
         <View>
           <Text style={{ color: colors.text, fontSize: 24, fontWeight: "800" }}>Your timeline</Text>
           <Text style={{ color: colors.muted, marginTop: 6, marginBottom: 16, lineHeight: 20 }}>
-            Upload your Google Maps Timeline export. It stays private and is{" "}
+            Add your location history. It stays private and is{" "}
             {keepPhrase(user && user.upload_keep_hours != null ? user.upload_keep_hours : cfg.upload_ttl_hours)} (change this on the Account tab).
           </Text>
-          <Card>
-            <Button title={busy ? "Uploading…" : "Choose Timeline .json"} onPress={pickAndUpload} loading={busy} />
-            <Text style={{ color: colors.muted, fontSize: 12.5, marginTop: 10, lineHeight: 18 }}>
-              In Google Maps: profile picture → Your Timeline → ⚙️ settings → Export Timeline data. Menu
-              names vary a little between app versions.
-            </Text>
-            <Button
-              title="📷 Or scan your photo library"
-              variant="ghost"
-              onPress={() => navigation.navigate("PhotoScan")}
-              style={{ marginTop: 10 }}
+          <View style={{ flexDirection: "row", gap: 10, marginBottom: 6 }}>
+            <AddOption
+              icon="📂"
+              title="Import a timeline"
+              text="Google Maps, Strava, Apple Health, Samsung Health, Garmin, Swarm, GPX, CSV…"
+              onPress={() => navigation.navigate("Import")}
             />
-            <Text style={{ color: colors.muted, fontSize: 12.5, marginTop: 8, lineHeight: 18 }}>
-              No Google Timeline export? Build one from the GPS location already saved in your
-              photos — nothing leaves your phone except the points you upload.
-            </Text>
-          </Card>
+            <AddOption
+              icon="📷"
+              title="Scan my photos"
+              text="Build one from the place and time saved in your photos."
+              onPress={() => navigation.navigate("PhotoScan")}
+            />
+          </View>
         </View>
       }
       ListEmptyComponent={
@@ -104,6 +79,27 @@ export default function TimelineScreen({ data, navigation }) {
         />
       )}
     />
+  );
+}
+
+function AddOption({ icon, title, text, onPress }) {
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => ({
+        flex: 1,
+        backgroundColor: colors.panel,
+        borderWidth: 1,
+        borderColor: pressed ? colors.accent : colors.line,
+        borderRadius: 16,
+        padding: 14,
+        transform: [{ scale: pressed ? 0.98 : 1 }],
+      })}
+    >
+      <Text style={{ fontSize: 24 }}>{icon}</Text>
+      <Text style={{ color: colors.text, fontWeight: "800", fontSize: 15, marginTop: 6 }}>{title}</Text>
+      <Text style={{ color: colors.muted, fontSize: 12, marginTop: 4, lineHeight: 17 }}>{text}</Text>
+    </Pressable>
   );
 }
 

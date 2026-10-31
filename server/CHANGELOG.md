@@ -7,6 +7,24 @@ migration), MINOR for new features, PATCH for bugfixes. Pre-1.0, expect MINOR bu
 To check what's running on your server, visit `/api/config` — it reports the running
 `version`. That's the number to compare against this file when deciding whether to update.
 
+## 0.12.0
+- **Import from more apps.** Uploads now accept GPX, TCX, FIT, KML/KMZ, GeoJSON and CSV files
+  as well as Google Maps Timeline JSON, so routes from Strava, Apple Health, Samsung Health,
+  Garmin, Fitbit, Google Fit, GPS logger apps and Swarm check-ins can be compared. Each file is
+  recognised by its content; .zip and .gz archives are opened (whole Strava, Apple Health, Garmin,
+  Swarm and Samsung Health exports work as they are, subject to the upload size limit).
+- Several files can be uploaded at once and become one timeline. The response says how many
+  files had no usable locations (`import.skipped`).
+- Swarm check-ins count as a 30-minute stay (shorter if the next check-in comes sooner).
+- Dense 1-per-second workout tracks are thinned to one fix per 5 s on import. The "regular
+  intervals" fake-timeline check no longer applies to these recordings, since they log on a fixed
+  clock by design.
+- Zips are read one file at a time and capped at 2× / 8× `MAX_UPLOAD_MB` once unzipped (per
+  file / in total). Apple Health's `export.xml` is skipped. XML with entity declarations is refused.
+- **Web: two ways to add a timeline.** The Uploads tab now offers *Import a timeline*, with
+  step-by-step export guides for each app, or *Scan my photos*, which reads the GPS position and
+  time from photos in the browser and uploads only those points.
+
 ## 0.11.2
 - **New icon.** A map pin standing where a green and a blue route cross, inside a soft blue
   circle (the match radius), on a light tile. Replaces the X everywhere: web client (tab icon,

@@ -20,6 +20,7 @@ import numpy as np
 from .geo import haversine_m
 
 _NUM = re.compile(r"-?\d+(?:\.\d+)?")
+_EPOCH = re.compile(r"\d+(?:\.\d+)?")
 
 
 @dataclass
@@ -49,9 +50,11 @@ def _ts(v):
         x = float(v)
         return x / 1000 if x > 1e11 else x
     s = str(v).strip()
-    if s.isdigit():
+    if _EPOCH.fullmatch(s):
         x = float(s)
         return x / 1000 if x > 1e11 else x
+    s = re.sub(r"\s*(UTC|GMT)$", "Z", s, flags=re.I)        # "2024-05-01 12:00:00 UTC"
+    s = re.sub(r"^(\d{4})/(\d{2})/(\d{2})", r"\1-\2-\3", s)  # "2024/05/01 12:00:00"
     try:
         d = datetime.fromisoformat(s.replace("Z", "+00:00"))
     except ValueError:

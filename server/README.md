@@ -1,6 +1,7 @@
 # CrossPaths - did our paths ever cross?
 
-Two people (friends or strangers) each upload their Google Timeline export. After both
+Two people (friends or strangers) each upload a location history: a Google Timeline export,
+GPX/TCX/FIT/KML/GeoJSON/CSV files from fitness or GPS apps, Swarm check-ins, or photo GPS points. After both
 accept a request and consent to a check, the app lists every place and time their paths
 crossed, on a map with an animated replay.
 

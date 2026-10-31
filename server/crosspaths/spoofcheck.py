@@ -15,7 +15,7 @@ import numpy as np
 
 from .geo import haversine_m
 
-RAW_SRC = ("record", "path")
+RAW_SRC = ("record", "path", "track")  # "track" = GPX/FIT/CSV-style recordings
 
 
 @dataclass
@@ -58,8 +58,11 @@ def assess(points) -> TrustReport:
         rdt = np.diff(rt)
         rd = haversine_m(rlat[:-1], rlon[:-1], rlat[1:], rlon[1:])
 
-        # 2. Metronomic timestamps.
-        gaps = rdt[(rdt >= 1) & (rdt <= 600)]
+        # 2. Metronomic timestamps. Not for workout/GPS-logger files: they log on a fixed clock
+        # by design (and are thinned to a fixed step on import), so regular gaps prove nothing.
+        logged = np.array([q.src != "track" for q in raw])
+        gdt = np.diff(rt[logged]) if logged.sum() > 1 else np.array([])
+        gaps = gdt[(gdt >= 1) & (gdt <= 600)]
         if len(gaps) >= 300:
             cv = float(gaps.std() / gaps.mean())
             metrics["interval_cv"] = round(cv, 3)
