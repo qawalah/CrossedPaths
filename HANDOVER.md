@@ -76,25 +76,18 @@ Main features:
 planned), `buildNumber` 4. Waiting on the owner's Apple Developer enrollment; plan was EAS build
 and then TestFlight. `eas.json` exists, but there's no EAS `projectId` yet.
 
-**Server:** version in `server/VERSION`, currently **0.12.0**, reported at `GET /api/config`.
+**Server:** version in `server/VERSION`, currently **0.12.1**, reported at `GET /api/config`.
 Entry point `server/wsgi.py` → `server.app:create_app()`. Run by gunicorn: 1 worker, 8 threads,
 port 8787.
 
 ## How it's built and run
 
 ### Server (Docker)
-```bash
-cd server
-docker compose up -d --build        # first time, or when requirements.txt / Dockerfile change
-```
-`docker-compose.yml` bind-mounts the code read-only:
-- `./server`
-- `./crosspaths`
-- `./wsgi.py`
-- `./VERSION`
-
-So **most updates are "copy those four in, restart the container"**, with no rebuild. Never touch
-`./data`.
+The image is built by `.github/workflows/release.yml` (DevStore) when `server/devstore.json`'s
+version is bumped on `main`, and published as `ghcr.io/qawalah/crosspaths:<version>` and
+`:latest` (linux/amd64, public). `server/docker-compose.yml` runs `:latest` with the Watchtower
+label, so **deploying is: bump the version, push to `main`; Watchtower installs it**. Code is not
+bind-mounted any more; only `./data` is mounted. Never touch `./data`.
 
 Tests (55 passing), from `server/`:
 ```bash
@@ -277,5 +270,5 @@ route files then. Separate workouts close together in place (within 200 m and 6 
 
 **Builds and deployment**
 - **APK:** arm64-only, minified, legacy packaging (about 18 MB).
-- **Server updates:** code is bind-mounted read-only so updates are "copy and restart". The
-  `data/` folder holds everything that matters.
+- **Server updates:** DevStore publishes the image to ghcr.io on a version bump; Watchtower
+  installs it. The `data/` folder holds everything that matters.
