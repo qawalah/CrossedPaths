@@ -1,0 +1,8 @@
+data/
+tests/
+samples/
+sample-timeline-testbuddy.json
+**/__pycache__/
+*.pyc
+.env
+.pytest_cache/

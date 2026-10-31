@@ -1,0 +1,46 @@
+# Fly.io config for the CrossPaths server. Deploy from this folder: `fly deploy`.
+# Setup steps are in DEPLOY-FLY.md.
+
+app = "crosspaths"            # must be unique on Fly; change it if taken
+primary_region = "fra"        # pick the region closest to your users (`fly platform regions`)
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  DATA_DIR = "/data"
+  ALLOW_REGISTRATION = "true"
+  MAP_STYLE_URL = "https://tiles.openfreemap.org/styles/liberty"
+  MAX_UPLOAD_MB = "80"
+  UPLOAD_TTL_HOURS = "24"
+  UPLOAD_KEEP_MAX_DAYS = "0"
+  RESULTS_TTL_DAYS = "14"
+  BLUR_M = "100"
+  PLACE_NAMES = "true"
+  # SECRET_KEY, DATA_KEY and INVITE_CODE are secrets: set them with `fly secrets set`.
+
+# SQLite + keys.json + uploads live here. Losing this volume signs everyone out
+# and makes stored uploads unreadable.
+[[mounts]]
+  source = "crosspaths_data"
+  destination = "/data"
+
+[http_service]
+  internal_port = 8787
+  force_https = true
+  # Never stop the machine: matching jobs and the purge loop run in background threads.
+  auto_stop_machines = "off"
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [[http_service.checks]]
+    grace_period = "20s"
+    interval = "60s"
+    timeout = "5s"
+    method = "GET"
+    path = "/api/config"
+
+# One machine only: SQLite on a single volume can't be shared.
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "1gb"
