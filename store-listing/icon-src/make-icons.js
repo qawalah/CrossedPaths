@@ -22,6 +22,7 @@ const targets = [
   ["server/server/static/icon-512.png", 512, "full"],
   ["server/server/static/icon-maskable-512.png", 512, "maskable"],
   ["store-listing/icon-512.png", 512, "full"],
+  ["store/icon.png", 512, "full"],
 ];
 for (const [d, m] of Object.entries(DENSITIES)) {
   targets.push([`${RES}/mipmap-${d}/ic_launcher.png`, 108 * m, "full"]);
