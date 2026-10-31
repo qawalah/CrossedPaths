@@ -19,3 +19,11 @@ mobile/ios/Pods/
 *.aab
 *.keystore
 *.jks
+
+# DevStore
+.gradle/
+build/
+local.properties
+.idea/
+*.iml
+.DS_Store

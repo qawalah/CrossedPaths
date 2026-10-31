@@ -36,11 +36,26 @@ cd android && ./gradlew assembleRelease -PreactNativeArchitectures=arm64-v8a \
 The Gradle build needs JDK 17–21, Android SDK 34, `android/local.properties` and
 `android/app/debug.keystore` (none of these are committed).
 
-## Versions
+## Releases (DevStore)
 
-- Server: `server/VERSION`. Add an entry to `server/CHANGELOG.md` when it changes.
-- Android: `versionCode` / `versionName` in both `mobile/app.json` and
-  `mobile/android/app/build.gradle`. Keep them in sync. `package.json`'s version is stale; ignore it.
+This repo is released through DevStore (`qawalah/devstore`). Pushing to `main` builds both
+parts (`.github/workflows/release.yml`); the push *is* the release. If the Release run fails,
+read its log in the Actions tab and fix it.
+
+- **Android:** bump `versionCode` (+1) and `versionName` in **both** `mobile/app.json` and
+  `mobile/android/app/build.gradle`, keeping them in sync. No bump means no release (the build
+  still runs as a check). CI signs the APK with the DevStore key and publishes tag
+  `android-v<name>+<code>`; Obtainium installs it. `package.json`'s version is stale; ignore it.
+  - **Never change `applicationId`** (`com.example.crosspaths`) without the user asking: the
+    phone treats it as a different app.
+  - Don't add a release `signingConfig` and don't commit keystores.
+  - CI checks out only the repo; `mobile/android/settings.gradle` runs `npm ci` when
+    `node_modules` is missing (also added by the config plugin, so prebuild keeps it).
+  - Keep `gradlew`, `gradlew.bat` and `gradle/wrapper/*` committed.
+- **Server (Docker):** bump `version` in `server/devstore.json` **and** `server/VERSION` (same
+  value), and add a `server/CHANGELOG.md` entry. CI builds the image, checks it turns healthy,
+  pushes `ghcr.io/qawalah/crosspaths` and tags `docker-v<version>`. The `Dockerfile` must keep
+  its `HEALTHCHECK`, `ARG VERSION` and no baked-in secrets.
 
 ## Don't undo
 
