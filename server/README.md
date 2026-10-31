@@ -75,7 +75,7 @@ Defaults: 100 m, 15 min, all adjustable per check. Measured: 52 weeks of synthet
 
 ```bash
 DATA_DIR=./data python3 -m flask --app wsgi run --port 8787      # dev
-docker compose up -d --build                                    # production (see DEPLOY.md)
+docker compose up -d                                            # production: pulls the ghcr.io image (see DEPLOY.md)
 ```
 
 ## API surface (implemented in server/app.py)
