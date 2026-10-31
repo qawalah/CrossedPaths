@@ -1,7 +1,11 @@
-// Draws the CrossPaths icon (map pin over a green/blue cross) and writes every PNG the
-// app, web client and store listing use. Run from the repo root:  node store-listing/icon-src/make-icons.js
-// Needs Playwright + Chromium (preinstalled in Claude cloud sessions; otherwise `npm i playwright`).
+// Renders the CrossPaths icon and writes every PNG the app, web client and store listing use.
+// Run from the repo root:
+//   node store-listing/icon-src/make-icons.js --design trails         write all icon files
+//   node store-listing/icon-src/make-icons.js --preview sheet.png     compare every design
+// Designs live in designs.js. Needs Playwright + Chromium (preinstalled in Claude cloud
+// sessions; elsewhere `npm i playwright && npx playwright install chromium`).
 const fs = require("fs");
+const zlib = require("zlib");
 const path = require("path");
 const { chromium } = require("playwright");
 
@@ -9,15 +13,11 @@ const ROOT = path.resolve(__dirname, "../..");
 const RES = "mobile/android/app/src/main/res";
 const DENSITIES = { mdpi: 1, hdpi: 1.5, xhdpi: 2, xxhdpi: 3, xxxhdpi: 4 };
 
-// kind: full = artwork on navy square; round = same, clipped to a circle;
-// adaptive = artwork shrunk into Android's 66/108 safe zone; maskable = web maskable safe zone;
-// notify = white silhouette on transparent (Android tints notification icons).
-// alpha: keep transparency (otherwise flattened to RGB like the originals).
 const targets = [
-  ["mobile/assets/icon.png", 1024, "full"],
+  ["mobile/assets/icon.png", 1024, "full", "rgb"], // Expo uses this for iOS too
   ["mobile/assets/adaptive-icon.png", 1024, "adaptive"],
-  ["mobile/assets/notification-icon.png", 48, "notify"],
-  ["mobile/ios/CrossPaths/Images.xcassets/AppIcon.appiconset/App-Icon-1024x1024@1x.png", 1024, "full"],
+  ["mobile/assets/notification-icon.png", 48, "mono"],
+  ["mobile/ios/CrossPaths/Images.xcassets/AppIcon.appiconset/App-Icon-1024x1024@1x.png", 1024, "full", "rgb"], // iOS rejects alpha
   ["server/server/static/icon-192.png", 192, "full"],
   ["server/server/static/icon-512.png", 512, "full"],
   ["server/server/static/icon-maskable-512.png", 512, "maskable"],
@@ -27,74 +27,81 @@ for (const [d, m] of Object.entries(DENSITIES)) {
   targets.push([`${RES}/mipmap-${d}/ic_launcher.png`, 108 * m, "full"]);
   targets.push([`${RES}/mipmap-${d}/ic_launcher_round.png`, 108 * m, "round"]);
   targets.push([`${RES}/mipmap-${d}/ic_launcher_foreground.png`, 108 * m, "adaptive"]);
-  targets.push([`${RES}/drawable-${d}/notification_icon.png`, 24 * m, "notify"]);
+  targets.push([`${RES}/drawable-${d}/notification_icon.png`, 24 * m, "mono"]);
 }
 
-// Runs in the browser. Design grid is 1024 x 1024.
-function draw(size, kind) {
-  const BG = "#0b1220", GREEN = "#22c55e", BLUE = "#3b82f6";
-  const PIN_TOP = "#f25c4a", PIN_BOT = "#d93025", PIN_DOT = "#8f1d14";
-  const c = document.createElement("canvas");
-  c.width = c.height = size;
-  const g = c.getContext("2d");
-
-  // Artwork layer: gaps are cut out (transparent) so they show whatever sits behind.
-  const L = document.createElement("canvas");
-  L.width = L.height = size;
-  const a = L.getContext("2d");
-  const k = { full: 1, round: 0.92, adaptive: 0.68, maskable: 0.88, notify: 1.12 }[kind];
-  a.scale(size / 1024, size / 1024);
-  a.translate(512, 512); a.scale(k, k); a.translate(-512, -512);
-  a.translate(0, -40); // optically centre pin + cross
-  a.lineCap = "round";
-
-  const line = (x1, y1, x2, y2, w, color, cut) => {
-    a.globalCompositeOperation = cut ? "destination-out" : "source-over";
-    a.strokeStyle = color; a.lineWidth = w;
-    a.beginPath(); a.moveTo(x1, y1); a.lineTo(x2, y2); a.stroke();
-  };
-  // Cross: two paths meeting at (512, 760). Blue passes over green.
-  line(252, 650, 772, 870, 62, GREEN);
-  line(772, 650, 252, 870, 62 + 44, "#000", true);
-  line(772, 650, 252, 870, 62, BLUE);
-
-  // Pin: Material "place" shape (24-unit grid), tip at (512, 760).
-  const s = 26;
-  const pin = new Path2D("M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z");
-  a.save();
-  a.translate(512 - 12 * s, 760 - 22 * s); a.scale(s, s);
-  a.globalCompositeOperation = "destination-out";
-  a.lineWidth = 0.9; a.lineJoin = "round"; a.stroke(pin); // gap around the pin
-  a.globalCompositeOperation = "source-over";
-  const grad = a.createLinearGradient(0, 2, 0, 22);
-  grad.addColorStop(0, PIN_TOP); grad.addColorStop(1, PIN_BOT);
-  a.fillStyle = grad; a.fill(pin);
-  a.beginPath(); a.arc(12, 9, 2.6, 0, Math.PI * 2);
-  if (kind === "notify") a.globalCompositeOperation = "destination-out";
-  a.fillStyle = PIN_DOT; a.fill();
-  a.restore();
-
-  if (kind === "notify") {
-    g.drawImage(L, 0, 0);
-    g.globalCompositeOperation = "source-in";
-    g.fillStyle = "#fff"; g.fillRect(0, 0, size, size);
-    return c.toDataURL("image/png");
+// Encodes RGBA pixels as an RGB PNG (no alpha channel) for icons that must be opaque.
+function rgbPng(rgba, w, h) {
+  const raw = Buffer.alloc((w * 3 + 1) * h);
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const i = (y * w + x) * 4, o = y * (w * 3 + 1) + 1 + x * 3;
+    raw[o] = rgba[i]; raw[o + 1] = rgba[i + 1]; raw[o + 2] = rgba[i + 2];
   }
-  if (kind === "round") { g.beginPath(); g.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2); g.clip(); }
-  const bg = g.createRadialGradient(size / 2, size * 0.42, 0, size / 2, size / 2, size * 0.72);
-  bg.addColorStop(0, "#16243f"); bg.addColorStop(1, BG);
-  g.fillStyle = bg; g.fillRect(0, 0, size, size);
-  g.drawImage(L, 0, 0);
-  return c.toDataURL("image/png");
+  const crcTable = Array.from({ length: 256 }, (_, n) => { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1; return c >>> 0; });
+  const crc = b => { let c = 0xffffffff; for (const v of b) c = crcTable[(c ^ v) & 255] ^ (c >>> 8); return (c ^ 0xffffffff) >>> 0; };
+  const chunk = (type, data) => { const t = Buffer.concat([Buffer.from(type), data]); const len = Buffer.alloc(4); len.writeUInt32BE(data.length); const c = Buffer.alloc(4); c.writeUInt32BE(crc(t)); return Buffer.concat([len, t, c]); };
+  const ihdr = Buffer.alloc(13); ihdr.writeUInt32BE(w, 0); ihdr.writeUInt32BE(h, 4); ihdr[8] = 8; ihdr[9] = 2;
+  return Buffer.concat([Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]), chunk("IHDR", ihdr), chunk("IDAT", zlib.deflateSync(raw)), chunk("IEND", Buffer.alloc(0))]);
+}
+
+// Comparison sheet: each design as the store icon, under Android launcher masks, at home-screen
+// size on dark and light wallpaper, and as a notification glyph.
+function buildSheet() {
+  const img = (name, size, kind, css = "") => {
+    const i = new Image(); i.src = renderIcon(name, size * 2, kind).toDataURL(); i.style.cssText = `width:${size}px;height:${size}px;${css}`; return i;
+  };
+  const el = (tag, css, kids = []) => { const e = document.createElement(tag); e.style.cssText = css; kids.forEach(k => e.append(k)); return e; };
+  const cell = (caption, node, bg = "transparent") => el("div", "display:flex;flex-direction:column;align-items:center;gap:10px", [
+    el("div", `display:grid;place-items:center;width:200px;height:200px;border-radius:20px;background:${bg}`, [node]),
+    Object.assign(el("div", "font:500 13px/1.3 Inter,system-ui;color:#8a97b4"), { textContent: caption }),
+  ]);
+  document.body.style.cssText = "margin:0;background:#0f1729;padding:40px 48px;display:flex;flex-direction:column;gap:36px";
+  Object.entries(ICON_DESIGNS).forEach(([name, d], n) => {
+    const home = (wall, fg) => el("div", "display:flex;gap:22px;align-items:flex-start", [56, 40].map(s =>
+      el("div", "display:flex;flex-direction:column;align-items:center;gap:6px", [img(name, s, "adaptive", "border-radius:50%"),
+        Object.assign(el("div", `font:500 11px Inter,system-ui;color:${fg}`), { textContent: s + "dp" })])));
+    const notif = el("div", "display:flex;gap:18px;align-items:center", [24, 48].map(s => img(name, s, "mono")));
+    document.body.append(el("section", "display:flex;align-items:center;gap:28px", [
+      Object.assign(el("div", "width:180px;font:700 22px/1.2 Inter,system-ui;color:#e8eefc"), { textContent: `${n + 1}. ${d.label}` }),
+      cell("Store / full", img(name, 180, "full", "border-radius:36px")),
+      cell("Adaptive · circle", img(name, 150, "adaptive", "border-radius:50%")),
+      cell("Adaptive · squircle", img(name, 150, "adaptive", "border-radius:34%")),
+      cell("Home screen · dark", home("#1e293b", "#cbd5e1"), "linear-gradient(160deg,#334155,#0f172a)"),
+      cell("Home screen · light", home("#e2e8f0", "#334155"), "linear-gradient(160deg,#f8fafc,#cbd5e1)"),
+      cell("Notification", notif, "#1f2937"),
+    ]));
+  });
 }
 
 (async () => {
+  const arg = (f) => { const i = process.argv.indexOf(f); return i > 0 ? process.argv[i + 1] : null; };
+  const design = arg("--design"), preview = arg("--preview");
+  if (!design && !preview) { console.error("usage: make-icons.js --design <name> | --preview <out.png>"); process.exit(1); }
   const browser = await chromium.launch();
-  const page = await browser.newPage();
-  for (const [rel, size, kind] of targets) {
-    const url = await page.evaluate(([fn, s, k]) => new Function(`return (${fn})`)()(s, k), [draw.toString(), size, kind]);
-    fs.writeFileSync(path.join(ROOT, rel), Buffer.from(url.split(",")[1], "base64"));
-    console.log(`${rel}  ${size}px  ${kind}`);
+  const page = await browser.newPage({ viewport: { width: 1640, height: 900 } });
+  await page.setContent("<!doctype html><meta charset=utf-8><body></body>");
+  await page.addScriptTag({ path: path.join(__dirname, "designs.js") });
+  if (preview) {
+    await page.evaluate(`(${buildSheet})()`);
+    await page.waitForTimeout(300);
+    await page.screenshot({ path: path.resolve(preview), fullPage: true });
+    console.log("wrote", preview);
+  }
+  if (design) {
+    const known = await page.evaluate(() => Object.keys(ICON_DESIGNS));
+    if (!known.includes(design)) throw new Error(`unknown design "${design}"; pick one of ${known.join(", ")}`);
+    for (const [rel, size, kind, format] of targets) {
+      let out;
+      if (format === "rgb") {
+        const px = await page.evaluate(([d, s, k]) => Array.from(renderIcon(d, s, k).getContext("2d").getImageData(0, 0, s, s).data), [design, size, kind]);
+        out = rgbPng(px, size, size);
+      } else {
+        const url = await page.evaluate(([d, s, k]) => renderIcon(d, s, k).toDataURL("image/png"), [design, size, kind]);
+        out = Buffer.from(url.split(",")[1], "base64");
+      }
+      fs.writeFileSync(path.join(ROOT, rel), out);
+    }
+    console.log(`wrote ${targets.length} files for "${design}"`);
   }
   await browser.close();
 })();
