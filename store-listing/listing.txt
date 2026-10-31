@@ -1,0 +1,57 @@
+CROSSPATHS - GOOGLE PLAY LISTING
+================================
+
+App name (max 30)
+-----------------
+CrossPaths: When Paths Crossed
+
+Short description (max 80)
+--------------------------
+See when you and a friend were in the same place, from your location timelines.
+
+Full description (max 4000)
+---------------------------
+Ever wondered whether you and someone you know were in the same café, mall or street long before you met? CrossPaths compares your location history with a friend's and shows you every time your paths crossed.
+
+HOW IT WORKS
+- Export your Timeline from Google Maps (or build one from the location saved in your photos) and upload it.
+- Connect with a friend by username, or scan each other's code when you're together.
+- You both agree, and CrossPaths finds every time you were within 100 metres of each other within the same 15 minutes.
+
+WHAT YOU SEE
+- A summary first: how many times you crossed, on how many days, for how long in total, and your longest crossing.
+- Where you cross most, by place and by city, with a heat map that shows your hot spots and breaks into individual crossings as you zoom in.
+- When it happens: by month, time of day and day of the week.
+- Three kinds of crossing: same place (you were both there), crossed paths (you passed through the same spot) and travelled together (same road, bus or train at the same time).
+- Open any crossing to see where it was, and replay your own path in the hours around it.
+- Filter by type, year, city, place or length, and sort by newest, oldest or longest.
+
+PRIVATE BY DESIGN
+- Runs on your own server (for example a home NAS), not on someone else's cloud.
+- Nothing is compared until both people agree to each check.
+- You only ever see your own path. The other person sees only when and roughly where you crossed, never your route.
+- Times are rounded to 15 minutes and places blurred to about 100 metres. Home and work areas are detected and left out automatically.
+- Your uploaded timeline is encrypted and deleted after 24 hours, unless you choose to keep it for 7 days, 30 days or until you delete it.
+- Flights are never matched.
+
+ALSO
+- Meet in person: scan a QR code, share an invite link or shake phones to connect and run the check in one go.
+- My Timeline: browse your own history by year, month and day on a map, and search for every visit to a place.
+- Light and dark themes with five accent colours.
+- Works at home and away: give the app your server's home address and its Tailscale address and it switches automatically.
+
+CrossPaths needs a CrossPaths server. The server is free and runs in Docker; setup takes a few minutes on a Synology or any home server.
+
+CrossPaths is not affiliated with or endorsed by Google. Google Maps is a trademark of Google LLC.
+
+Screenshot captions (in order)
+------------------------------
+01-summary   See every time your paths crossed
+02-map-city  Find the places you both keep going
+03-detail    Replay how you got there
+04-filter    Narrow it down by year, city or type
+05-qr        Together right now? Scan a code
+06-settings  Runs on your own server
+
+Suggested category: Lifestyle (alternative: Social)
+Suggested tags: location history, timeline, friends, maps, privacy

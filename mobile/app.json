@@ -1,0 +1,93 @@
+{
+  "expo": {
+    "name": "CrossPaths",
+    "slug": "crosspaths",
+    "version": "1.6.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "backgroundColor": "#0b1220",
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash.png",
+      "backgroundColor": "#0b1220",
+      "resizeMode": "contain"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.example.crosspaths",
+      "config": {
+        "usesNonExemptEncryption": false
+      },
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Used only to center the map on places relevant to your check results. Your Timeline export, not live location, is what gets compared.",
+        "UIBackgroundModes": [
+          "remote-notification"
+        ],
+        "NSAppTransportSecurity": {
+          "NSAllowsLocalNetworking": true,
+          "NSAllowsArbitraryLoads": true
+        }
+      },
+      "buildNumber": "4"
+    },
+    "android": {
+      "package": "com.example.crosspaths",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0b1220"
+      },
+      "permissions": [
+        "NOTIFICATIONS"
+      ],
+      "usesCleartextTraffic": true,
+      "versionCode": 7
+    },
+    "plugins": [
+      "expo-secure-store",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#2dd4bf"
+        }
+      ],
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "Used to scan your photo library for geotagged photos, so you can build a location timeline from them without exporting a Google Timeline file. Nothing leaves your device except the points you choose to upload.",
+          "savePhotosPermission": false,
+          "isAccessMediaLocationEnabled": true
+        }
+      ],
+      "@maplibre/maplibre-react-native",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Used to scan another person's CrossPaths code when you meet in person.",
+          "microphonePermission": false,
+          "recordAudioAndroid": false
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Used only while you shake phones together to connect, so the server can tell your two phones were in the same place. Not stored."
+        }
+      ],
+      [
+        "expo-sensors",
+        {
+          "motionPermission": "Used to notice when you shake your phone to connect with someone next to you."
+        }
+      ],
+      "./plugins/withCrossPathsAndroid"
+    ],
+    "extra": {
+      "apiUrl": "https://your-nas-or-tunnel-address.example.com"
+    },
+    "scheme": "crosspaths"
+  }
+}

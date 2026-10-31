@@ -1,0 +1,33 @@
+services:
+  crosspaths:
+    build: .
+    container_name: crosspaths
+    restart: unless-stopped
+    ports:
+      - "8787:8787"
+    environment:
+      INVITE_CODE: ${INVITE_CODE:-}
+      ALLOW_REGISTRATION: ${ALLOW_REGISTRATION:-true}
+      MAP_STYLE_URL: ${MAP_STYLE_URL:-https://tiles.openfreemap.org/styles/liberty}
+      MAX_UPLOAD_MB: ${MAX_UPLOAD_MB:-80}
+      UPLOAD_TTL_HOURS: ${UPLOAD_TTL_HOURS:-24}          # default for new accounts; each user can change theirs
+      UPLOAD_KEEP_MAX_DAYS: ${UPLOAD_KEEP_MAX_DAYS:-0}   # longest a user may keep uploads (0 = no limit, "until I delete it" allowed)
+      RESULTS_TTL_DAYS: ${RESULTS_TTL_DAYS:-14}
+      BLUR_M: ${BLUR_M:-100}
+      # Offline neighbourhood/city names for crossings. Downloads GeoNames place lists once
+      # into ./data/places (world towns ~40 MB, plus one small file per country you cross in).
+      PLACE_NAMES: ${PLACE_NAMES:-true}
+    volumes:
+      - ./data:/data
+      # Code is bind-mounted read-only so most updates are copy-files-and-restart, no
+      # rebuild needed. Rebuild (docker compose build) only when requirements.txt changes.
+      - ./server:/app/server:ro
+      - ./crosspaths:/app/crosspaths:ro
+      - ./wsgi.py:/app/wsgi.py:ro
+      - ./VERSION:/app/VERSION:ro
+    mem_limit: 900m
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8787/api/config', timeout=3)"]
+      interval: 60s
+      timeout: 5s
+      retries: 3

@@ -1,0 +1,165 @@
+# Changelog
+
+All notable changes to CrossPaths are listed here, newest first. Versioning is
+`MAJOR.MINOR.PATCH`: MAJOR for breaking changes (e.g. a database format change with no
+migration), MINOR for new features, PATCH for bugfixes. Pre-1.0, expect MINOR bumps often.
+
+To check what's running on your server, visit `/api/config` — it reports the running
+`version`. That's the number to compare against this file when deciding whether to update.
+
+## 0.11.1
+- **App: home address + Tailscale, switching automatically.** Account → Server addresses now
+  takes your NAS's home address and (optionally) its Tailscale address. With "Switch
+  automatically" on, the app uses home when it answers and Tailscale when it doesn't - checked
+  when the app opens, when you return to it, and whenever the server can't be reached (a request
+  that fails is retried on the other address, unless it may already have reached the server).
+  **Test** checks both addresses. Setup steps: DEPLOY-SYNOLOGY.md, section 2.
+- `/api/config` now includes `instance`, a value derived from the server's secret key that's the
+  same at every address of one server. The app only switches between addresses of the same
+  server, so your sign-in is never sent to a different one.
+
+## 0.11.0
+- **New: choose how long your uploaded timeline is kept.** 24 hours (still the default), 7 days,
+  30 days, or until you delete it - in the app's Account tab, or Settings (the gear) on the web.
+  It applies to timelines you've already uploaded too; choosing a shorter time deletes older
+  ones straight away. Server owners can cap it with `UPLOAD_KEEP_MAX_DAYS` (0 = no limit).
+- **New: themes.** Light, dark or follow the system, plus five accent colours. Saved per device.
+- The three kinds of crossing now have simple line icons instead of emoji.
+- Filter chips sit on one line per group and scroll sideways, with fading edges and arrows
+  when there's more to see.
+- Fixed (web): the grip on the filter and legend sheets had disappeared.
+
+## 0.10.0
+- **Results: the list is now a sheet you can drag.** Pull it up to cover most of the screen,
+  push it down so the map fills the screen and only its header shows, or tap the grip to step
+  between the three heights. The map always frames what you're looking at in the part the
+  sheet leaves visible.
+- **Tapping a crossing now opens it properly.** Its details replace the list (place, street
+  lookup, how far apart you were, your path and replay), with "‹ All crossings" to go back
+  to where you were in the list.
+- **A real heat map.** Lone crossings are a faint glow and only real clusters burn red; the
+  heat fades out by zoom ~10.5 and the individual dots fade in before that. Clicking a hot spot
+  while zoomed out zooms into it instead of opening a random crossing.
+- The place-accuracy area is a thin dashed ring instead of an orange blob; dots are coloured
+  by type.
+- **Places in the middle of nowhere get a name** like "91 km SE of Rumāḩ" instead of
+  "Unnamed area". Crossings that were saved unnamed are named again on the next view
+  (automatic, one-time). If no name can be found, the coordinates are shown.
+- Results saved before 0.7 had no path of your own; opening one now says so and suggests
+  running the check again (it used to say no path was recorded).
+- Fixed: after zooming into a hot spot, opening a crossing could leave the map where it was.
+
+## 0.9.0
+- **New: results open on a summary dashboard.** A big headline count, then tiles for days you
+  crossed (and the busiest day), total time together, distinct places and the longest
+  crossing; the split by type; where you cross most and which cities; crossings per month (or
+  year); time of day and day of week ("most often on Thursdays around 6 pm"); and highlights
+  (longest, first, most recent). Every chart has a table view, values on hover/tap, and taps
+  drill into the map: a place, a city or a type opens the map filtered to it; a highlight
+  opens that crossing. "Map & list" is one tap away.
+
+## 0.8.0
+- **New: meet in person.** Show a QR code (or share an invite link) for the other person to
+  scan, or shake your phones together. You're connected and - if you both have a timeline
+  uploaded - the check runs straight away, no request/accept/consent round trips. Doing it
+  together on a screen that says exactly that is both people agreeing. Codes are single-use
+  and expire after 10 minutes. Shakes are matched by time (within 4 s) and place (using
+  each phone's GPS accuracy); if several people shake at once nearby, nobody is paired and
+  you're told to use the QR code. Shake locations are deleted within minutes.
+  New endpoints: `POST /api/pair/code`, `GET /api/pair/code/<code>`, `POST /api/pair/redeem`,
+  `POST /api/pair/shake`, `GET /api/pair/shake/<id>`, and invite links at `/pair/<code>`.
+- **New: place names.** Every crossing is labelled with its neighbourhood and city (and a
+  nearby landmark such as an airport or mall), e.g. "Al Murūj, Riyadh", with Arabic names
+  when the phone/browser is set to Arabic. Names come from GeoNames files stored on the
+  server (downloaded once into `data/places`; nothing about users is sent anywhere). Set
+  `PLACE_NAMES=false` to turn this off. Older results get names the first time they're opened.
+  "Show street name" on a crossing asks OpenStreetMap, only when you tap it.
+- **New: filters, sorting and a heatmap** for results with many crossings: filter by type,
+  year, city, minimum duration, text, or "only what's on the map"; sort by newest, oldest or
+  longest. Zoomed out, the map shows a heatmap of where you cross most.
+- **Changed:** the types are now "Same place", "Crossed paths" (was "Passed each other") and
+  "Travelled together" (was "Same route"), with a "?" that explains each.
+- **Fixed:** dates on Arabic-language devices mixed Hijri dates and Arabic digits into the
+  English interface; dates now follow the interface language.
+- DB: adds `place`, `place_ar`, `landmark`, `landmark_ar` to `crossing_events` (migrated
+  automatically on start) and the `pair_codes` and `shakes` tables.
+
+## 0.7.0
+- **Fixed:** crossings in the middle of nowhere. Two people on the same flight produced a
+  "Same route" crossing whose marker sat at the average of a 5,000 km flight path (e.g. in
+  the Sahara). Anything faster than ~250 km/h is now treated as a flight and never matched;
+  you still match at the airport if you were both there. Moving crossings are now placed
+  where you were actually at the same spot at the same time, not at an average position.
+- **Fixed:** the same encounter listed twice ("Same place 21:30–22:15" next to "Passed each
+  other 22:00–22:15"). Crossings whose rounded time windows overlap are merged into one.
+- **Fixed:** a long day spent together at one place was labelled "Same route" because the
+  two commutes in it outweighed hours of sitting still. The kind now uses time-weighted speed.
+- **Changed:** results no longer replay your entire history on one map. Your own path is
+  stored only for a few hours around each crossing (`GET /api/checks/<id>/my-track` now
+  returns `{"windows": [...]}`), and both apps show the crossings first, grouped by day,
+  then your path around whichever crossing you open. Results computed by older versions are
+  converted on the fly.
+- **Fixed:** "My Timeline" days were UTC days, so in Riyadh (UTC+3) anything between
+  midnight and 03:00 showed up on the previous day. `/summary` and `/day` accept `tz`
+  (minutes east of UTC) and the apps send the device's offset.
+- **Fixed:** days spent in one place (often only one point in a semantic export) showed "no
+  points recorded". Single-point stays are kept and drawn as dots.
+- **Fixed (web):** the page content started below a full screen of empty space on every
+  tab (an unclosed `<header>` tag); the results map could be squeezed to zero height by a
+  long crossing list; list rows took ~20 s to fade in with hundreds of crossings.
+
+## 0.6.0
+- **New:** "My Timeline" is now its own tab (renamed the old one to "Uploads"). It replaces
+  the old day-chip list with a year → month → day drill-down you can operate as one
+  continuous drag: press on a year, drag down through a month, release on a day, and it
+  loads immediately — or just tap through one level at a time. This scales to many years of
+  data because only counts are fetched up front (`GET /api/uploads/<id>/summary`) and a
+  day's actual points are fetched only when you open that day (`GET .../day?date=`),
+  instead of the old approach of loading the entire history at once.
+- **New:** place search — tap a point on the map (private, stays on your server) or type a
+  place name (uses OpenStreetMap's search, clearly labeled since that sends your search text
+  to a third party) to see every time your timeline passed within a chosen radius of it.
+  Backed by `GET /api/uploads/<id>/visits`.
+- **New:** a "Live" toggle on the My Timeline map shows your current position via the
+  browser's location — useful on a phone. Requires HTTPS (see DEPLOY-SYNOLOGY.md); most
+  browsers refuse geolocation on a plain `http://` LAN address. Comparing your live position
+  against past visits automatically isn't built yet — for now, use place search for that.
+- **Fixed:** the sign-in screen no longer requires scrolling to reach the password field and
+  button on shorter phone screens, and any focused field now scrolls above the on-screen
+  keyboard automatically, everywhere in the app.
+- **Removed:** `GET /api/uploads/<id>/track` (the old whole-history endpoint) — superseded
+  by `/summary` + `/day` above.
+
+## 0.5.0
+- **New:** "View on map" on each uploaded timeline — a solo view with day chips across the
+  top and a scrubber that replays your own path for that day. No other person involved.
+- **New:** `GET /api/uploads/<id>/track` endpoint backing the above.
+- **Deploy:** `server/`, `crosspaths/`, and `wsgi.py` are now bind-mounted into the container
+  (see docker-compose.yml) instead of baked in at build time. Most updates from here on are
+  copy-the-changed-files-and-restart — no rebuild needed. Rebuild is only required when
+  `requirements.txt` changes (a new Python package).
+
+## 0.4.0
+- **New:** native iOS/Android app (separate `crosspaths-app/` Expo project) — same API,
+  same account, adds a real map (`react-native-maps`) and push notifications.
+- **New:** push notifications via Expo's push service for connection requests, acceptances,
+  and finished checks. Added `POST /api/devices` / `DELETE /api/devices` and a `devices`
+  table to register a phone's push token.
+
+## 0.3.0
+- **New:** `crosspaths/secure.py` — a working prototype of the "no raw timeline ever leaves
+  the phone" matching mode from the roadmap (ECDH key exchange + HMAC token intersection).
+  Not yet wired into the server; a standalone module with its own tests.
+
+## 0.2.0
+- **New:** Flask + SQLite server (`server/`), installable web app (PWA) in `server/static/`,
+  Docker + Synology deployment (`Dockerfile`, `docker-compose.yml`, `DEPLOY-SYNOLOGY.md`).
+  Consent-gated checks, encrypted-at-rest uploads, auto-purge, rate limits, spoof-trust
+  labels surfaced to the counterpart.
+
+## 0.1.0
+- **Initial:** the matching engine — `crosspaths/parser.py` (reads all three known Google
+  Timeline export formats), `matcher.py` (distance/time crossing detection), `privacy.py`
+  (home/work zone exclusion, result blurring), `spoofcheck.py` (fake-timeline heuristics),
+  a CLI, a Postgres/PostGIS schema for a future scaled-up version, and the synthetic-data
+  test suite.

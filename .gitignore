@@ -1,0 +1,21 @@
+# server
+server/data/
+__pycache__/
+.pytest_cache/
+*.pyc
+.env
+
+# mobile
+mobile/node_modules/
+mobile/.expo/
+mobile/android/.gradle/
+mobile/android/build/
+mobile/android/app/build/
+mobile/android/app/.cxx/
+mobile/android/react-settings-plugin/build/
+mobile/android/local.properties
+mobile/ios/Pods/
+*.apk
+*.aab
+*.keystore
+*.jks

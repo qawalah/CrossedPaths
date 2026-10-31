@@ -1,0 +1,1514 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b1220">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/static/icon-192.png">
+<link rel="apple-touch-icon" href="/static/icon-192.png">
+<title>CrossPaths</title>
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
+<style>
+:root{--bg:#0b1220;--panel:#121a2b;--panel2:#18233a;--line:#25324d;--text:#e8eefc;--muted:#8a97b4;--accent:#2dd4bf;--accent-g:#22b8cf;--onaccent:#04222a;--accent2:#60a5fa;--warn:#f59e0b;--bad:#f87171;--good:#4ade80;--r:16px;
+  --chrome:rgba(18,26,43,.94);--chip:rgba(11,18,32,.82);--toast:#1d2942;--kb:#1d2840;--ic:#22304d;--hover:#1e2b46;--live:#1c3a3a;--scrim:rgba(3,6,12,.6);--shadow:rgba(0,0,0,.35);
+  --warnbg:#3a2d10;--warnbd:#6b4a0f;--warntx:#ffd58a;--badbg:#3a1a22;--badbd:#5a2531;--badtx:#ffc9c9;--goodbd:#1f5a37;--runbd:#24457a;--hit:rgba(255,255,255,.06);
+  --sat:env(safe-area-inset-top,0px);--sab:env(safe-area-inset-bottom,0px);color-scheme:dark}
+:root[data-theme=light]{--bg:#f3f5fa;--panel:#ffffff;--panel2:#eef1f7;--line:#dbe1ec;--text:#0f172a;--muted:#5b6578;--accent2:#2563eb;--warn:#b45309;--bad:#dc2626;--good:#15803d;
+  --chrome:rgba(255,255,255,.94);--chip:rgba(255,255,255,.94);--toast:#ffffff;--kb:#eef2fa;--ic:#e6ebf5;--hover:#e7ecf6;--live:#d8f3ee;--scrim:rgba(15,23,42,.35);--shadow:rgba(15,23,42,.14);
+  --warnbg:#fff4dc;--warnbd:#f1c77a;--warntx:#7a4a00;--badbg:#fdecee;--badbd:#f3b4bc;--badtx:#9f1d2c;--goodbd:#b7e4c7;--runbd:#bfd3fb;--hit:rgba(15,23,42,.06);color-scheme:light}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+button,input,select{font:inherit;color:inherit}
+h1,h2,h3{margin:0}
+#app{height:100%;display:flex;flex-direction:column;padding-top:var(--sat)}
+header.top{padding:14px 18px 6px;display:flex;align-items:center;justify-content:space-between}
+.brand{font-weight:800;letter-spacing:.2px;font-size:20px;display:flex;align-items:center;gap:8px}
+.brand i{width:26px;height:26px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:inline-block;position:relative}
+.brand i:before,.brand i:after{content:"";position:absolute;background:var(--bg);border-radius:2px}
+.brand i:before{left:5px;right:5px;top:11px;height:4px;transform:rotate(35deg)}
+.brand i:after{left:5px;right:5px;top:11px;height:4px;transform:rotate(-35deg)}
+#view{flex:1;overflow:auto;padding:8px 16px 96px;-webkit-overflow-scrolling:touch}
+nav.tabs{position:fixed;left:0;right:0;bottom:0;display:flex;background:var(--chrome);backdrop-filter:blur(12px);border-top:1px solid var(--line);padding-bottom:var(--sab);z-index:5}
+nav.tabs button{flex:1;background:none;border:0;padding:10px 4px 9px;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:2px;font-size:12px;position:relative}
+nav.tabs button svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+nav.tabs button.on{color:var(--accent)}
+nav.tabs .dot{position:absolute;top:6px;right:calc(50% - 20px);min-width:16px;height:16px;border-radius:8px;background:var(--bad);color:#fff;font-size:10px;display:flex;align-items:center;justify-content:center;padding:0 4px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin:10px 0;animation:rise .35s ease both}
+.card h3{font-size:16px;margin-bottom:4px}
+.muted{color:var(--muted)}.small{font-size:12.5px}
+.row{display:flex;align-items:center;gap:10px}.grow{flex:1;min-width:0}.between{justify-content:space-between}
+.btn{border:0;border-radius:12px;padding:11px 16px;font-weight:650;background:linear-gradient(135deg,var(--accent),var(--accent-g));color:var(--onaccent);cursor:pointer;transition:transform .12s,opacity .2s}
+.btn:active{transform:scale(.97)}.btn[disabled]{opacity:.5}
+.btn.ghost{background:var(--panel2);color:var(--text);border:1px solid var(--line)}
+.btn.bad{background:var(--badbg);color:var(--bad);border:1px solid var(--badbd)}
+.btn.sm{padding:7px 12px;font-size:13px;border-radius:10px}
+input[type=text],input[type=password],input[type=date],select{width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:11px 12px;outline:none}
+input:focus,select:focus{border-color:var(--accent)}
+input[type=range]{width:100%;accent-color:var(--accent)}
+label{display:block;margin:12px 0 5px;font-size:13px;color:var(--muted)}
+a{color:var(--accent2)}
+.pill{display:inline-block;padding:2px 9px;border-radius:99px;font-size:12px;font-weight:600;border:1px solid var(--line);background:var(--panel2)}
+.pill.high,.pill.done{color:var(--good);border-color:var(--goodbd)}.pill.medium,.pill.awaiting_consent,.pill.pending{color:var(--warn);border-color:var(--warnbd)}
+.pill.low,.pill.failed,.pill.declined,.pill.expired{color:var(--bad);border-color:var(--badbd)}.pill.insufficient{color:var(--muted)}
+.pill.running{color:var(--accent2);border-color:var(--runbd)}
+.hero{padding:22px 4px 6px}.hero h1{font-size:26px;line-height:1.15}.hero p{color:var(--muted);margin:8px 0 0}
+.drop{border:1.5px dashed var(--line);border-radius:14px;padding:20px;text-align:center;color:var(--muted);cursor:pointer;transition:border-color .2s,background .2s}
+.drop:hover,.drop.over{border-color:var(--accent);background:rgba(45,212,191,.06)}
+.spin{width:18px;height:18px;border:2.5px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;display:inline-block;vertical-align:-4px}
+.pulse-dot{width:9px;height:9px;border-radius:50%;background:var(--accent2);display:inline-block;animation:blink 1.2s ease-in-out infinite}
+.toast{position:fixed;left:16px;right:16px;bottom:calc(84px + var(--sab));background:var(--toast);border:1px solid var(--line);padding:12px 14px;border-radius:12px;z-index:50;animation:rise .25s ease both;box-shadow:0 8px 30px var(--shadow)}
+.toast.err{border-color:var(--badbd);color:var(--badtx)}
+.sheet-bg{position:fixed;inset:0;background:var(--scrim);z-index:20;opacity:0;transition:opacity .25s}
+.sheet-bg.on{opacity:1}
+.sheet{position:fixed;left:0;right:0;bottom:0;max-height:88%;overflow:auto;background:var(--panel);border-top:1px solid var(--line);border-radius:22px 22px 0 0;padding:18px 18px calc(22px + var(--sab));z-index:21;transform:translateY(100%);transition:transform .32s cubic-bezier(.2,.9,.25,1)}
+.sheet.on{transform:none}
+.grip{width:40px;height:4px;background:var(--line);border-radius:4px;margin:-6px auto 14px}
+.auth{max-width:420px;margin:0 auto;padding:10px 0 40px}
+.seg{display:flex;background:var(--panel2);border-radius:12px;padding:3px;margin:14px 0}
+.seg button{flex:1;border:0;background:none;padding:9px;border-radius:10px;color:var(--muted);font-weight:600}
+.seg button.on{background:var(--panel);color:var(--text)}
+details summary{cursor:pointer;color:var(--accent2);font-size:13px;margin-top:8px}
+.zone{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-top:1px solid var(--line);font-size:13px}
+/* results */
+#results{position:fixed;inset:0;z-index:10;background:var(--bg);display:flex;flex-direction:column;padding-top:var(--sat);animation:fade .25s ease both}
+#results .bar{display:flex;align-items:center;gap:10px;padding:10px 14px}
+#results .bar h2{font-size:16px}
+[hidden]{display:none!important}
+#mapzone{position:relative;flex:1;min-height:0;overflow:hidden}
+#mapwrap{position:absolute;inset:0}
+#map{position:absolute;inset:0}
+.mapbtn{position:absolute;top:10px;right:10px;width:40px;height:40px;border-radius:12px;background:var(--chrome);border:1px solid var(--line);color:var(--text);font-size:18px;font-weight:700;cursor:pointer;z-index:1}
+.zoomhint{position:absolute;top:14px;left:50%;transform:translateX(-50%);background:var(--chip);color:var(--text);font-size:12.5px;padding:6px 12px;border-radius:99px;pointer-events:none;z-index:1;white-space:nowrap;transition:opacity .25s}
+.zoomhint.off{opacity:0}
+#mapmsg{position:absolute;inset:0;display:none;align-items:center;justify-content:center;text-align:center;padding:30px;color:var(--muted);background:var(--panel)}
+#panel{position:absolute;left:0;right:0;bottom:0;height:48%;display:flex;flex-direction:column;background:var(--panel);border-top:1px solid var(--line);border-radius:20px 20px 0 0;z-index:2;box-shadow:0 -6px 24px var(--shadow);transition:height .32s cubic-bezier(.2,.9,.25,1)}
+#panel.dragging{transition:none}
+#sheethead{flex:none;touch-action:none;cursor:grab;border-bottom:1px solid var(--line);user-select:none}
+#panel.dragging #sheethead{cursor:grabbing}
+.sgrip{display:block;width:100%;padding:8px 0 6px;background:none;border:0;cursor:pointer}.sgrip span{display:block;width:40px;height:5px;border-radius:3px;background:var(--line);margin:0 auto}
+#sheethead .fbar{border-bottom:0;padding:2px 14px 10px}
+.dethead{padding:0 14px 10px}.dethead .back{background:none;border:0;color:var(--accent2);font-weight:700;font-size:14px;padding:4px 8px 4px 0;cursor:pointer}
+.dethead h3{font-size:16px;margin:0}
+#detail{overflow:auto;flex:1;padding:14px 16px calc(18px + var(--sab))}
+#detail .place{font-size:15px;font-weight:600}
+.pathbox{margin-top:14px;padding:12px;border-radius:14px;background:var(--panel2)}
+#listwrap{overflow:auto;flex:1;padding:0 12px calc(14px + var(--sab))}
+.kb{width:38px;height:38px;border-radius:11px;background:var(--kb);border-left:3px solid var(--kc,#3987e5);color:var(--kc,#3987e5);display:flex;align-items:center;justify-content:center;flex:none}
+.ki{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none;vertical-align:-3px}.fchip .ki{margin-right:2px}
+.ev .kb{width:34px;height:34px;font-size:16px}
+@media(min-width:900px){#panel{left:14px;right:auto;width:420px;bottom:0}}
+.scrub{padding:10px 16px 6px;border-bottom:1px solid var(--line)}
+.scrub .lbl{display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted);margin-bottom:2px}
+.ev{display:flex;align-items:center;gap:12px;padding:10px;border-radius:12px;margin:4px 0;background:var(--panel2);border:1px solid transparent;cursor:pointer;transition:border-color .2s,background .2s}.ev:hover{background:var(--hover)}.ev .top{display:flex;align-items:baseline;gap:8px}.ev .top b{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ev .where{color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dayhdr{position:sticky;top:0;z-index:1;background:var(--panel);color:var(--muted);font-size:12.5px;font-weight:700;padding:12px 4px 4px}
+.fbar{display:flex;align-items:center;gap:10px;padding:8px 14px;border-bottom:1px solid var(--line)}
+.sortsel{width:auto;padding:6px 10px;border-radius:10px;font-size:13px}
+.where{color:var(--text);font-size:13px;margin-top:2px}
+.fchips{display:flex;flex-wrap:wrap;gap:8px}
+/* one line of chips that scrolls sideways, with fading edges + arrows showing there's more */
+.hs{position:relative}
+.hs .fchips{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding:2px 0;scroll-behavior:smooth;overscroll-behavior-x:contain}
+.hs .fchips::-webkit-scrollbar{display:none}
+.hs .fchip{flex:none;white-space:nowrap}
+.hsb{position:absolute;top:0;bottom:0;width:52px;border:0;padding:0;display:flex;align-items:center;cursor:pointer;opacity:0;pointer-events:none;transition:opacity .2s;z-index:1}
+.hsb.l{left:0;justify-content:flex-start;background:linear-gradient(90deg,var(--panel) 40%,transparent)}
+.hsb.r{right:0;justify-content:flex-end;background:linear-gradient(270deg,var(--panel) 40%,transparent)}
+.hs.can-l .hsb.l,.hs.can-r .hsb.r{opacity:1;pointer-events:auto}
+.hsb span{width:30px;height:30px;border-radius:50%;background:var(--panel2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--text);box-shadow:0 2px 8px var(--shadow)}
+.hsb svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.hsdots{display:flex;justify-content:center;gap:4px;margin-top:6px}.hsdots i{width:5px;height:5px;border-radius:3px;background:var(--line);transition:width .2s,background .2s}.hsdots i.on{width:14px;background:var(--muted)}
+.swatches{display:flex;gap:12px;flex-wrap:wrap}
+.sw2{width:38px;height:38px;border-radius:50%;border:2px solid transparent;background:var(--c);cursor:pointer;box-shadow:inset 0 0 0 3px var(--panel)}
+:root[data-theme=light] .sw2{background:var(--c2)}
+.sw2.on{border-color:var(--text)}
+.iconbtn{width:36px;height:36px;padding:0;display:inline-flex;align-items:center;justify-content:center}.iconbtn svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.qrbox{background:#fff;border-radius:16px;padding:12px;width:240px;height:240px;margin:0 auto}.qrbox svg{width:100%;height:100%;display:block}
+.paircode{font-size:24px;font-weight:800;letter-spacing:3px;margin-top:12px}
+.fchip{border:1.5px solid var(--line);background:var(--panel2);color:var(--text);border-radius:99px;padding:7px 12px;font-size:13px;font-weight:600;cursor:pointer}
+.fchip.on{background:var(--accent);border-color:var(--accent);color:var(--onaccent)}.fchip.on .muted{color:var(--onaccent)}
+.legend .lg{display:flex;gap:12px;padding:10px 0;border-top:1px solid var(--line)}
+/* results dashboard */
+.rtabs{display:flex;gap:4px;margin:0 14px 8px;background:var(--panel2);border-radius:12px;padding:3px}
+.rtabs button{flex:1;border:0;background:none;color:var(--muted);font-weight:650;padding:8px;border-radius:10px;cursor:pointer}.rtabs button.on{background:var(--panel);color:var(--text)}
+.stats{flex:1;overflow:auto;padding:4px 14px calc(18px + var(--sab));position:relative}
+.vhero{padding:10px 4px 14px}.hero-n{font-size:64px;font-weight:800;line-height:1;letter-spacing:-1px}.hero-l{font-size:16px;margin:6px 0 4px;color:var(--text)}
+.vempty{text-align:center;padding:40px 10px}
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px}.kpi.tap{cursor:pointer}
+.kpi-l{color:var(--muted);font-size:12.5px}.kpi-v{font-size:26px;font-weight:750;margin-top:2px}.kpi-s{color:var(--muted);font-size:12px;margin-top:2px}
+.vcard{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:10px}.vcard h3{font-size:15px;margin-bottom:2px}
+.stack{display:flex;gap:2px;height:14px;border-radius:7px;overflow:hidden;margin:10px 0}.stack>div{min-width:4px}
+.legend2{display:flex;flex-direction:column;gap:2px}.lg2{display:flex;align-items:center;gap:8px;background:none;border:0;color:var(--text);padding:6px 0;cursor:pointer;text-align:left}
+.lg2 .sw{width:10px;height:10px;border-radius:3px;flex:none}.lg2 span:nth-child(2){flex:1}.lg2 b{font-weight:700}.lg2 .muted{width:36px;text-align:right}
+.hb{display:flex;flex-direction:column;gap:3px;padding:6px 0;cursor:pointer}.hb-l{font-size:13px}
+.hb-track{display:flex;align-items:center;gap:8px}.hb-bar{height:10px;background:#3987e5;border-radius:0 4px 4px 0}.hb-v{font-size:12.5px;color:var(--muted)}
+.hb:hover .hb-bar,.hb:focus .hb-bar{filter:brightness(1.2)}
+.vchart{margin-top:8px}.cols{width:100%;height:auto;display:block}.cols .tick{fill:var(--muted);font-size:10px}.cols .peak{fill:var(--text);font-size:11px;font-weight:700}
+.cols .hit{cursor:pointer;outline:none}.cols .hit.on,.cols .hit:focus{fill:var(--hit)}
+.linkbtn{background:none;border:0;color:var(--accent2);font-size:12.5px;cursor:pointer;padding:4px}
+.vtable{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px;font-variant-numeric:tabular-nums}.vtable th{text-align:left;color:var(--muted);font-weight:600}.vtable td,.vtable th{padding:4px 2px;border-bottom:1px solid var(--line)}.vtable td:last-child,.vtable th:last-child{text-align:right}
+.hl{display:flex;align-items:center;gap:10px;width:100%;background:none;border:0;border-top:1px solid var(--line);color:var(--text);padding:10px 0;text-align:left;cursor:pointer}
+.hl-l{width:84px;flex:none;color:var(--muted);font-size:12.5px}.hl-m{flex:1;display:flex;flex-direction:column;gap:2px;font-size:13px}
+.vtip{position:absolute;z-index:3;pointer-events:none;background:var(--toast);border:1px solid var(--line);color:var(--text);font-size:12.5px;font-weight:650;padding:5px 9px;border-radius:8px;white-space:nowrap;box-shadow:0 6px 20px var(--shadow)}
+@media(min-width:900px){.stats{padding:4px max(14px,calc(50% - 360px)) 24px}.kpis{grid-template-columns:repeat(4,1fr)}.rtabs{max-width:720px;width:calc(100% - 28px);margin:0 auto 8px}}.legend .lg>span{font-size:22px}.legend p{margin:4px 0 0}.dethead .btn.sm{min-width:36px}#detail input[type=range]{width:100%;margin-top:6px}
+.ev.sel{border-color:var(--accent)}.ev.live{background:var(--live)}
+/* my-timeline tab */
+.mt-status{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:13px;min-height:20px;margin:2px 0 10px}
+.mt-row{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 10px;-webkit-overflow-scrolling:touch}
+.yr-chip,.mo-chip,.dy-chip{flex:none;border-radius:12px;background:var(--panel2);border:1.5px solid var(--line);color:var(--text);cursor:pointer;user-select:none;touch-action:pan-y}
+.yr-chip{padding:10px 18px;font-size:16px;font-weight:700}
+.mo-chip{padding:8px 14px;font-size:14px;font-weight:650}
+.dy-chip{padding:7px 12px;font-size:13px;min-width:44px;text-align:center}
+.yr-chip.sel,.mo-chip.sel,.dy-chip.sel{background:var(--accent);color:var(--onaccent);border-color:var(--accent)}
+.yr-chip.preview,.mo-chip.preview,.dy-chip.preview{border-color:var(--accent2)}
+#mt-map{height:280px;position:relative;border-radius:14px;overflow:hidden}
+#mt-mapel{position:absolute;inset:0}
+#mt-mapmsg{position:absolute;inset:0;display:none;align-items:center;justify-content:center;text-align:center;padding:20px;color:var(--muted);background:var(--panel2);font-size:13px}
+.mt-search-result{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-top:1px solid var(--line);cursor:pointer}
+.mt-search-result:hover{opacity:.85}
+.mt-loc-list{max-height:180px;overflow-y:auto}
+/* my-timeline (solo map view) */
+/* (old modal-based my-timeline styles removed - replaced by the dedicated tab below) */
+.ev .ic{width:38px;height:38px;border-radius:12px;background:var(--ic);display:flex;align-items:center;justify-content:center;font-size:18px;flex:none}
+.ev b{font-weight:650}
+.banner{margin:8px 12px 0;padding:9px 12px;border-radius:12px;font-size:13px;background:var(--warnbg);color:var(--warntx);border:1px solid var(--warnbd)}
+.mk{width:22px;height:22px;position:relative;cursor:pointer}
+.mk:before{content:"";position:absolute;inset:0;border-radius:50%;background:var(--warn);opacity:.35;animation:ring 1.8s ease-out infinite}
+.mk:after{content:"";position:absolute;left:6px;top:6px;width:10px;height:10px;border-radius:50%;background:var(--warn);border:2px solid #fff}
+.mk.sel:after{background:var(--accent)}
+.me{width:16px;height:16px;border-radius:50%;background:var(--accent2);border:3px solid #fff;box-shadow:0 0 0 6px rgba(96,165,250,.3)}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes blink{50%{opacity:.25}}
+@keyframes ring{0%{transform:scale(.6);opacity:.6}100%{transform:scale(2.4);opacity:0}}
+@keyframes slideup{from{transform:translateY(100%)}to{transform:none}}
+@media(min-width:900px){#view,.auth{max-width:720px;margin:0 auto;width:100%}}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important;animation-delay:0s!important}}
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="top" id="header"><div class="brand"><i></i>CrossPaths</div><div class="row" style="gap:8px"><button class="btn ghost sm iconbtn" id="settingsbtn" style="display:none" data-act="settings" aria-label="Settings" title="Settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button><button class="btn ghost sm" id="logout" style="display:none" data-act="logout">Sign out</button></div></header>
+  <main id="view"></main>
+  <nav class="tabs" id="tabs" style="display:none"></nav>
+</div>
+<div id="overlays"></div>
+
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script>
+/* ---------- theme: system / dark / light, plus an accent colour (kept on this device) ---------- */
+const ACCENTS = {   // [accent, gradient partner, text on accent] for dark and light
+  teal:   { name: "Teal",   dark: ["#2dd4bf", "#22b8cf", "#04222a"], light: ["#0d9488", "#0891b2", "#ffffff"] },
+  blue:   { name: "Blue",   dark: ["#60a5fa", "#818cf8", "#061a33"], light: ["#2563eb", "#4f46e5", "#ffffff"] },
+  violet: { name: "Violet", dark: ["#a78bfa", "#e879f9", "#1b0e33"], light: ["#7c3aed", "#c026d3", "#ffffff"] },
+  amber:  { name: "Amber",  dark: ["#fbbf24", "#fb923c", "#2a1a02"], light: ["#b45309", "#c2410c", "#ffffff"] },
+  rose:   { name: "Rose",   dark: ["#fb7185", "#f472b6", "#33060f"], light: ["#e11d48", "#db2777", "#ffffff"] },
+};
+function themePref() {
+  try { return Object.assign({ mode: "system", accent: "teal" }, JSON.parse(localStorage.getItem("cp_theme") || "{}")); }
+  catch (e) { return { mode: "system", accent: "teal" }; }
+}
+function applyTheme() {
+  const p = themePref(), r = document.documentElement;
+  const dark = p.mode === "dark" || (p.mode !== "light" && !window.matchMedia("(prefers-color-scheme: light)").matches);
+  r.dataset.theme = dark ? "dark" : "light";
+  const a = (ACCENTS[p.accent] || ACCENTS.teal)[dark ? "dark" : "light"];
+  r.style.setProperty("--accent", a[0]); r.style.setProperty("--accent-g", a[1]); r.style.setProperty("--onaccent", a[2]);
+  const m = document.querySelector('meta[name="theme-color"]'); if (m) m.content = dark ? "#0b1220" : "#f3f5fa";
+}
+function setTheme(patch) { try { localStorage.setItem("cp_theme", JSON.stringify(Object.assign(themePref(), patch))); } catch (e) { /* private mode */ } applyTheme(); }
+applyTheme();
+try { window.matchMedia("(prefers-color-scheme: light)").addEventListener("change", applyTheme); } catch (e) { /* old browsers */ }
+
+"use strict";
+// Without this, Arabic/Hebrew map labels render as disconnected, unshaped glyphs (MapLibre GL JS
+// doesn't ship RTL text shaping by default). Must be called once, before any map is created.
+try { maplibregl.setRTLTextPlugin("https://unpkg.com/@mapbox/mapbox-gl-rtl-text@0.2.3/mapbox-gl-rtl-text.js", null, true); } catch (e) { /* already set */ }
+const $ = (s, el = document) => el.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const state = { token: localStorage.getItem("cp_token"), user: null, cfg: {}, tab: "uploads", uploads: [], conns: [], checks: [], authMode: "login", busy: false };
+let pollTimer = null;
+
+/* ---------- api ---------- */
+async function api(path, { method = "GET", body, form } = {}) {
+  const headers = {};
+  if (state.token) headers.Authorization = "Bearer " + state.token;
+  let payload;
+  if (form) payload = form; else if (body) { headers["Content-Type"] = "application/json"; payload = JSON.stringify(body); }
+  const r = await fetch(path, { method, headers, body: payload });
+  let j = null; try { j = await r.json(); } catch (e) { /* no body */ }
+  if (r.status === 401 && state.token) { logout(true); throw new Error("Session expired, please sign in again"); }
+  if (!r.ok) throw new Error((j && j.error) || "Something went wrong (" + r.status + ")");
+  return j;
+}
+function toast(msg, isErr) {
+  const t = document.createElement("div"); t.className = "toast" + (isErr ? " err" : ""); t.textContent = msg;
+  document.body.appendChild(t); setTimeout(() => t.remove(), isErr ? 5000 : 2600);
+}
+const run = async (fn) => { try { return await fn(); } catch (e) { toast(e.message, true); } };
+
+/* ---------- formatting ---------- */
+const KIND = { same_place: ["", "Same place"], passing: ["", "Crossed paths"], shared_route: ["", "Travelled together"] };
+// Minimal line icons for the three kinds (24-unit grid, drawn with currentColor).
+const KIND_PATHS = {
+  same_place: '<path d="M12 21s-6.5-5.7-6.5-11.2a6.5 6.5 0 0 1 13 0C18.5 15.3 12 21 12 21z"/><circle cx="12" cy="9.8" r="2.3"/>',
+  passing: '<path d="M4 20 20 4M14 4h6v6M4 4l6 6M14 14l6 6M20 14v6h-6"/>',
+  shared_route: '<path d="M8 20V5M4.5 8.5 8 5l3.5 3.5M16 20V5M12.5 8.5 16 5l3.5 3.5"/>'
+};
+const kindIcon = (kind, size = 18) => `<svg class="ki" width="${size}" height="${size}" viewBox="0 0 24 24" aria-hidden="true">${KIND_PATHS[kind] || KIND_PATHS.same_place}</svg>`;
+// The interface is English, so dates are too (an Arabic-language browser would otherwise mix
+// Hijri dates and Arabic digits into English sentences). Place names still follow the language.
+const UI_LOCALE = /^en\b/i.test(navigator.language || "") ? navigator.language : "en-GB";
+const fmtDay = d => d.toLocaleDateString(UI_LOCALE, { weekday: "short", day: "numeric", month: "short", year: "numeric" });
+const fmtTime = d => d.toLocaleTimeString(UI_LOCALE, { hour: "2-digit", minute: "2-digit" });
+const fmtRange = (s, e) => { const a = new Date(s), b = new Date(e); return fmtDay(a) + " · " + fmtTime(a) + "–" + fmtTime(b); };
+const dateStr = ts => ts ? new Date(ts * 1000).toLocaleDateString(UI_LOCALE, { day: "numeric", month: "short", year: "numeric" }) : "";
+const hoursLeft = ts => { if (ts == null) return "kept until you delete it"; const h = (ts * 1000 - Date.now()) / 36e5; return h <= 0 ? "expired" : h < 1 ? "<1 h left" : h < 48 ? Math.round(h) + " h left" : Math.round(h / 24) + " days left"; };
+const keepLabel = h => !h ? "Until I delete them" : h === 24 ? "24 hours" : h === 168 ? "7 days" : h === 720 ? "30 days" : h % 24 ? h + " hours" : h / 24 + " days";
+const keepPhrase = () => { const h = state.user ? state.user.upload_keep_hours : state.cfg.upload_ttl_hours; return !h ? "kept (encrypted) until you delete it" : `deleted ${keepLabel(h)} after you upload it`; };
+const offsetText = m => Math.abs(m) <= 2 ? "at about the same time" : "about " + Math.abs(m) + " min apart";
+const trustLabel = l => ({ high: "Looks authentic", medium: "Some anomalies", low: "Looks unusual", insufficient: "Too little data" }[l] || l);
+const pill = (cls, txt) => `<span class="pill ${esc(cls)}">${esc(txt)}</span>`;
+
+/* ---------- auth ---------- */
+function logout(silent) {
+  localStorage.removeItem("cp_token"); state.token = null; state.user = null; clearInterval(pollTimer);
+  if (!silent) toast("Signed out");
+  boot();
+}
+async function boot() {
+  const pm = location.pathname.match(/^\/pair\/([A-Za-z0-9]{6,16})/);   // an invite link: /pair/CODE
+  if (pm) { try { sessionStorage.setItem("cp_pair", pm[1].toUpperCase()); } catch (e) { /* private mode */ } history.replaceState(null, "", "/"); }
+  state.cfg = await fetch("/api/config").then(r => r.json()).catch(() => ({}));
+  if (state.token) { try { state.user = await api("/api/me"); } catch (e) { state.token = null; } }
+  if (!state.user) return renderAuth();
+  $("#header").style.display = ""; $("#logout").style.display = ""; $("#settingsbtn").style.display = ""; $("#tabs").style.display = "";
+  await refreshAll(); renderTabs(); render();
+  clearInterval(pollTimer); pollTimer = setInterval(() => { if (!document.hidden) refreshSoft(); }, 4000);
+  let pending = null; try { pending = sessionStorage.getItem("cp_pair"); sessionStorage.removeItem("cp_pair"); } catch (e) { /* private mode */ }
+  if (pending) pairEnterSheet(pending, true);
+}
+function renderAuth() {
+  $("#header").style.display = "none"; $("#tabs").style.display = "none";
+  const reg = state.authMode === "register", c = state.cfg;
+  $("#view").innerHTML = `<div class="auth">
+    <div class="hero" style="padding-top:${Math.max(6, 22)}px"><h1 style="font-size:21px">Did our paths ever cross?</h1></div>
+    <div class="seg"><button data-act="mode" data-m="login" class="${reg ? "" : "on"}">Sign in</button><button data-act="mode" data-m="register" class="${reg ? "on" : ""}">Create account</button></div>
+    <label>Username</label><input type="text" id="a_user" autocomplete="username" autocapitalize="none" placeholder="e.g. sara.k">
+    <label>Password ${reg ? "(10+ characters)" : ""}</label><input type="password" id="a_pass" autocomplete="${reg ? "new-password" : "current-password"}">
+    ${reg && c.invite_required ? `<label>Invite code</label><input type="text" id="a_inv" autocapitalize="none">` : ""}
+    <div style="margin-top:18px"><button class="btn" style="width:100%" data-act="auth">${reg ? "Create account" : "Sign in"}</button></div>
+    ${reg && c.registration_open === false ? `<p class="muted small">Registration is closed on this server.</p>` : ""}
+    <p class="muted small" style="margin-top:18px">Compare Google Timeline exports with a friend or a stranger — see only the places and times you both were there. Your raw timeline is encrypted and, unless you choose otherwise, deleted ${esc(keepLabel(c.upload_ttl_hours || 24))} after you upload it.</p></div>`;
+}
+
+/* ---------- data ---------- */
+async function refreshAll() {
+  const [u, c, k] = await Promise.all([api("/api/uploads"), api("/api/connections"), api("/api/checks")]);
+  state.uploads = u; state.conns = c; state.checks = k;
+}
+async function refreshSoft() {
+  if (!state.user || document.querySelector(".sheet.on")) return;
+  const before = JSON.stringify(state.checks.map(c => [c.id, c.status, c.their_consent])) + state.conns.length;
+  try { await refreshAll(); } catch (e) { return; }
+  const after = JSON.stringify(state.checks.map(c => [c.id, c.status, c.their_consent])) + state.conns.length;
+  renderTabs(); if (before !== after && !$("#results") && state.tab !== "mytimeline") render();
+}
+const needsMe = () => state.checks.filter(c => c.status === "awaiting_consent" && !c.my_consent).length + state.conns.filter(c => c.direction === "incoming" && c.status === "pending").length;
+
+/* ---------- shell ---------- */
+const ICONS = {
+  uploads: '<path d="M12 4v10m0-10 4 4m-4-4-4 4M5 17.5h14"/>',
+  mytimeline: '<path d="M4 19c4-1 3-7 8-7s3-7 8-7"/><circle cx="4" cy="19" r="1.5"/><circle cx="20" cy="5" r="1.5"/>',
+  people: '<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.5 3-5.5 6-5.5s6 2 6 5.5"/><path d="M16 5.5a3 3 0 010 5.5M18.5 20c0-2.2-1-3.8-2.6-4.7"/>',
+  checks: '<circle cx="12" cy="12" r="8"/><path d="M8.5 12.5l2.4 2.4 4.6-5"/>'
+};
+function renderTabs() {
+  const n = needsMe(), tabs = [["uploads", "Uploads"], ["mytimeline", "My Timeline"], ["people", "People"], ["checks", "Checks"]];
+  $("#tabs").innerHTML = tabs.map(([k, l]) => `<button data-act="tab" data-t="${k}" class="${state.tab === k ? "on" : ""}"><svg viewBox="0 0 24 24">${ICONS[k]}</svg>${l}${k === "checks" && n ? `<span class="dot">${n}</span>` : ""}</button>`).join("");
+}
+function render() { ({ uploads: renderTimeline, mytimeline: renderMyTimeline, people: renderPeople, checks: renderChecks })[state.tab](); }
+
+/* ---------- timeline tab ---------- */
+function renderTimeline() {
+  $("#view").innerHTML = `
+  <div class="hero"><h1>Uploads</h1><p>Upload your Google Maps Timeline export. It stays private and is ${keepPhrase()}. <a href="#" data-act="settings">Change</a></p></div>
+  <div class="card"><label class="drop" id="drop" style="display:block;margin:0"><input id="file" type="file" accept=".json,application/json" hidden>
+    <div style="font-size:28px">📂</div><div><b>Tap to choose your Timeline .json</b></div><div class="small">up to ${esc(state.cfg.max_upload_mb || 80)} MB</div></label>
+    <details><summary>How do I export it?</summary><p class="muted small">In Google Maps on your phone: profile picture → <b>Your Timeline</b> → ⚙️ settings → <b>Export Timeline data</b>. Menu names vary a little between app versions. Then choose the saved .json file here. On older Takeout exports use <i>Records.json</i> or the <i>Semantic Location History</i> files.</p></details></div>
+  <div id="ulist">${state.uploads.map(uploadCard).join("") || `<p class="muted" style="text-align:center;margin-top:24px">No timeline uploaded yet.</p>`}</div>`;
+  const drop = $("#drop"), file = $("#file");
+  file.onchange = () => file.files[0] && doUpload(file.files[0]);
+  ["dragover", "dragenter"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add("over"); }));
+  ["dragleave", "drop"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove("over"); }));
+  drop.addEventListener("drop", e => e.dataTransfer.files[0] && doUpload(e.dataTransfer.files[0]));
+}
+function uploadCard(u) {
+  const t = u.trust, zs = u.zones || [];
+  return `<div class="card"><div class="row between"><div class="grow"><h3>${dateStr(u.from)} → ${dateStr(u.to)}</h3>
+    <div class="muted small">${u.points.toLocaleString()} points · ${esc(u.format)} · ${hoursLeft(u.expires_at)}</div></div>${pill(t.level, trustLabel(t.level))}</div>
+    ${t.level !== "high" && t.reasons.length ? `<ul class="muted small" style="margin:8px 0 0 18px;padding:0">${t.reasons.map(r => `<li>${esc(r)}</li>`).join("")}</ul>` : ""}
+    <details><summary>Home &amp; work areas hidden from results (${zs.length})</summary>
+      <p class="muted small">Any crossing inside these areas is never shown. Remove an area only if you want places there included.</p>
+      ${zs.map((z, i) => `<div class="zone"><span>Area ${i + 1} · ${z.lat.toFixed(3)}, ${z.lon.toFixed(3)} · ${Math.round(z.radius_m)} m</span><button class="btn ghost sm" data-act="rmzone" data-id="${u.id}" data-i="${i}">Remove</button></div>`).join("") || `<div class="muted small">None detected.</div>`}</details>
+    <div class="row" style="margin-top:12px"><button class="btn bad sm" data-act="rmupload" data-id="${u.id}">Delete now</button></div></div>`;
+}
+async function doUpload(f) {
+  const max = (state.cfg.max_upload_mb || 80) * 1048576;
+  if (f.size > max) return toast(`That file is ${(f.size / 1048576).toFixed(0)} MB; the limit is ${state.cfg.max_upload_mb} MB. Trim it to a shorter period.`, true);
+  $("#drop").innerHTML = `<span class="spin"></span> &nbsp;Reading and checking your timeline…`;
+  const fd = new FormData(); fd.append("file", f);
+  await run(async () => { const u = await api("/api/uploads", { method: "POST", form: fd }); toast("Timeline added · " + trustLabel(u.trust.level)); await refreshAll(); });
+  renderTimeline();
+}
+
+/* ---------- people tab ---------- */
+function renderPeople() {
+  const inc = state.conns.filter(c => c.direction === "incoming" && c.status === "pending");
+  const out = state.conns.filter(c => c.direction === "outgoing" && c.status === "pending");
+  const ok = state.conns.filter(c => c.status === "accepted");
+  $("#view").innerHTML = `
+  <div class="hero"><h1>People</h1><p>Connect with someone to compare timelines. Nothing is compared until you both agree.</p></div>
+  <div class="card"><h3>🤝 Meet in person</h3><p class="muted small">With someone right now? Show your code for them to scan in the CrossPaths app, or share the link. You're connected and your paths are checked in one go.</p>
+    <div class="row" style="gap:8px;margin-top:10px"><button class="btn grow" data-act="paircode">Show my code</button><button class="btn ghost" data-act="pairenter">Enter a code</button></div></div>
+  <p class="muted small" style="margin:14px 4px 0">Or send a request by username - they accept, then either of you starts a check.</p>
+  <div class="card"><div class="row"><input type="text" id="handle" placeholder="@username" autocapitalize="none" autocomplete="off"><button class="btn" data-act="sendreq">Send</button></div></div>
+  ${inc.length ? `<h3 style="margin:18px 4px 0">Requests for you</h3>` + inc.map(c => `<div class="card"><div class="row between"><div><b>@${esc(c.other)}</b><div class="muted small">wants to compare timelines</div></div>
+     <div class="row"><button class="btn sm" data-act="respond" data-id="${c.id}" data-a="accept">Accept</button><button class="btn ghost sm" data-act="respond" data-id="${c.id}" data-a="decline">Decline</button></div></div>
+     <div style="margin-top:8px"><a href="#" class="muted small" data-act="respond" data-id="${c.id}" data-a="block">Block this user</a></div></div>`).join("") : ""}
+  ${ok.length ? `<h3 style="margin:18px 4px 0">Connections</h3>` + ok.map(c => `<div class="card"><div class="row between"><b>@${esc(c.other)}</b><div class="row">
+      <button class="btn sm" data-act="newcheck" data-id="${c.id}" data-o="${esc(c.other)}">Check paths</button><button class="btn ghost sm" data-act="rmconn" data-id="${c.id}">Remove</button></div></div></div>`).join("") : ""}
+  ${out.length ? `<h3 style="margin:18px 4px 0">Waiting for a reply</h3>` + out.map(c => `<div class="card row between"><b>@${esc(c.other)}</b>${pill("pending", "pending")}</div>`).join("") : ""}
+  ${!state.conns.length ? `<p class="muted" style="text-align:center;margin-top:24px">No connections yet.</p>` : ""}`;
+}
+
+/* ---------- meet in person: show a code / enter a code (invite links land here too) ---------- */
+let PAIR = { timer: 0 };
+const qrSvg = text => { if (typeof qrcode === "undefined") return ""; const q = qrcode(0, "M"); q.addData(text); q.make(); return q.createSvgTag({ cellSize: 6, margin: 2, scalable: true }); };
+const codeFrom = t => { const s = String(t || "").trim(), m = s.match(/pair\/([A-Za-z0-9]{6,16})/); if (m) return m[1].toUpperCase(); const b = s.replace(/[\s-]/g, ""); return /^[A-Za-z0-9]{6,16}$/.test(b) ? b.toUpperCase() : null; };
+const uploadSelect = (id = "p_up") => state.uploads.length
+  ? `<label>Your timeline for the check</label><select id="${id}">${uploadOptions()}</select>`
+  : `<p class="small" style="color:var(--warn)">You haven't uploaded a timeline, so you'll be connected but no check will run. Upload one first to check straight away.</p>`;
+function stopPairPoll() { clearInterval(PAIR.timer); PAIR.timer = 0; }
+function pairResult(r) {
+  stopPairPoll();
+  const sh = $("#sheet"); if (!sh) return;
+  const body = c => !c ? "" : c.status === "running" ? `<p class="muted"><span class="spin"></span> &nbsp;Checking where your paths crossed…</p>`
+    : c.status === "done" ? `<p style="font-size:15px">${c.events_count ? `${c.events_count} crossing${c.events_count === 1 ? "" : "s"} found` : "Your paths never crossed"}</p>${c.events_count ? `<button class="btn" style="width:100%" id="p_view">View crossings</button>` : ""}`
+    : `<p style="color:var(--bad)">${esc(c.error || "The check couldn't run.")}</p>`;
+  const draw = c => {
+    sh.innerHTML = `<div class="grip"></div><h2>✅ Connected with @${esc(r.other)}</h2>${r.note ? `<p class="muted small">${esc(r.note)}</p>` : ""}<div id="p_check">${body(c)}</div>
+      <div class="row" style="margin-top:12px"><button class="btn ghost grow" onclick="closeSheet()">Done</button></div>`;
+    const v = $("#p_view"); if (v) v.onclick = () => { closeSheet(true); run(() => openResults(c.id)); };
+  };
+  draw(r.check);
+  refreshAll().then(() => { renderTabs(); if (state.tab === "people" || state.tab === "checks") render(); }).catch(() => {});
+  if (r.check && r.check.status === "running") {
+    PAIR.timer = setInterval(async () => {
+      if (!$("#sheet")) return stopPairPoll();
+      try { const c = await api("/api/checks/" + r.check.id); if (c.status !== "running") { stopPairPoll(); draw(c); refreshAll().then(renderTabs).catch(() => {}); } } catch (e) { /* retry */ }
+    }, 1500);
+  }
+}
+async function pairCodeSheet() {
+  stopPairPoll();
+  openSheet(`<h2>Your code</h2><p class="muted small">Ask them to open CrossPaths → People → <b>Meet in person</b> → Scan. Doing this together counts as both of you agreeing to the check; they'll only see when and roughly where you crossed.</p>
+    ${uploadSelect()}<div id="p_code" style="text-align:center;margin-top:14px"><span class="spin"></span></div>`);
+  const make = async () => {
+    stopPairPoll();
+    const box = $("#p_code"); if (!box) return;
+    box.innerHTML = `<span class="spin"></span>`;
+    let code;
+    try { code = await api("/api/pair/code", { method: "POST", body: { upload_id: $("#p_up") ? $("#p_up").value : null } }); }
+    catch (e) { box.innerHTML = `<p style="color:var(--bad)">${esc(e.message)}</p>`; return; }
+    const pretty = code.code.replace(/(.{5})(.{5})/, "$1 $2");
+    box.innerHTML = `<div class="qrbox">${qrSvg(code.url)}</div><div class="paircode">${pretty}</div><div class="muted small" id="p_left"></div>
+      <div class="row" style="gap:8px;margin-top:12px"><button class="btn ghost grow" id="p_copy">Copy invite link</button>${navigator.share ? `<button class="btn ghost grow" id="p_share">Share…</button>` : ""}</div>
+      <p class="muted small">Single use. The link works for someone on the same CrossPaths server as you.</p>`;
+    $("#p_copy").onclick = async () => { try { await navigator.clipboard.writeText(code.url); toast("Invite link copied"); } catch (e) { prompt("Copy this link:", code.url); } };
+    if ($("#p_share")) $("#p_share").onclick = () => navigator.share({ title: "CrossPaths", text: "Connect with me on CrossPaths and check if our paths crossed:", url: code.url }).catch(() => {});
+    const tick = async () => {
+      if (!$("#p_code")) return stopPairPoll();
+      const left = Math.round(code.expires_at - Date.now() / 1000);
+      const lbl = $("#p_left");
+      if (left <= 0) { stopPairPoll(); $("#p_code").innerHTML = `<p class="muted">This code expired.</p><button class="btn" id="p_new">New code</button>`; $("#p_new").onclick = make; return; }
+      if (lbl) lbl.textContent = `Valid for ${Math.floor(left / 60)}:${String(left % 60).padStart(2, "0")}`;
+      try { const st = await api(`/api/pair/code/${code.code}`); if (st.used && st.other) pairResult(st); } catch (e) { /* retry */ }
+    };
+    tick(); PAIR.timer = setInterval(tick, 2000);
+  };
+  if ($("#p_up")) $("#p_up").onchange = make;
+  make();
+}
+function pairEnterSheet(prefill, fromLink) {
+  stopPairPoll();
+  openSheet(`<h2>Enter their code</h2><p class="muted small">Type the code shown on their phone, or paste their invite link.</p>
+    <div class="row" style="gap:8px"><input type="text" id="p_in" placeholder="ABCDE 12345" autocapitalize="characters" autocomplete="off" value="${esc(prefill || "")}"><button class="btn" id="p_go">Next</button></div>
+    ${fromLink && prefill ? `<p class="muted small" style="margin-top:8px">Using the CrossPaths phone app? <a href="crosspaths://pair/${esc(prefill)}">Open this invite in the app</a></p>` : ""}
+    <div id="p_prev"></div>`);
+  const look = async () => {
+    const code = codeFrom($("#p_in").value), box = $("#p_prev");
+    if (!code) return toast("That isn't a CrossPaths code", true);
+    box.innerHTML = `<p><span class="spin"></span></p>`;
+    let p;
+    try { p = await api(`/api/pair/code/${code}`); if (p.mine) throw new Error("That's your own code. The other person needs to enter it."); }
+    catch (e) { box.innerHTML = `<p style="color:var(--bad)">${esc(e.message)}</p>`; return; }
+    const canCheck = p.they_have_timeline && state.uploads.length;
+    box.innerHTML = `<div class="card" style="margin-top:14px"><h3>Connect with @${esc(p.from)}?</h3>
+      <p class="muted small">${canCheck ? `You'll be connected and your paths checked right away (within ${p.radius_m} m and ${p.window_min} min). They'll only see when and roughly where you crossed.`
+        : p.they_have_timeline ? "You'll be connected. No check will run until you upload a timeline." : `You'll be connected. @${esc(p.from)} hasn't uploaded a timeline, so no check will run yet.`}</p>
+      ${state.uploads.length ? uploadSelect("p_up2") : ""}
+      <button class="btn" style="width:100%;margin-top:12px" id="p_ok">${canCheck ? "Connect &amp; check" : "Connect"}</button></div>`;
+    $("#p_ok").onclick = () => run(async () => {
+      $("#p_ok").disabled = true;
+      try { pairResult(await api("/api/pair/redeem", { method: "POST", body: { code, upload_id: $("#p_up2") ? $("#p_up2").value : null } })); }
+      finally { const b = $("#p_ok"); if (b) b.disabled = false; }
+    });
+  };
+  $("#p_go").onclick = look;
+  $("#p_in").onkeydown = e => { if (e.key === "Enter") look(); };
+  if (prefill) look();
+}
+
+/* ---------- checks tab ---------- */
+function renderChecks() {
+  $("#view").innerHTML = `<div class="hero"><h1>Checks</h1><p>Each check runs only after both of you agree.</p></div>` +
+    (state.checks.map(checkCard).join("") || `<p class="muted" style="text-align:center;margin-top:24px">No checks yet. Start one from People.</p>`);
+}
+function checkCard(c) {
+  let action = "", sub = "";
+  if (c.status === "awaiting_consent") {
+    if (!c.my_consent) { action = `<button class="btn sm" data-act="review" data-id="${c.id}">Review</button>`; sub = `@${esc(c.other)} wants to check paths with you`; }
+    else sub = `Waiting for @${esc(c.other)} to agree · expires in ${Math.max(1, Math.round((c.expires_at * 1000 - Date.now()) / 864e5))} d`;
+  } else if (c.status === "running") sub = `<span class="pulse-dot"></span> Finding where your paths crossed…`;
+  else if (c.status === "done") { action = `<button class="btn sm" data-act="results" data-id="${c.id}">View</button>`; sub = c.events_count ? `${c.events_count} crossing${c.events_count > 1 ? "s" : ""} found` : "No crossings found"; }
+  else if (c.status === "failed") sub = esc(c.error || "Something went wrong. Upload again and retry.");
+  else if (c.status === "declined") sub = "Declined";
+  else sub = "Expired";
+  return `<div class="card"><div class="row between"><div class="grow"><b>@${esc(c.other)}</b><div class="muted small">${sub}</div>
+    <div class="muted small">${c.radius_m} m · ${c.window_min} min</div></div><div class="row">${pill(c.status, c.status.replace("_", " "))}${action}
+    <button class="btn ghost sm" data-act="rmcheck" data-id="${c.id}" title="Delete">✕</button></div></div></div>`;
+}
+
+/* ---------- sheets ---------- */
+function openSheet(html) {
+  closeSheet(true);
+  const bg = document.createElement("div"); bg.className = "sheet-bg"; bg.id = "sbg";
+  const sh = document.createElement("div"); sh.className = "sheet"; sh.id = "sheet"; sh.innerHTML = `<div class="grip"></div>` + html;
+  bg.onclick = () => closeSheet(); $("#overlays").append(bg, sh);
+  requestAnimationFrame(() => { bg.classList.add("on"); sh.classList.add("on"); });
+}
+function closeSheet(instant) {
+  if (typeof stopPairPoll === "function") stopPairPoll();
+  const bg = $("#sbg"), sh = $("#sheet"); if (!sh) return;
+  if (instant) { bg.remove(); sh.remove(); return; }
+  bg.classList.remove("on"); sh.classList.remove("on"); setTimeout(() => { bg.remove(); sh.remove(); }, 320);
+}
+const uploadOptions = () => state.uploads.length ? state.uploads.map(u => `<option value="${u.id}">${dateStr(u.from)} → ${dateStr(u.to)} · ${u.points.toLocaleString()} pts</option>`).join("") : "";
+const dateRow = () => `<div class="row" style="gap:8px"><div class="grow"><label>From (optional)</label><input type="date" id="d_from"></div><div class="grow"><label>To (optional)</label><input type="date" id="d_to"></div></div>`;
+function readDates() {
+  const f = $("#d_from").value, t = $("#d_to").value;
+  return { date_from: f ? new Date(f + "T00:00:00").getTime() / 1000 : null, date_to: t ? new Date(t + "T23:59:59").getTime() / 1000 : null };
+}
+const shareNote = `<p class="muted small">They will only see <b>when and roughly where</b> (about 100 m) your paths crossed — never your route or full timeline. Your home and work areas are excluded.</p>`;
+
+function newCheckSheet(connId, other) {
+  if (!state.uploads.length) { state.tab = "uploads"; renderTabs(); render(); return toast("Upload your timeline first", true); }
+  openSheet(`<h2>Check paths with @${esc(other)}</h2>${shareNote}
+    <label>Your timeline</label><select id="c_up">${uploadOptions()}</select>
+    <label>Closeness: <b id="rv">100</b> m</label><input type="range" id="c_r" min="50" max="300" step="10" value="100" oninput="$('#rv').textContent=this.value">
+    <label>Time tolerance: <b id="wv">15</b> min</label><input type="range" id="c_w" min="5" max="60" step="5" value="15" oninput="$('#wv').textContent=this.value">
+    ${dateRow()}
+    <div class="row" style="margin-top:18px"><button class="btn grow" data-act="createcheck" data-id="${connId}">Send request &amp; agree</button></div>`);
+}
+function reviewSheet(c) {
+  if (!state.uploads.length) { closeSheet(); state.tab = "uploads"; renderTabs(); render(); return toast("Upload your timeline first, then come back", true); }
+  openSheet(`<h2>@${esc(c.other)} wants to check paths</h2>${shareNote}
+    <p class="muted small">Closeness ${c.radius_m} m · time tolerance ${c.window_min} min. Nothing runs until you agree.</p>
+    <label>Your timeline</label><select id="c_up">${uploadOptions()}</select>${dateRow()}
+    <div class="row" style="margin-top:18px"><button class="btn grow" data-act="consent" data-id="${c.id}">Agree &amp; run</button><button class="btn ghost" data-act="declinecheck" data-id="${c.id}">Decline</button></div>`);
+}
+
+/* ---------- results + map ---------- */
+let M = null;   // current map session
+function circlePoly(lat, lon, r) {
+  const pts = [], dLat = r / 111320, dLon = r / (111320 * Math.cos(lat * Math.PI / 180));
+  for (let i = 0; i <= 48; i++) { const a = i / 48 * 2 * Math.PI; pts.push([lon + dLon * Math.cos(a), lat + dLat * Math.sin(a)]); }
+  return pts;
+}
+/* Track helpers. Points are [t, lat, lon]; map coordinates are [lon, lat]. */
+const EMPTY_FC = { type: "FeatureCollection", features: [] };
+const localDayKey = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+const tzParam = () => -new Date().getTimezoneOffset();   // minutes east of UTC, so "a day" is the viewer's day
+// Where the person was at time t. Never draws a straight line across a recording gap (a
+// flight, phone off): if the neighbours are > maxGap apart it snaps to the nearer one.
+function posAt(pts, t, maxGap = 1800) {
+  if (!pts.length) return null;
+  if (t <= pts[0][0]) return pts[0];
+  const last = pts[pts.length - 1]; if (t >= last[0]) return last;
+  let lo = 0, hi = pts.length - 1; while (lo < hi) { const m = (lo + hi) >> 1; pts[m][0] < t ? lo = m + 1 : hi = m; }
+  const b = pts[lo], a = pts[lo - 1];
+  if (b[0] === a[0]) return b;
+  if (b[0] - a[0] > maxGap) return t - a[0] < b[0] - t ? a : b;
+  const f = (t - a[0]) / (b[0] - a[0]); return [t, a[1] + f * (b[1] - a[1]), a[2] + f * (b[2] - a[2])];
+}
+// Each recorded segment is its own line - gaps are never bridged. One-point segments are
+// stays (a day at home can be a single point) and are drawn as dots by the circle layers.
+const segsFeature = segs => ({ type: "FeatureCollection", features: [
+  { type: "Feature", properties: {}, geometry: { type: "MultiLineString", coordinates: segs.filter(s => s.length > 1).map(s => s.map(p => [p[2], p[1]])) } },
+  { type: "Feature", properties: { stay: 1 }, geometry: { type: "MultiPoint", coordinates: segs.filter(s => s.length === 1).map(s => [s[0][2], s[0][1]]) } }] });
+function segsUntil(segs, tMax) {
+  const out = [];
+  for (const s of segs) {
+    if (!s.length || s[0][0] > tMax) break;
+    if (s[s.length - 1][0] <= tMax) { out.push(s); continue; }
+    const cut = s.filter(p => p[0] <= tMax), p = posAt(s, tMax); if (p) cut.push([tMax, p[1], p[2]]);
+    out.push(cut); break;
+  }
+  return out;
+}
+function boundsOf(coords, minSpan) {
+  const b = new maplibregl.LngLatBounds(); coords.forEach(c => b.extend(c));
+  const sw = b.getSouthWest(), ne = b.getNorthEast();
+  const gx = Math.max(0, minSpan - (ne.lng - sw.lng)) / 2, gy = Math.max(0, minSpan - (ne.lat - sw.lat)) / 2;
+  return new maplibregl.LngLatBounds([sw.lng - gx, sw.lat - gy], [ne.lng + gx, ne.lat + gy]);
+}
+const pointFC = (lon, lat) => ({ type: "Feature", properties: {}, geometry: { type: "Point", coordinates: [lon, lat] } });
+
+/* ---------- results: crossings overview (heatmap + filters) -> one crossing with your own path ---------- */
+const isArabic = () => /^ar\b/i.test(navigator.language || "");
+const placeOf = e => (isArabic() && e.place_ar) ? e.place_ar : (e.place || "");
+const markOf = e => (isArabic() && e.landmark_ar) ? e.landmark_ar : (e.landmark || "");
+const cityOf = e => { const p = placeOf(e); const i = p.lastIndexOf(isArabic() && e.place_ar ? "،" : ","); return (i >= 0 ? p.slice(i + 1) : p).trim(); };
+const whereText = e => [markOf(e), placeOf(e)].filter(Boolean).join(" · ") || (Number.isFinite(e.lat) && Number.isFinite(e.lon) ? `${e.lat.toFixed(4)}, ${e.lon.toFixed(4)}` : "Unnamed area");
+const DUR_STEPS = [0, 5, 15, 30, 60];
+const freshFilters = () => ({ kinds: new Set(Object.keys(KIND)), year: null, city: null, place: null, minDur: 0, q: "", inView: false, sort: "new" });
+
+async function openResults(id) {
+  const [chk, tr] = await Promise.all([api("/api/checks/" + id), api(`/api/checks/${id}/my-track`)]);
+  const ev = (chk.events || []).map((e, i) => ({ ...e, i, t0: Date.parse(e.start) / 1000, t1: Date.parse(e.end) / 1000 }));
+  const warn = chk.their_trust === "low" ? `<div class="banner">⚠️ @${esc(chk.other)}'s timeline looks unusual (possible fake or edited location data). Treat these results with caution.</div>` : "";
+  const el = document.createElement("div"); el.id = "results";
+  el.innerHTML = `<div class="bar"><button class="btn ghost sm" data-act="closeresults">←</button><div class="grow"><h2>Paths crossed with @${esc(chk.other)}</h2><div class="muted small" id="rsub"></div></div>
+      <button class="btn ghost sm" id="legendbtn" title="What do the types mean?">?</button></div>
+    ${ev.length ? `<div class="rtabs"><button data-rt="stats" class="on">Summary</button><button data-rt="map">Map &amp; list</button></div>` : ""}
+    <div id="stats" class="stats">${warn}${statsHtml(computeStats(ev), chk)}<div id="vtip" class="vtip" hidden></div></div>
+    <div id="mapzone" style="display:none">
+      <div id="mapwrap"><div id="map"></div><div id="mapmsg">Couldn't load the map background.<br>Check the server's internet access or MAP_STYLE_URL.</div>
+        <button class="mapbtn" id="fitbtn" title="Fit to the crossings">⤢</button><div class="zoomhint off" id="zoomhint">Click a hot spot to zoom in</div></div>
+      <div id="panel">
+        <div id="sheethead"><button class="sgrip" id="grip" aria-label="Resize the results"><span></span></button>
+          ${ev.length ? `<div class="fbar" id="listhead"><button class="btn ghost sm" id="filterbtn">⚙︎ Filter</button><span class="small grow" id="fcount"></span>
+            <select id="sortsel" class="sortsel"><option value="new">Newest</option><option value="old">Oldest</option><option value="long">Longest</option></select></div>` : ""}
+          <div class="dethead" id="dethead" hidden></div></div>
+        <div id="detail" hidden></div>
+        <div id="listwrap">${warn}<div id="list"></div></div>
+      </div>
+    </div>`;
+  $("#overlays").appendChild(el);
+  M = { map: null, ready: false, chk, ev, view: ev, wins: tr.windows || [], legacy: !!tr.legacy, sel: -1, segs: [], pts: [], scrubT: null, playTimer: 0, f: freshFilters(), snap: 1 };
+  $("#legendbtn").onclick = legendSheet;
+  if (ev.length) {
+    $("#filterbtn").onclick = filterSheet;
+    $("#sortsel").onchange = () => { M.f.sort = $("#sortsel").value; applyFilters(); };
+  }
+  $("#list").onclick = e => { const r = e.target.closest(".ev"); if (r) selectEvent(+r.dataset.i, true); };
+  wireSheet();
+  $("#fitbtn").onclick = () => (M.sel >= 0 ? frameEvent(M.ev[M.sel]) : frameAll());
+  document.querySelectorAll(".rtabs button").forEach(b => { b.onclick = () => showTab(b.dataset.rt); });
+  showAllCrossings(true);
+  applyFilters();
+  wireStats();
+  M.tab = "stats";   // the summary first; the map starts the first time it's shown
+}
+function closeResults() { if (M) { clearInterval(M.playTimer); M.map && M.map.remove(); M = null; } const r = $("#results"); if (r) r.remove(); window.scrollTo(0, 0); }
+
+function legendSheet() {
+  const c = M ? M.chk : { radius_m: 100, window_min: 15 };
+  openSheet(`<h2>What the types mean</h2>
+    <div class="legend"><div class="lg"><span style="color:${VIZ.kind.same_place}">${kindIcon("same_place", 24)}</span><div><b>${KIND.same_place[1]}</b><p class="muted small">You were both at the same spot (within ${c.radius_m} m), mostly staying put - a café, a mall, a mosque. You may have been there up to ${c.window_min} min apart: one arriving as the other left.</p></div></div>
+    <div class="lg"><span style="color:${VIZ.kind.passing}">${kindIcon("passing", 24)}</span><div><b>${KIND.passing[1]}</b><p class="muted small">You were both on the move and went through the same spot within a few minutes of each other - walking or driving past. Over in a few minutes.</p></div></div>
+    <div class="lg"><span style="color:${VIZ.kind.shared_route}">${kindIcon("shared_route", 24)}</span><div><b>${KIND.shared_route[1]}</b><p class="muted small">You moved the same way at the same time for a while - the same road, bus or train.</p></div></div></div>
+    <p class="muted small">Places are named from a database on your server (place names © <a href="https://www.geonames.org" target="_blank" rel="noopener">GeoNames</a>, CC BY 4.0; street names © OpenStreetMap contributors). Times are rounded to 15 minutes and places blurred to about ${c.radius_m >= 100 ? 100 : c.radius_m} m for privacy. Flights are never matched.</p>
+    <div class="row" style="margin-top:12px"><button class="btn grow" onclick="closeSheet()">Got it</button></div>`);
+}
+
+/* ---- summary dashboard: the first thing a result shows ---- */
+const VIZ = { bar: "#3987e5", kind: { same_place: "#3987e5", passing: "#d95926", shared_route: "#199e70" } };   // validated on the dark panel
+const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const WEEKDAYS_LONG = ["Sundays", "Mondays", "Tuesdays", "Wednesdays", "Thursdays", "Fridays", "Saturdays"];
+const fmtHours = min => min < 60 ? `${Math.round(min)} min` : min < 600 ? `${(min / 60).toFixed(1).replace(/\.0$/, "")} h` : `${Math.round(min / 60).toLocaleString(UI_LOCALE)} h`;
+const hourLabel = h => new Date(2000, 0, 1, h).toLocaleTimeString(UI_LOCALE, { hour: "numeric", minute: "2-digit" }).replace(/:00(?=\s?[AP]M)/i, "");
+const monthLabel = (y, m, withYear) => new Date(y, m, 1).toLocaleDateString(UI_LOCALE, withYear ? { month: "short", year: "numeric" } : { month: "short" });
+
+function computeStats(all) {
+  const ev = all.filter(e => Number.isFinite(e.t0));   // one malformed date must not break the summary
+  if (!ev.length) return null;
+  const byT = ev.slice().sort((a, b) => a.t0 - b.t0);
+  const days = {}, places = {}, cities = {}, kinds = { same_place: 0, passing: 0, shared_route: 0 };
+  const hours = new Array(24).fill(0), wdays = new Array(7).fill(0);
+  let minutes = 0;
+  for (const e of ev) {
+    const d = new Date(e.t0 * 1000), k = localDayKey(d);
+    (days[k] = days[k] || []).push(e);
+    const p = placeOf(e); if (p) places[p] = (places[p] || 0) + 1;
+    const c = cityOf(e); if (c) cities[c] = (cities[c] || 0) + 1;
+    kinds[e.kind] = (kinds[e.kind] || 0) + 1;
+    hours[d.getHours()]++; wdays[d.getDay()]++;
+    minutes += e.duration_min;
+  }
+  // per month from the first to the last crossing (zeros included, so gaps show); per year past 3 years
+  const first = new Date(byT[0].t0 * 1000), last = new Date(byT[byT.length - 1].t0 * 1000);
+  const nMonths = (last.getFullYear() - first.getFullYear()) * 12 + last.getMonth() - first.getMonth() + 1;
+  let timeline;
+  if (nMonths <= 36) {
+    timeline = Array.from({ length: nMonths }, (_, i) => { const y = first.getFullYear() + Math.floor((first.getMonth() + i) / 12), m = (first.getMonth() + i) % 12; return { y, m, label: monthLabel(y, m, true), short: monthLabel(y, m, false), value: 0 }; });
+    for (const e of ev) { const d = new Date(e.t0 * 1000); timeline[(d.getFullYear() - first.getFullYear()) * 12 + d.getMonth() - first.getMonth()].value++; }
+  } else {
+    timeline = Array.from({ length: last.getFullYear() - first.getFullYear() + 1 }, (_, i) => ({ y: first.getFullYear() + i, label: String(first.getFullYear() + i), short: String(first.getFullYear() + i), value: 0 }));
+    for (const e of ev) timeline[new Date(e.t0 * 1000).getFullYear() - first.getFullYear()].value++;
+  }
+  const top = (o, n) => Object.entries(o).sort((a, b) => b[1] - a[1]).slice(0, n);
+  const busiest = Object.entries(days).sort((a, b) => b[1].length - a[1].length || a[1][0].t0 - b[1][0].t0)[0];
+  const longest = ev.reduce((a, b) => (b.duration_min > a.duration_min ? b : a));
+  const argmax = arr => arr.indexOf(Math.max(...arr));
+  return {
+    count: ev.length, days: Object.keys(days).length, minutes, nPlaces: Object.keys(places).length,
+    first: byT[0], last: byT[byT.length - 1], longest, busiest: { day: busiest[1][0], n: busiest[1].length },
+    kinds, places: top(places, 6), cities: top(cities, 5), nCities: Object.keys(cities).length,
+    timeline, monthly: nMonths <= 36, hours, wdays, peakHour: argmax(hours), peakDay: argmax(wdays),
+  };
+}
+
+// Columns: one series, one hue; 4px rounded data-end, square at the baseline; bars capped at
+// 24px; hairline baseline; only the peak carries a direct label - the tooltip and the table
+// carry the rest.
+function barPath(x, y, w, h, r) {
+  r = Math.min(r, w / 2, h);
+  return `M${x},${y + h}V${y + r}Q${x},${y} ${x + r},${y}H${x + w - r}Q${x + w},${y} ${x + w},${y + r}V${y + h}Z`;
+}
+function columnsSvg(series, { height = 120, tickEvery = 1, tickLabel = s => s.short, tip = s => `${s.value}`, chartId }) {
+  const W = 340, top = 18, bottom = 20, plotH = height - top - bottom, n = series.length;
+  const slot = W / n, bw = Math.max(2, Math.min(24, slot - 2)), max = Math.max(1, ...series.map(s => s.value));
+  const peak = series.reduce((b, s, i) => (s.value > series[b].value ? i : b), 0);
+  let out = `<svg viewBox="0 0 ${W} ${height}" class="cols" role="img" aria-labelledby="${chartId}-t">`;
+  out += `<line x1="0" x2="${W}" y1="${top + plotH + 0.5}" y2="${top + plotH + 0.5}" stroke="var(--line)" stroke-width="1"/>`;
+  series.forEach((s, i) => {
+    const h = s.value ? Math.max(2, (s.value / max) * plotH) : 0, x = i * slot + (slot - bw) / 2, y = top + plotH - h;
+    if (h) out += `<path d="${barPath(x, y, bw, h, 4)}" fill="${VIZ.bar}"/>`;
+    // transparent hit area: the whole slot, full height (bigger than the mark)
+    out += `<rect class="hit" x="${i * slot}" y="0" width="${slot}" height="${top + plotH}" fill="transparent" tabindex="0" data-tip="${esc(tip(s))}"/>`;
+    if (i % tickEvery === 0) {   // edge labels anchor inward so they're never clipped
+      const tx = i * slot + slot / 2, anchor = tx < 22 ? "start" : tx > W - 22 ? "end" : "middle";
+      out += `<text x="${anchor === "start" ? 0 : anchor === "end" ? W : tx}" y="${height - 5}" text-anchor="${anchor}" class="tick">${esc(tickLabel(s, i))}</text>`;
+    }
+  });
+  if (series[peak].value) {
+    const x = peak * slot + slot / 2, y = top + plotH - (series[peak].value / max) * plotH - 5, a = x < 16 ? "start" : x > W - 16 ? "end" : "middle";
+    out += `<text x="${a === "start" ? 0 : a === "end" ? W : x}" y="${y}" text-anchor="${a}" class="peak">${series[peak].value}</text>`;
+  }
+  return out + `</svg>`;
+}
+function tableHtml(rows, head) {
+  return `<table class="vtable"><thead><tr><th>${esc(head[0])}</th><th>${esc(head[1])}</th></tr></thead><tbody>${rows.map(r => `<tr><td>${esc(r[0])}</td><td>${esc(r[1])}</td></tr>`).join("")}</tbody></table>`;
+}
+function chartCard(id, title, sub, svg, rows, head) {
+  return `<div class="vcard" id="${id}"><div class="row between"><div><h3 id="${id}-t">${esc(title)}</h3>${sub ? `<div class="muted small">${esc(sub)}</div>` : ""}</div>
+    <button class="linkbtn" data-tab="${id}">Table</button></div><div class="vchart">${svg}</div><div class="vtablewrap" hidden>${tableHtml(rows, head)}</div></div>`;
+}
+
+function statsHtml(st, chk) {
+  if (!st) return `<div class="vempty"><div class="hero-n">0</div><p class="muted">Your paths didn't cross within ${chk.radius_m} m and ${chk.window_min} min.</p></div>`;
+  const span = `${dateStr(st.first.t0)} – ${dateStr(st.last.t0)}`;
+  const kindRow = Object.keys(KIND).filter(k => st.kinds[k]);
+  const tile = (label, value, sub, act) => `<div class="kpi${act ? " tap" : ""}" ${act || ""}><div class="kpi-l">${esc(label)}</div><div class="kpi-v">${esc(value)}</div>${sub ? `<div class="kpi-s">${esc(sub)}</div>` : ""}</div>`;
+  const maxPlace = st.places.length ? st.places[0][1] : 1, maxCity = st.cities.length ? st.cities[0][1] : 1;
+  const hbar = (label, n, max, attrs) => `<div class="hb" ${attrs}><div class="hb-l">${esc(label)}</div><div class="hb-track"><div class="hb-bar" style="width:${Math.max(3, (n / max) * 100)}%"></div><span class="hb-v">${n}</span></div></div>`;
+  const tl = st.timeline, tickEvery = st.monthly ? Math.max(1, Math.ceil(tl.length / 6)) : Math.max(1, Math.ceil(tl.length / 8));
+  const peakTl = tl.reduce((b, s) => (s.value > b.value ? s : b), tl[0]);
+  return `
+  <div class="vhero">
+    <div class="hero-n">${st.count.toLocaleString(UI_LOCALE)}</div>
+    <div class="hero-l">time${st.count === 1 ? "" : "s"} your paths crossed with @${esc(chk.other)}</div>
+    <div class="muted small">${esc(span)} · within ${chk.radius_m} m and ${chk.window_min} min</div>
+  </div>
+  <div class="kpis">
+    ${tile("Days you crossed", st.days.toLocaleString(UI_LOCALE), st.days > 1 ? `busiest: ${st.busiest.n} on ${dateStr(st.busiest.day.t0)}` : "")}
+    ${tile("Time together", fmtHours(st.minutes), st.minutes >= 2880 ? `about ${Math.round(st.minutes / 1440)} days, all added up` : "all crossings added up")}
+    ${tile("Places", st.nPlaces.toLocaleString(UI_LOCALE), st.nCities > 1 ? `in ${st.nCities} cities` : st.cities.length ? `in ${st.cities[0][0]}` : "")}
+    ${tile("Longest", fmtHours(st.longest.duration_min), `${dateStr(st.longest.t0)} · tap to see`, `data-sev="${st.longest.i}"`)}
+  </div>
+  <div class="vcard"><h3>By type</h3>
+    <div class="stack" role="img" aria-label="${kindRow.map(k => `${KIND[k][1]} ${st.kinds[k]}`).join(", ")}">${kindRow.map(k => `<div style="flex:${st.kinds[k]};background:${VIZ.kind[k]}" tabindex="0" data-tip="${esc(`${st.kinds[k]} · ${KIND[k][1]}`)}"></div>`).join("")}</div>
+    <div class="legend2">${kindRow.map(k => `<button class="lg2" data-fkind="${k}"><span class="sw" style="background:${VIZ.kind[k]}"></span><span class="row" style="gap:6px">${kindIcon(k, 16)}${KIND[k][1]}</span><b>${st.kinds[k]}</b><span class="muted">${Math.round(st.kinds[k] / st.count * 100)}%</span></button>`).join("")}</div>
+    <p class="muted small" style="margin:8px 0 0">Tap a type to see just those on the map. <a href="#" data-legend="1">What do they mean?</a></p></div>
+  ${st.places.length ? `<div class="vcard"><h3>Where you cross most</h3>${st.places.map(([p, n]) => hbar(p, n, maxPlace, `data-fplace="${esc(p)}" tabindex="0"`)).join("")}
+    ${st.nPlaces > st.places.length ? `<div class="muted small" style="margin-top:6px">and ${st.nPlaces - st.places.length} more place${st.nPlaces - st.places.length === 1 ? "" : "s"}</div>` : ""}</div>` : ""}
+  ${st.nCities > 1 ? `<div class="vcard"><h3>Cities</h3>${st.cities.map(([c, n]) => hbar(c, n, maxCity, `data-fcity="${esc(c)}" tabindex="0"`)).join("")}</div>` : ""}
+  ${chartCard("ch-time", st.monthly ? "Crossings per month" : "Crossings per year", peakTl.value ? `Most in ${peakTl.label}: ${peakTl.value}` : "",
+      columnsSvg(tl, { height: 130, tickEvery, tickLabel: (s, i) => (st.monthly && (i === 0 || s.m === 0) ? `${s.short} ${String(s.y).slice(2)}` : s.short), tip: s => `${s.value} crossing${s.value === 1 ? "" : "s"} · ${s.label}`, chartId: "ch-time" }),
+      tl.map(s => [s.label, s.value]), [st.monthly ? "Month" : "Year", "Crossings"])}
+  ${chartCard("ch-hour", "Time of day", `Most often around ${hourLabel(st.peakHour)}`,
+      columnsSvg(st.hours.map((v, h) => ({ value: v, short: hourLabel(h), label: hourLabel(h) })), { height: 120, tickEvery: 6, tip: s => `${s.value} crossing${s.value === 1 ? "" : "s"} · ${s.label}`, chartId: "ch-hour" }),
+      st.hours.map((v, h) => [hourLabel(h), v]), ["Hour", "Crossings"])}
+  ${chartCard("ch-day", "Day of week", `Most often on ${WEEKDAYS_LONG[st.peakDay]}`,
+      columnsSvg(st.wdays.map((v, d) => ({ value: v, short: WEEKDAYS[d], label: WEEKDAYS_LONG[d] })), { height: 120, tip: s => `${s.value} crossing${s.value === 1 ? "" : "s"} · ${s.label}`, chartId: "ch-day" }),
+      st.wdays.map((v, d) => [WEEKDAYS_LONG[d], v]), ["Day", "Crossings"])}
+  <div class="vcard"><h3>Highlights</h3>
+    ${[["Longest", st.longest, `~${fmtHours(st.longest.duration_min)}`], ["First", st.first, ""], ["Most recent", st.last, ""]]
+      .map(([label, e, extra]) => `<button class="hl" data-sev="${e.i}"><span class="hl-l">${label}</span><span class="hl-m"><b>${esc(whereText(e))}</b><span class="muted small">${esc(fmtDay(new Date(e.t0 * 1000)))} · ${fmtTime(new Date(e.t0 * 1000))}${extra ? " · " + extra : ""}</span></span><span class="muted">›</span></button>`).join("")}
+  </div>
+  <button class="btn" style="width:100%;margin:6px 0 18px" data-tabto="map">See all ${st.count} on the map →</button>`;
+}
+
+function wireStats() {
+  const root = $("#stats"); if (!root) return;
+  const tip = $("#vtip");
+  const show = (el, x, y) => { if (!el || !el.dataset.tip) return; tip.textContent = el.dataset.tip; tip.hidden = false;
+    const r = root.getBoundingClientRect(), w = tip.offsetWidth; tip.style.left = Math.max(8, Math.min(r.width - w - 8, x - r.left - w / 2)) + "px"; tip.style.top = (y - r.top + root.scrollTop - 38) + "px"; el.classList.add("on"); };
+  const hide = () => { tip.hidden = true; root.querySelectorAll("[data-tip].on").forEach(n => n.classList.remove("on")); };
+  root.onpointermove = e => { const t = e.target.closest("[data-tip]"); hide(); if (t) show(t, e.clientX, e.clientY); };
+  root.onpointerleave = hide;
+  root.onfocusin = e => { const t = e.target.closest("[data-tip]"); if (t) { const b = t.getBoundingClientRect(); hide(); show(t, b.left + b.width / 2, b.top); } };
+  root.onfocusout = hide;
+  root.onclick = e => {
+    const tb = e.target.closest("[data-tab]");
+    if (tb) { const card = $("#" + tb.dataset.tab), wrap = card.querySelector(".vtablewrap"), chart = card.querySelector(".vchart"); const on = wrap.hidden; wrap.hidden = !on; chart.hidden = on; tb.textContent = on ? "Chart" : "Table"; return; }
+    // A specific crossing: clear any filter from an earlier drill-down, so it's in the list and on the map.
+    const ev = e.target.closest("[data-sev]"); if (ev) { const sort = M.f.sort; M.f = freshFilters(); M.f.sort = sort; applyFilters(); showTab("map"); selectEvent(+ev.dataset.sev, true); return; }
+    const drill = patch => { const sort = M.f.sort; M.f = Object.assign(freshFilters(), { sort }, patch); M.snap = 1; showTab("map"); showAllCrossings(true); applyFilters(); frameAll(); };
+    const pl = e.target.closest("[data-fplace]"); if (pl) return drill({ place: pl.dataset.fplace });
+    const ci = e.target.closest("[data-fcity]"); if (ci) return drill({ city: ci.dataset.fcity });
+    const kd = e.target.closest("[data-fkind]"); if (kd) return drill({ kinds: new Set([kd.dataset.fkind]) });
+    if (e.target.closest("[data-tabto]")) { M.snap = 1; showTab("map"); return; }
+    if (e.target.closest("[data-legend]")) { e.preventDefault(); legendSheet(); }
+  };
+}
+function showTab(t) {
+  if (!M) return;
+  if (t === "stats") stopReplay();
+  M.tab = t;
+  document.querySelectorAll(".rtabs button").forEach(b => b.classList.toggle("on", b.dataset.rt === t));
+  $("#stats").hidden = t !== "stats";
+  $("#mapzone").style.display = t === "map" ? "" : "none";
+  if (t === "map") { setSnap(M.snap, true); if (!M.map) startMap(); else M.map.resize(); }
+}
+
+/* ---- a row of chips on one line that scrolls sideways ---- */
+const CHEV = d => `<svg viewBox="0 0 24 24"><path d="${d}"/></svg>`;
+const hsRow = (inner, attrs = "") => `<div class="hs"><button type="button" class="hsb l" aria-label="Scroll left"><span>${CHEV("M15 18l-6-6 6-6")}</span></button><div class="fchips" ${attrs}>${inner}</div><button type="button" class="hsb r" aria-label="Scroll right"><span>${CHEV("M9 18l6-6-6-6")}</span></button></div>`;
+function wireHScroll(root) {
+  root.querySelectorAll(".hs").forEach(hs => {
+    const row = hs.querySelector(".fchips");
+    const upd = () => { hs.classList.toggle("can-l", row.scrollLeft > 4); hs.classList.toggle("can-r", row.scrollLeft + row.clientWidth < row.scrollWidth - 4); };
+    hs.querySelector(".hsb.l").onclick = e => { e.stopPropagation(); row.scrollBy({ left: -row.clientWidth * 0.7 }); };
+    hs.querySelector(".hsb.r").onclick = e => { e.stopPropagation(); row.scrollBy({ left: row.clientWidth * 0.7 }); };
+    row.addEventListener("scroll", upd, { passive: true });
+    // a mouse wheel scrolls the row sideways on desktop
+    row.addEventListener("wheel", e => { if (Math.abs(e.deltaY) > Math.abs(e.deltaX) && row.scrollWidth > row.clientWidth) { row.scrollLeft += e.deltaY; e.preventDefault(); } }, { passive: false });
+    // start with the chosen chip in view
+    const on = row.querySelector(".fchip.on");
+    if (on && on !== row.firstElementChild) row.scrollLeft = Math.max(0, on.offsetLeft - row.offsetLeft - row.clientWidth / 2 + on.offsetWidth / 2);
+    requestAnimationFrame(upd);
+  });
+}
+
+/* ---- settings: theme + how long uploads are kept ---- */
+function settingsSheet() {
+  const p = themePref(), u = state.user || {}, opts = state.cfg.upload_keep_options || [state.cfg.upload_ttl_hours || 24];
+  const keep = u.upload_keep_hours;
+  const note = h => !h ? "Your timelines stay on this server, encrypted, until you delete them on the Uploads tab." : `Each timeline is deleted ${keepLabel(h)} after you upload it. Choosing a shorter time also deletes older ones straight away.`;
+  openSheet(`<h2>Settings</h2>
+    <label>Theme</label><div class="seg" id="thmode" style="margin-top:0">${[["system", "System"], ["dark", "Dark"], ["light", "Light"]].map(([k, l]) => `<button data-mode="${k}" class="${p.mode === k ? "on" : ""}">${l}</button>`).join("")}</div>
+    <label>Accent colour</label><div class="swatches" id="thacc">${Object.entries(ACCENTS).map(([k, a]) => `<button class="sw2${p.accent === k ? " on" : ""}" data-acc="${k}" style="--c:${a.dark[0]};--c2:${a.light[0]}" aria-label="${a.name}" title="${a.name}"></button>`).join("")}</div>
+    <label style="margin-top:18px">Keep my uploaded timelines</label>${hsRow(opts.map(h => `<button class="fchip${h === keep ? " on" : ""}" data-keep="${h}">${keepLabel(h)}</button>`).join(""), 'id="keepopts"')}
+    <p class="muted small" id="keepnote" style="margin:8px 0 0">${note(keep)}</p>
+    <div class="row" style="margin-top:18px"><button class="btn grow" id="setdone">Done</button></div>`);
+  const sh = $("#sheet");
+  wireHScroll(sh);
+  $("#setdone").onclick = () => closeSheet();
+  $("#thmode").onclick = e => { const b = e.target.closest("[data-mode]"); if (!b) return; setTheme({ mode: b.dataset.mode }); $("#thmode").querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b)); };
+  $("#thacc").onclick = e => { const b = e.target.closest("[data-acc]"); if (!b) return; setTheme({ accent: b.dataset.acc }); $("#thacc").querySelectorAll(".sw2").forEach(x => x.classList.toggle("on", x === b)); };
+  $("#keepopts").onclick = async e => {
+    const b = e.target.closest("[data-keep]"); if (!b) return;
+    const h = +b.dataset.keep;
+    if (h === state.user.upload_keep_hours) return;
+    const doomed = h ? state.uploads.filter(x => x.created_at + h * 3600 < Date.now() / 1000).length : 0;
+    if (doomed && !confirm(`This deletes ${doomed} uploaded timeline${doomed === 1 ? "" : "s"} older than ${keepLabel(h)} now. Continue?`)) return;
+    try {
+      state.user = await api("/api/me/settings", { method: "PUT", body: { upload_keep_hours: h } });
+      $("#keepopts").querySelectorAll(".fchip").forEach(x => x.classList.toggle("on", +x.dataset.keep === state.user.upload_keep_hours));
+      $("#keepnote").textContent = note(state.user.upload_keep_hours);
+      state.uploads = await api("/api/uploads");
+      if (state.tab === "uploads" && !$("#results")) render();
+      toast(h ? `Uploads are now deleted after ${keepLabel(h)}` : "Uploads are now kept until you delete them");
+    } catch (err) { toast(err.message, true); }
+  };
+}
+
+/* ---- filters ---- */
+function filteredEvents() {
+  const f = M.f, q = f.q.trim().toLowerCase();
+  let bounds = null;
+  if (f.inView && M.ready) bounds = M.map.getBounds();
+  let out = M.ev.filter(e => f.kinds.has(e.kind)
+    && (f.year == null || new Date(e.t0 * 1000).getFullYear() === f.year)
+    && (f.city == null || cityOf(e) === f.city)
+    && (f.place == null || placeOf(e) === f.place)
+    && e.duration_min >= f.minDur
+    && (!q || [e.place, e.place_ar, e.landmark, e.landmark_ar].some(s => (s || "").toLowerCase().includes(q)))
+    && (!bounds || bounds.contains([e.lon, e.lat])));
+  if (f.sort === "new") out = out.slice().sort((a, b) => b.t0 - a.t0);
+  else if (f.sort === "old") out = out.slice().sort((a, b) => a.t0 - b.t0);
+  else out = out.slice().sort((a, b) => b.duration_min - a.duration_min || b.t0 - a.t0);
+  return out;
+}
+function activeFilterCount() {
+  const f = M.f;
+  return (f.kinds.size < Object.keys(KIND).length) + (f.year != null) + (f.city != null) + (f.place != null) + (f.minDur > 0) + (!!f.q.trim()) + f.inView;
+}
+function applyFilters() {
+  if (!M) return;
+  M.view = filteredEvents();
+  const n = activeFilterCount(), days = new Set(M.view.map(e => localDayKey(new Date(e.t0 * 1000)))).size;
+  $("#rsub").textContent = (M.ev.length ? `${M.ev.length} crossing${M.ev.length === 1 ? "" : "s"}` : "No crossings") + ` · ${M.chk.radius_m} m · ${M.chk.window_min} min`;
+  if ($("#fcount")) $("#fcount").innerHTML = `<b>${n ? `${M.view.length} of ${M.ev.length}` : `${M.view.length} crossing${M.view.length === 1 ? "" : "s"}`}</b> <span class="muted">· ${days} day${days === 1 ? "" : "s"}</span>`;
+  if ($("#filterbtn")) $("#filterbtn").textContent = n ? `⚙︎ Filter (${n})` : "⚙︎ Filter";
+  renderList();
+  if (M.ready) M.map.getSource("crossings").setData(crossingsFC(M.view));
+}
+function crossingsFC(list) {
+  return { type: "FeatureCollection", features: list.map(e => ({ type: "Feature", properties: { i: e.i, kind: e.kind, w: Math.min(1, 0.3 + Math.log2(1 + e.duration_min / 15) / 5) }, geometry: { type: "Point", coordinates: [e.lon, e.lat] } })) };
+}
+function renderList() {
+  const row = e => { const k = KIND[e.kind] || KIND.same_place, d0 = new Date(e.t0 * 1000);
+    return `<div class="ev${e.i === M.sel ? " sel" : ""}" data-i="${e.i}">${kindBadge(e.kind)}<div class="grow" style="min-width:0"><div class="top"><b>${k[1]}</b>
+      <span class="muted small">${M.f.sort === "long" ? esc(fmtDay(d0)) + " · " : ""}${fmtTime(d0)} · ${e.duration_min} min</span></div>
+      <div class="where small">${esc(whereText(e))}</div></div><div class="muted">›</div></div>`; };
+  if (!M.ev.length) { $("#list").innerHTML = `<p class="muted" style="text-align:center;margin:30px 0">Your paths didn't cross within ${M.chk.radius_m} m and ${M.chk.window_min} min.</p>`; return; }
+  if (!M.view.length) { $("#list").innerHTML = `<p class="muted" style="text-align:center;margin:30px 0">No crossings match these filters.<br><a href="#" id="fclear">Clear filters</a></p>`; $("#fclear").onclick = ev => { ev.preventDefault(); clearFilters(); }; return; }
+  if (M.f.sort === "long") { $("#list").innerHTML = M.view.map(row).join(""); return; }
+  const days = [], byKey = {};
+  M.view.forEach(e => { const d = new Date(e.t0 * 1000), k = localDayKey(d); if (!byKey[k]) { byKey[k] = { title: fmtDay(d), items: [] }; days.push(byKey[k]); } byKey[k].items.push(e); });
+  $("#list").innerHTML = days.map(d => `<div class="dayhdr">${esc(d.title)} · ${d.items.length}</div>` + d.items.map(row).join("")).join("");
+}
+function clearFilters() { const sort = M.f.sort; M.f = freshFilters(); M.f.sort = sort; closeSheet(true); applyFilters(); }
+function filterSheet() {
+  const f = M.f;
+  const years = [...new Set(M.ev.map(e => new Date(e.t0 * 1000).getFullYear()))].sort();
+  const cityCounts = {}; M.ev.forEach(e => { const c = cityOf(e); if (c) cityCounts[c] = (cityCounts[c] || 0) + 1; });
+  const cities = Object.entries(cityCounts).sort((a, b) => b[1] - a[1]).slice(0, 12);
+  const chip = (on, attrs, label) => `<button class="fchip${on ? " on" : ""}" ${attrs}>${label}</button>`;
+  openSheet(`<h2>Filter crossings</h2>
+    <label>Type</label>${hsRow(Object.entries(KIND).map(([k, v]) => chip(f.kinds.has(k), `data-fk="${k}"`, kindIcon(k, 15) + " " + v[1])).join(""))}
+    ${years.length > 1 ? `<label>Year</label>${hsRow(chip(f.year == null, `data-fy=""`, "All") + years.map(y => chip(f.year === y, `data-fy="${y}"`, y)).join(""))}` : ""}
+    ${cities.length > 1 ? `<label>City</label>${hsRow(chip(f.city == null, `data-fc=""`, "All") + cities.map(([c, n]) => chip(f.city === c, `data-fc="${esc(c)}"`, `${esc(c)} <span class="muted">${n}</span>`)).join(""))}` : ""}
+    ${f.place != null ? `<label id="fplabel">Place</label>${hsRow(chip(true, `data-fp=""`, `${kindIcon("same_place", 15)} ${esc(f.place)} ✕`))}` : ""}
+    <label>At least</label>${hsRow(DUR_STEPS.map(m => chip(f.minDur === m, `data-fd="${m}"`, m ? m + "+ min" : "Any")).join(""))}
+    <label>Place or landmark contains</label><input type="text" id="fq" value="${esc(f.q)}" placeholder="e.g. Olaya, airport, mall">
+    <label class="row" style="gap:8px;margin-top:14px;color:var(--text)"><input type="checkbox" id="fview" ${f.inView ? "checked" : ""} style="width:auto"> Only crossings in the visible map area</label>
+    <div class="row" style="margin-top:16px;gap:8px"><button class="btn ghost" id="fclear2">Clear</button><button class="btn grow" id="fdone">Show ${M.view.length}</button></div>`);
+  const sh = $("#sheet");
+  wireHScroll(sh);
+  const refresh = () => { applyFilters(); const b = $("#fdone"); if (b) b.textContent = `Show ${M.view.length}`; };
+  sh.onclick = e => {
+    const b = e.target.closest(".fchip"); if (!b) return;
+    if (b.dataset.fk) { f.kinds.has(b.dataset.fk) ? f.kinds.delete(b.dataset.fk) : f.kinds.add(b.dataset.fk); if (!f.kinds.size) f.kinds.add(b.dataset.fk); }
+    if (b.dataset.fy !== undefined) f.year = b.dataset.fy ? +b.dataset.fy : null;
+    if (b.dataset.fc !== undefined) f.city = b.dataset.fc || null;
+    if (b.dataset.fd !== undefined) f.minDur = +b.dataset.fd;
+    if (b.dataset.fp !== undefined) { f.place = null; const l = $("#fplabel"); if (l) l.remove(); b.closest(".hs").remove(); refresh(); return; }
+    b.parentElement.querySelectorAll(".fchip").forEach(x => x.classList.toggle("on",
+      x.dataset.fk ? f.kinds.has(x.dataset.fk) : x.dataset.fy !== undefined ? (x.dataset.fy ? +x.dataset.fy === f.year : f.year == null)
+      : x.dataset.fc !== undefined ? (x.dataset.fc ? x.dataset.fc === f.city : f.city == null) : +x.dataset.fd === f.minDur));
+    refresh();
+  };
+  $("#fq").oninput = () => { f.q = $("#fq").value; refresh(); };
+  $("#fview").onchange = () => { f.inView = $("#fview").checked; refresh(); };
+  $("#fclear2").onclick = clearFilters;
+  $("#fdone").onclick = () => { closeSheet(); if (!f.inView) frameAll(); };
+}
+
+/* ---- the results sheet: peek (just its header), half, or nearly the whole screen ---- */
+const HEAT_MAX_Z = 10.5, DOTS_FROM_Z = 8.5, SELECT_FROM_Z = 9;   // the heat is gone by 10.5; below 9 a click zooms in
+const wide = () => window.matchMedia("(min-width:900px)").matches;
+function snaps() {
+  const h = $("#mapzone").clientHeight || window.innerHeight * 0.7, peek = Math.min(114, h * 0.3);
+  return [peek, Math.max(peek + 60, Math.round(h * 0.48)), Math.round(h * 0.9)];
+}
+function setSnap(idx, instant) {
+  if (!M) return;
+  const p = $("#panel"); if (!p) return;
+  M.snap = idx;
+  if (instant) p.classList.add("dragging");
+  p.style.height = snaps()[idx] + "px";
+  if (instant) { void p.offsetHeight; p.classList.remove("dragging"); }
+  updateZoomHint();
+}
+/** Map padding so framing lands in the part of the map the sheet doesn't cover. At "full" frame as if
+ *  at half rather than squeezing everything into a sliver; on a wide screen the sheet is on the left. */
+function mapPad() {
+  if (wide()) return { top: 60, right: 40, bottom: 40, left: 460 };
+  return { top: 60, right: 36, bottom: snaps()[Math.min(M ? M.snap : 1, 1)] + 28, left: 36 };
+}
+function wireSheet() {
+  const head = $("#sheethead"), panel = $("#panel");
+  let justDragged = false;
+  head.addEventListener("pointerdown", e => {
+    if (e.button) return;
+    const startY = e.clientY, startH = panel.getBoundingClientRect().height;
+    let dragging = false, lastY = startY, lastT = performance.now(), vy = 0;
+    const move = ev => {
+      const dy = ev.clientY - startY;
+      if (!dragging) { if (Math.abs(dy) < 6) return; dragging = true; panel.classList.add("dragging"); }
+      const s = snaps();
+      panel.style.height = Math.min(s[2], Math.max(s[0], startH - dy)) + "px";
+      const now = performance.now(); vy = (ev.clientY - lastY) / Math.max(1, now - lastT); lastY = ev.clientY; lastT = now;
+      ev.preventDefault();
+    };
+    const up = () => {
+      window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", up); window.removeEventListener("pointercancel", up);
+      if (!dragging) return;
+      panel.classList.remove("dragging");
+      const s = snaps(), projected = panel.getBoundingClientRect().height - vy * 200;   // a flick carries on to the next stop
+      let best = 0; s.forEach((v, i) => { if (Math.abs(v - projected) < Math.abs(s[best] - projected)) best = i; });
+      const before = M.snap; setSnap(best);
+      if (M.sel >= 0 && Math.min(best, 1) !== Math.min(before, 1)) frameEvent(M.ev[M.sel]);
+      justDragged = true; setTimeout(() => { justDragged = false; }, 0);
+    };
+    window.addEventListener("pointermove", move, { passive: false }); window.addEventListener("pointerup", up); window.addEventListener("pointercancel", up);
+  });
+  // A drag that ends over a button must not also press it.
+  head.addEventListener("click", e => { if (justDragged) { e.stopPropagation(); e.preventDefault(); } }, true);
+  $("#grip").onclick = () => { const before = M.snap; setSnap(M.snap === 2 ? 1 : M.snap + 1); if (M.sel >= 0 && Math.min(M.snap, 1) !== Math.min(before, 1)) frameEvent(M.ev[M.sel]); };
+  window.addEventListener("resize", () => { if (M && $("#panel")) setSnap(M.snap, true); });
+}
+function updateZoomHint() {
+  const h = $("#zoomhint"); if (!h || !M) return;
+  h.classList.toggle("off", !(M.ready && M.view.length && M.sel < 0 && M.map.getZoom() < SELECT_FROM_Z && M.snap !== 2));
+}
+
+/* ---- map ---- */
+function startMap() {
+  if (typeof maplibregl === "undefined") { $("#mapmsg").style.display = "flex"; return; }
+  const map = M.map = new maplibregl.Map({ container: "map", style: state.cfg.map_style, center: [20, 25], zoom: 1.5, attributionControl: { compact: true } });
+  map.on("error", () => { if (!map.loaded() && !map.isStyleLoaded()) $("#mapmsg").style.display = "flex"; });
+  map.on("load", () => {
+    if (!M || M.map !== map) return;
+    const line = { "line-cap": "round", "line-join": "round" };
+    map.addSource("track", { type: "geojson", data: EMPTY_FC });
+    map.addLayer({ id: "track-all", type: "line", source: "track", layout: line, paint: { "line-color": "#60a5fa", "line-width": 3, "line-opacity": .35 } });
+    map.addLayer({ id: "track-stays", type: "circle", source: "track", filter: ["==", ["get", "stay"], 1], paint: { "circle-radius": 5, "circle-color": "#60a5fa", "circle-opacity": .5 } });
+    map.addSource("track-done", { type: "geojson", data: EMPTY_FC });
+    map.addLayer({ id: "track-done", type: "line", source: "track-done", layout: line, paint: { "line-color": "#60a5fa", "line-width": 4 } });
+    // How precise the place is (blurred for privacy): a faint dashed ring, not a blob.
+    map.addSource("area", { type: "geojson", data: EMPTY_FC });
+    map.addLayer({ id: "area-fill", type: "fill", source: "area", paint: { "fill-color": "#2dd4bf", "fill-opacity": .06 } });
+    map.addLayer({ id: "area-line", type: "line", source: "area", paint: { "line-color": "#2dd4bf", "line-width": 1.5, "line-opacity": .8, "line-dasharray": [2, 2] } });
+    map.addSource("crossings", { type: "geojson", data: crossingsFC(M.view) });
+    // Zoomed out: a heat map of where you cross most - gone by HEAT_MAX_Z, while the dots fade in first.
+    map.addLayer({ id: "heat", type: "heatmap", source: "crossings", maxzoom: HEAT_MAX_Z, paint: {
+      "heatmap-weight": ["get", "w"],
+      "heatmap-intensity": ["interpolate", ["linear"], ["zoom"], 0, 0.3, 5, 0.5, 9, 1.4, HEAT_MAX_Z, 2],
+      "heatmap-radius": ["interpolate", ["linear"], ["zoom"], 0, 6, 5, 11, 8, 18, HEAT_MAX_Z, 24],
+      "heatmap-color": ["interpolate", ["linear"], ["heatmap-density"], 0, "rgba(250,204,21,0)", 0.1, "rgba(250,204,21,.35)", 0.3, "rgba(250,204,21,.7)", 0.55, "#f59e0b", 0.8, "#f97316", 1, "#ef4444"],
+      "heatmap-opacity": ["interpolate", ["linear"], ["zoom"], 0, 0.9, 9, 0.85, HEAT_MAX_Z, 0] } });
+    map.addLayer({ id: "crossings-hit", type: "circle", source: "crossings", maxzoom: HEAT_MAX_Z, paint: { "circle-radius": 12, "circle-color": "#000", "circle-opacity": 0.01 } });
+    map.addLayer({ id: "crossings", type: "circle", source: "crossings", paint: {
+      "circle-radius": ["interpolate", ["linear"], ["zoom"], DOTS_FROM_Z, 4, 14, 7],
+      "circle-color": ["match", ["get", "kind"], "passing", VIZ.kind.passing, "shared_route", VIZ.kind.shared_route, VIZ.kind.same_place],
+      "circle-stroke-color": "#fff", "circle-stroke-width": 1.5,
+      "circle-opacity": ["interpolate", ["linear"], ["zoom"], DOTS_FROM_Z, 0, 10, 1], "circle-stroke-opacity": ["interpolate", ["linear"], ["zoom"], DOTS_FROM_Z, 0, 10, 1] } });
+    map.addLayer({ id: "crossings-sel", type: "circle", source: "crossings", filter: ["==", ["get", "i"], -1], paint: { "circle-radius": 10, "circle-color": "#fff", "circle-stroke-color": "#0b1220", "circle-stroke-width": 4 } });
+    map.addSource("me", { type: "geojson", data: EMPTY_FC });
+    map.addLayer({ id: "me", type: "circle", source: "me", paint: { "circle-radius": 7, "circle-color": "#60a5fa", "circle-stroke-color": "#fff", "circle-stroke-width": 3 } });
+    map.on("click", e => {
+      const box = [[e.point.x - 22, e.point.y - 22], [e.point.x + 22, e.point.y + 22]];
+      const seen = new Set(), feats = map.queryRenderedFeatures(box, { layers: ["crossings-hit", "crossings"] }).filter(f => !seen.has(f.properties.i) && seen.add(f.properties.i));
+      if (!feats.length) return;
+      const z = map.getZoom();
+      if (z < SELECT_FROM_Z || (feats.length > 1 && z < HEAT_MAX_Z)) return zoomInto(feats);
+      const near = feats.map(f => ({ f, d: map.project(f.geometry.coordinates).dist(e.point) })).sort((a, b) => a.d - b.d)[0].f;
+      selectEvent(+near.properties.i, true);
+    });
+    ["crossings", "crossings-hit"].forEach(l => {
+      map.on("mouseenter", l, () => { map.getCanvas().style.cursor = "pointer"; });
+      map.on("mouseleave", l, () => { map.getCanvas().style.cursor = ""; });
+    });
+    map.on("moveend", () => { if (M && M.f.inView) applyFilters(); updateZoomHint(); });
+    M.ready = true;
+    if (M.sel >= 0) selectEvent(M.sel, false); else frameAll(0);
+    updateZoomHint();
+  });
+}
+/** Zoomed out, a click on a hot spot zooms into the crossings under the pointer: always a real step in, never past street level. */
+function zoomInto(feats) {
+  const b = boundsOf(feats.map(f => f.geometry.coordinates), 0), z = M.map.getZoom(), padding = mapPad();
+  const cam = M.map.cameraForBounds(b, { padding, maxZoom: 14 }) || { center: feats[0].geometry.coordinates, zoom: z + 3 };
+  // An offset, not `padding`: padding given to easeTo sticks to the map and is then added to every
+  // later fitBounds' padding, which can make the next fit impossible (it silently does nothing).
+  M.map.easeTo({ center: cam.center, zoom: Math.min(14, Math.max(z + 2, cam.zoom)), offset: [(padding.left - padding.right) / 2, (padding.top - padding.bottom) / 2], duration: 700 });
+}
+function frameAll(duration = 600) {
+  if (!M || !M.ready || !M.view.length) return;
+  M.map.fitBounds(boundsOf(M.view.map(e => [e.lon, e.lat]), 0.02), { padding: mapPad(), maxZoom: 13, duration });
+}
+function frameEvent(e) {
+  if (!M || !M.ready || !e) return;
+  // The hour either side of the crossing: how you got there and where you went.
+  const near = M.pts.filter(p => p[0] >= e.t0 - 3600 && p[0] <= e.t1 + 3600).map(p => [p[2], p[1]]);
+  M.map.fitBounds(boundsOf(near.concat([[e.lon, e.lat]]), 0.006), { padding: mapPad(), maxZoom: 16, duration: 800 });
+}
+function kindBadge(kind) { return `<div class="kb" style="--kc:${VIZ.kind[kind] || VIZ.kind.same_place}">${kindIcon(kind, 18)}</div>`; }
+function showListMode(on) {
+  $("#detail").hidden = on; $("#listwrap").hidden = !on; $("#dethead").hidden = on;
+  if ($("#listhead")) $("#listhead").hidden = !on;
+}
+function showAllCrossings(initial) {
+  if (!M) return;
+  const from = M.sel;
+  stopReplay(); M.sel = -1; M.segs = []; M.pts = []; M.scrubT = null;
+  document.querySelectorAll(".ev").forEach(n => n.classList.remove("sel", "live"));
+  showListMode(true);
+  if (from >= 0) {   // back to where you were in the list (just the list - not the page behind the overlay)
+    const r = $(`.ev[data-i="${from}"]`), list = $("#listwrap");
+    if (r && list) list.scrollTop += r.getBoundingClientRect().top - list.getBoundingClientRect().top - list.clientHeight * 0.3;
+  }
+  if (M.ready) {
+    ["track", "track-done", "area", "me"].forEach(id => M.map.getSource(id).setData(EMPTY_FC));
+    M.map.setFilter("crossings-sel", ["==", ["get", "i"], -1]);
+  }
+  updateZoomHint();
+}
+async function lookupStreet(e) {
+  const out = $("#street"); if (!out) return;
+  out.innerHTML = `<span class="spin" style="width:12px;height:12px;border-width:2px"></span> Looking up the street…`;
+  try {
+    const lang = encodeURIComponent((navigator.language || "en").split("-")[0]);
+    // OpenStreetMap's usage policy asks apps to identify themselves: send just this site's
+    // address (the page itself is sent with no referrer at all otherwise).
+    const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=17&lat=${e.lat}&lon=${e.lon}&accept-language=${lang}`, { referrerPolicy: "origin" });
+    if (!r.ok) { if (M && M.sel === e.i) out.textContent = r.status === 403 || r.status === 429 ? "OpenStreetMap is busy or refused the lookup. Try again later." : "OpenStreetMap couldn't look that up."; return; }
+    const j = await r.json(), a = j.address || {};
+    const street = [a.road || a.pedestrian || a.footway || a.square, a.neighbourhood || a.suburb || a.quarter].filter(Boolean).join(", ");
+    if (M && M.sel === e.i) out.textContent = street || j.display_name || "No street name here";
+  } catch (err) { if (M && M.sel === e.i) out.textContent = "Couldn't reach OpenStreetMap right now."; }
+}
+function selectEvent(i, moveSheet) {
+  if (!M || i < 0 || i >= M.ev.length) return;
+  stopReplay();
+  const e = M.ev[i], w = M.wins.find(x => x.from <= e.t0 && e.t0 <= x.to);
+  M.sel = i; M.segs = w ? w.segments : []; M.pts = M.segs.flat().sort((a, b) => a[0] - b[0]);
+  const tMin = M.pts.length ? M.pts[0][0] : e.t0, tMax = M.pts.length ? M.pts[M.pts.length - 1][0] : e.t1;
+  M.scrubT = Math.min(tMax, Math.max(tMin, e.t0));
+  const pos = M.view.findIndex(x => x.i === i), prev = pos > 0 ? M.view[pos - 1] : null, next = pos >= 0 && pos < M.view.length - 1 ? M.view[pos + 1] : null;
+  const k = KIND[e.kind] || KIND.same_place, d0 = new Date(e.t0 * 1000), d1 = new Date(e.t1 * 1000);
+  // One crossing: its details replace the list, with the way back at the top.
+  $("#dethead").innerHTML = `<div class="row" style="gap:8px"><button class="back" id="evall">‹ All crossings</button><span class="grow"></span>
+      ${pos >= 0 ? `<span class="muted small">${pos + 1} of ${M.view.length}</span>` : ""}
+      <button class="btn ghost sm" id="evprev" ${prev ? "" : "disabled"} aria-label="Previous">‹</button><button class="btn ghost sm" id="evnext" ${next ? "" : "disabled"} aria-label="Next">›</button></div>
+    <div class="row" style="gap:10px;margin-top:6px">${kindBadge(e.kind)}<div class="grow" style="min-width:0"><h3>${k[1]}</h3>
+      <div class="muted small">${esc(fmtDay(d0))} · ${fmtTime(d0)}–${fmtTime(d1)} · ~${e.duration_min} min</div></div></div>`;
+  $("#detail").innerHTML = `<div class="place row" style="gap:8px;align-items:flex-start"><span class="muted" style="margin-top:1px">${kindIcon("same_place", 17)}</span><span class="grow">${esc(whereText(e))}</span></div>
+    <div class="muted small" id="street" style="margin:4px 0 0 25px"><a href="#" id="streetbtn">Show street name</a> <span class="muted">(asks OpenStreetMap)</span></div>
+    <div class="muted small" style="margin-top:8px">${offsetText(e.offset_min)} · place accurate to about ${e.blur_m || 100} m</div>
+    <div class="pathbox">${M.pts.length ? `<div class="row between"><b class="small" id="tlabel">Your path</b><button class="btn ghost sm" id="play">▶ Replay</button></div>
+      <input type="range" id="scr" min="${tMin}" max="${Math.max(tMax, tMin + 1)}" step="1" value="${M.scrubT}">
+      <div class="muted small">Only your own path is ever shown, never theirs.</div>`
+      : M.legacy ? `<p class="muted small" style="margin:0">This result was saved by an older version, before your own path was kept with it. Run the check again to see how you got here and where you went.</p>`
+      : `<p class="muted small" style="margin:0">No path of yours was recorded in the hours around this crossing.</p>`}</div>`;
+  showListMode(false);
+  $("#detail").scrollTop = 0;
+  $("#evprev").onclick = () => prev && selectEvent(prev.i, false);
+  $("#evnext").onclick = () => next && selectEvent(next.i, false);
+  $("#evall").onclick = () => showAllCrossings(false);
+  $("#streetbtn").onclick = ev => { ev.preventDefault(); lookupStreet(e); };
+  if (M.pts.length) {
+    $("#scr").oninput = () => { stopReplay(); M.scrubT = +$("#scr").value; updateReplay(); };
+    $("#play").onclick = () => toggleReplay(tMin, tMax);
+  }
+  document.querySelectorAll(".ev").forEach(n => n.classList.toggle("sel", +n.dataset.i === i));
+  // From the map at "peek" you need the details; from the list at "full" you need the map. Half-way shows both.
+  if (moveSheet && M.snap !== 1) setSnap(1);
+  if (M.ready) {
+    M.map.getSource("track").setData(segsFeature(M.segs));
+    M.map.getSource("area").setData({ type: "Feature", properties: {}, geometry: { type: "Polygon", coordinates: [circlePoly(e.lat, e.lon, e.blur_m || 100)] } });
+    M.map.setFilter("crossings-sel", ["==", ["get", "i"], i]);
+    frameEvent(e);
+  }
+  updateReplay();
+  updateZoomHint();
+}
+function updateReplay() {
+  if (!M || M.sel < 0) return;
+  const lbl = $("#tlabel");
+  if (lbl && M.scrubT != null) lbl.textContent = "Your path · " + fmtTime(new Date(M.scrubT * 1000));
+  const p = M.pts.length && M.scrubT != null ? posAt(M.pts, M.scrubT) : null;
+  if (M.ready) {
+    M.map.getSource("me").setData(p ? pointFC(p[2], p[1]) : EMPTY_FC);
+    M.map.getSource("track-done").setData(M.scrubT != null ? segsFeature(segsUntil(M.segs, M.scrubT)) : EMPTY_FC);
+  }
+  const e = M.ev[M.sel], row = $(`.ev[data-i="${M.sel}"]`);
+  if (row) row.classList.toggle("live", M.scrubT != null && M.scrubT >= e.t0 && M.scrubT <= e.t1);
+}
+function stopReplay() { if (M && M.playTimer) { clearInterval(M.playTimer); M.playTimer = 0; const b = $("#play"); if (b) b.textContent = "▶ Replay"; } }
+function toggleReplay(tMin, tMax) {
+  if (M.playTimer) return stopReplay();
+  if (M.scrubT == null || M.scrubT >= tMax) M.scrubT = tMin;
+  const step = Math.max(1, (tMax - tMin) / 400);   // ~20 s whatever the window length
+  $("#play").textContent = "❚❚ Pause";
+  M.playTimer = setInterval(() => {
+    M.scrubT = Math.min(tMax, M.scrubT + step);
+    const scr = $("#scr"); if (scr) scr.value = M.scrubT;
+    updateReplay();
+    if (M.scrubT >= tMax) stopReplay();
+  }, 50);
+}
+
+/* ---------- my-timeline tab: year -> month -> day drill picker + map + place search ---------- */
+let MYT = { map: null, raf: 0, playTimer: 0, me: null, meOn: false, uploadId: null, summary: null,
+            year: null, month: null, day: null, dayPts: null, pickMode: false, pinLat: null, pinLon: null, pinMarker: null };
+
+function mtStatus(msg, spinning) {
+  const el = $("#mt-status"); if (!el) return;
+  el.innerHTML = spinning ? `<span class="spin" style="width:14px;height:14px;border-width:2px"></span> ${esc(msg)}` : esc(msg);
+}
+
+async function renderMyTimeline() {
+  if (!state.uploads.length) {
+    $("#view").innerHTML = `<div class="hero"><h1>My timeline</h1></div><p class="muted" style="text-align:center;margin-top:24px">Upload your timeline first, on the Uploads tab.</p>`;
+    return;
+  }
+  if (!MYT.uploadId || !state.uploads.some(u => u.id === MYT.uploadId)) MYT.uploadId = state.uploads[0].id;
+  const upload = state.uploads.find(u => u.id === MYT.uploadId);
+  $("#view").innerHTML = `
+    <div class="hero"><h1>My timeline</h1></div>
+    ${state.uploads.length > 1 ? `<div class="mt-row" id="mt-uploadpick">${state.uploads.map(u => `<button class="mo-chip${u.id === MYT.uploadId ? " sel" : ""}" data-mtupload="${u.id}">${dateStr(u.from)} → ${dateStr(u.to)}</button>`).join("")}</div>` : ""}
+    <div class="mt-status" id="mt-status">Loading your timeline…</div>
+    <div id="mt-picker" style="display:none">
+      <div class="mt-row" id="mt-years"></div>
+      <div class="mt-row" id="mt-months" style="display:none"></div>
+      <div class="mt-row" id="mt-days" style="display:none"></div>
+    </div>
+    <div class="card" id="mt-mapcard" style="display:none;padding:10px">
+      <div id="mt-map"><div id="mt-mapel"></div><div id="mt-mapmsg">Couldn't load the map background.<br>Check the server's internet access or MAP_STYLE_URL.</div></div>
+      <div class="row between" style="margin-top:10px"><span class="muted small" id="mt-daylabel"></span>
+        <div class="row" style="gap:8px"><button class="btn ghost sm" id="mt-locbtn" title="Show my current location">📍 Live</button><button class="btn ghost sm" id="mt-play">▶ Play</button></div></div>
+      <input type="range" id="mt-scrub" min="0" max="1000" value="0" style="margin-top:6px">
+    </div>
+    <div class="card">
+      <h3>Search a place</h3>
+      <p class="muted small">See every time you've visited somewhere.</p>
+      <div class="row" style="gap:8px"><input type="text" id="mt-searchtext" placeholder="Place name"><button class="btn ghost sm" id="mt-searchgo">Search</button></div>
+      <p class="muted small" style="margin-top:4px">Typed search uses OpenStreetMap and sends your search text there.</p>
+      <button class="btn ghost sm" id="mt-pickbtn" style="margin-top:8px;width:100%">📍 Or tap a point on the map above</button>
+      <label style="margin-top:10px">Search radius: <b id="mt-radiusv">150</b> m</label>
+      <input type="range" id="mt-radius" min="50" max="1000" step="25" value="150">
+      <div id="mt-searchresults" class="mt-loc-list"></div>
+    </div>`;
+  wireMyTimelineChrome();
+  await loadSummary(upload);
+}
+
+async function loadSummary(upload) {
+  mtStatus("Loading your timeline…", true);
+  try {
+    MYT.summary = await api(`/api/uploads/${upload.id}/summary?tz=${tzParam()}`);
+  } catch (e) {
+    mtStatus("Couldn't load your timeline: " + e.message);
+    return;
+  }
+  if (!MYT.summary.years.length) { mtStatus("This timeline has no points to show."); return; }
+  $("#mt-picker").style.display = "";
+  renderYearsRow();
+  const years = MYT.summary.years;
+  const lastYear = years[years.length - 1], lastMonth = lastYear.months[lastYear.months.length - 1];
+  const lastDay = lastMonth.days[lastMonth.days.length - 1];
+  expandYear(lastYear.year);
+  expandMonth(lastYear.year, lastMonth.month);
+  await loadDay(lastYear.year, lastMonth.month, lastDay.day);
+}
+
+function renderYearsRow() {
+  $("#mt-years").innerHTML = MYT.summary.years.map(y =>
+    `<button class="yr-chip${y.year === MYT.year ? " sel" : ""}" data-level="year" data-year="${y.year}">${y.year}</button>`
+  ).join("");
+}
+function expandYear(year) {
+  if (!MYT.summary) return;
+  MYT.year = year; MYT.month = null; MYT.day = null;
+  document.querySelectorAll("#mt-years .yr-chip").forEach(b => b.classList.toggle("sel", +b.dataset.year === year));
+  const y = MYT.summary.years.find(x => x.year === year);
+  $("#mt-months").style.display = "";
+  $("#mt-months").innerHTML = y.months.map(m =>
+    `<button class="mo-chip" data-level="month" data-year="${year}" data-month="${m.month}">${new Date(2000, m.month - 1, 1).toLocaleDateString(UI_LOCALE, { month: "short" })}</button>`
+  ).join("");
+  $("#mt-days").style.display = "none"; $("#mt-days").innerHTML = "";
+}
+function expandMonth(year, month) {
+  if (!MYT.summary) return;
+  MYT.month = month; MYT.day = null;
+  document.querySelectorAll("#mt-months .mo-chip").forEach(b => b.classList.toggle("sel", +b.dataset.month === month));
+  const y = MYT.summary.years.find(x => x.year === year);
+  const m = y.months.find(x => x.month === month);
+  $("#mt-days").style.display = "";
+  $("#mt-days").innerHTML = m.days.map(d =>
+    `<button class="dy-chip" data-level="day" data-year="${year}" data-month="${month}" data-day="${d.day}">${d.day}</button>`
+  ).join("");
+}
+function previewChip(level, year, month, day) {
+  document.querySelectorAll(".yr-chip,.mo-chip,.dy-chip").forEach(b => b.classList.remove("preview"));
+  if (level === "year" && year !== MYT.year) expandYear(year);
+  else if (level === "month" && (year !== MYT.year || month !== MYT.month)) { if (year !== MYT.year) expandYear(year); expandMonth(year, month); }
+  else if (level === "day") {
+    if (year !== MYT.year) expandYear(year);
+    if (month !== MYT.month) expandMonth(year, month);
+    document.querySelectorAll(`.dy-chip[data-day="${day}"]`).forEach(b => b.classList.add("preview"));
+  }
+}
+function commitChip(level, year, month, day) {
+  if (level === "day") loadDay(year, month, day);
+}
+function wireDrillPicker() {
+  const root = $("#mt-picker"); if (!root || root._wired) return; root._wired = true;
+  let dragging = false;
+  const chipAt = (x, y) => { const el = document.elementFromPoint(x, y); return el && el.closest(".yr-chip,.mo-chip,.dy-chip"); };
+  const info = chip => ({ level: chip.dataset.level, year: +chip.dataset.year, month: chip.dataset.month ? +chip.dataset.month : null, day: chip.dataset.day ? +chip.dataset.day : null });
+  root.addEventListener("pointerdown", e => {
+    const chip = e.target.closest(".yr-chip,.mo-chip,.dy-chip"); if (!chip) return;
+    dragging = true;
+    try { root.setPointerCapture(e.pointerId); } catch (err) {}
+    const i = info(chip); previewChip(i.level, i.year, i.month, i.day);
+  });
+  root.addEventListener("pointermove", e => {
+    if (!dragging) return;
+    const chip = chipAt(e.clientX, e.clientY); if (!chip) return;
+    const i = info(chip); previewChip(i.level, i.year, i.month, i.day);
+  });
+  const finish = e => {
+    if (!dragging) return; dragging = false;
+    const chip = chipAt(e.clientX, e.clientY);
+    document.querySelectorAll(".yr-chip,.mo-chip,.dy-chip").forEach(b => b.classList.remove("preview"));
+    if (chip) { const i = info(chip); commitChip(i.level, i.year, i.month, i.day); }
+  };
+  root.addEventListener("pointerup", finish);
+  root.addEventListener("pointercancel", () => { dragging = false; });
+}
+
+function ensureMap() {
+  if (MYT.map || typeof maplibregl === "undefined") return;
+  const map = MYT.map = new maplibregl.Map({ container: "mt-mapel", style: state.cfg.map_style, center: [0, 20], zoom: 2, attributionControl: { compact: true } });
+  map.on("error", () => { if (!map.loaded() && !map.isStyleLoaded()) $("#mt-mapmsg").style.display = "flex"; });
+  map.on("load", () => {
+    map.addSource("mytrack", { type: "geojson", data: EMPTY_FC });
+    map.addLayer({ id: "mytrack-line", type: "line", source: "mytrack", paint: { "line-color": "#60a5fa", "line-width": 3, "line-opacity": .35 }, layout: { "line-cap": "round", "line-join": "round" } });
+    map.addLayer({ id: "mytrack-stays", type: "circle", source: "mytrack", filter: ["==", ["get", "stay"], 1], paint: { "circle-radius": 5, "circle-color": "#60a5fa", "circle-opacity": .5 } });
+    map.addSource("mytrack-done", { type: "geojson", data: EMPTY_FC });
+    map.addLayer({ id: "mytrack-done", type: "line", source: "mytrack-done", paint: { "line-color": "#60a5fa", "line-width": 4 }, layout: { "line-cap": "round", "line-join": "round" } });
+    const me = document.createElement("div"); me.className = "me"; MYT.me = new maplibregl.Marker({ element: me });
+    if (MYT.dayPts && MYT.dayPts.length) renderDayOnMap();
+  });
+  map.on("click", e => { if (MYT.pickMode) setSearchPin(e.lngLat.lat, e.lngLat.lng); });
+}
+async function loadDay(year, month, day) {
+  expandYear(year); expandMonth(year, month);
+  document.querySelectorAll(".dy-chip").forEach(b => b.classList.toggle("sel", +b.dataset.day === day));
+  MYT.day = day;
+  const dateStr2 = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+  const label = new Date(year, month - 1, day).toLocaleDateString(UI_LOCALE, { weekday: "short", day: "numeric", month: "short", year: "numeric" });
+  mtStatus(`Loading ${label}…`, true);
+  $("#mt-mapcard").style.display = "";
+  ensureMap();
+  try {
+    const r = await api(`/api/uploads/${MYT.uploadId}/day?date=${dateStr2}&tz=${tzParam()}`);
+    MYT.daySegs = r.segments || [];
+    MYT.dayPts = MYT.daySegs.flat().sort((a, b) => a[0] - b[0]);
+    mtStatus(MYT.dayPts.length ? `${label} · ${MYT.dayPts.length.toLocaleString()} point${MYT.dayPts.length === 1 ? "" : "s"}` : `${label} · no points recorded`);
+    renderDayOnMap();
+  } catch (e) {
+    mtStatus("Couldn't load that day: " + e.message);
+  }
+}
+function renderDayOnMap() {
+  const pts = MYT.dayPts || [];
+  $("#mt-scrub").value = 0; $("#mt-daylabel").textContent = pts.length ? fmtTime(new Date(pts[0][0] * 1000)) : "";
+  if (!MYT.map) return;
+  const src = MYT.map.getSource("mytrack"); if (!src) return;
+  if (!pts.length) {
+    src.setData(EMPTY_FC); MYT.map.getSource("mytrack-done").setData(EMPTY_FC);
+    if (MYT.me && MYT.meOn) { MYT.me.remove(); MYT.meOn = false; }
+    return;
+  }
+  src.setData(segsFeature(MYT.daySegs || []));
+  MYT.map.fitBounds(boundsOf(pts.map(p => [p[2], p[1]]), 0.006), { padding: 40, duration: 500, maxZoom: 16 });
+  updateScrub();
+}
+function updateScrub() {
+  const pts = MYT.dayPts || []; if (!pts.length) return;
+  const frac = +$("#mt-scrub").value / 1000;
+  const t = pts[0][0] + (pts[pts.length - 1][0] - pts[0][0]) * frac, p = posAt(pts, t);
+  $("#mt-daylabel").textContent = fmtTime(new Date(t * 1000));
+  if (MYT.map && MYT.map.getSource("mytrack-done")) MYT.map.getSource("mytrack-done").setData(segsFeature(segsUntil(MYT.daySegs || [], t)));
+  if (MYT.map && MYT.me) { MYT.me.setLngLat([p[2], p[1]]); if (!MYT.meOn) { MYT.me.addTo(MYT.map); MYT.meOn = true; } }
+}
+function setSearchPin(lat, lon) {
+  MYT.pinLat = lat; MYT.pinLon = lon; MYT.pickMode = false;
+  $("#mt-pickbtn").textContent = "📍 Or tap a point on the map above";
+  if (MYT.pinMarker) MYT.pinMarker.remove();
+  const el = document.createElement("div"); el.className = "mk sel";
+  MYT.pinMarker = new maplibregl.Marker({ element: el }).setLngLat([lon, lat]).addTo(MYT.map);
+  runSearch();
+}
+async function runSearch() {
+  if (MYT.pinLat == null) return;
+  const radius = +$("#mt-radius").value;
+  $("#mt-searchresults").innerHTML = `<div class="muted small" style="padding:8px 0"><span class="spin" style="width:14px;height:14px;border-width:2px"></span> Searching your timeline…</div>`;
+  try {
+    const r = await api(`/api/uploads/${MYT.uploadId}/visits?lat=${MYT.pinLat}&lon=${MYT.pinLon}&radius_m=${radius}`);
+    renderSearchResults(r.visits);
+  } catch (e) {
+    $("#mt-searchresults").innerHTML = `<p class="muted small">${esc(e.message)}</p>`;
+  }
+}
+function renderSearchResults(visits) {
+  if (!visits.length) { $("#mt-searchresults").innerHTML = `<p class="muted small" style="padding-top:8px">No visits found there.</p>`; return; }
+  $("#mt-searchresults").innerHTML = visits.slice().reverse().map((v, i) => {
+    const s = new Date(v.start * 1000), e = new Date(v.end * 1000);
+    return `<div class="mt-search-result" data-visit="${i}"><div><b>${fmtDay(s)}</b><div class="muted small">${fmtTime(s)}${v.end !== v.start ? "–" + fmtTime(e) : ""}</div></div><span class="muted">›</span></div>`;
+  }).join("");
+  MYT._visits = visits.slice().reverse();
+  $("#mt-searchresults").onclick = e => {
+    const row = e.target.closest(".mt-search-result"); if (!row) return;
+    const v = MYT._visits[+row.dataset.visit];
+    const d = new Date(v.start * 1000);
+    loadDay(d.getFullYear(), d.getMonth() + 1, d.getDate()).then(() => {
+      const pts = MYT.dayPts; if (!pts || !pts.length) return;
+      const frac = (v.start - pts[0][0]) / Math.max(1, pts[pts.length - 1][0] - pts[0][0]);
+      $("#mt-scrub").value = Math.round(Math.min(1000, Math.max(0, frac * 1000)));
+      updateScrub();
+    });
+  };
+}
+async function searchPlaceName() {
+  const q = $("#mt-searchtext").value.trim(); if (!q) return;
+  $("#mt-searchresults").innerHTML = `<div class="muted small" style="padding:8px 0"><span class="spin" style="width:14px;height:14px;border-width:2px"></span> Looking up "${esc(q)}"…</div>`;
+  try {
+    const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=5&q=${encodeURIComponent(q)}`, { referrerPolicy: "origin" });
+    if (!res.ok) throw new Error("status " + res.status);
+    const places = await res.json();
+    if (!places.length) { $("#mt-searchresults").innerHTML = `<p class="muted small">No place found for "${esc(q)}".</p>`; return; }
+    $("#mt-searchresults").innerHTML = places.map((p, i) => `<div class="mt-search-result" data-place="${i}"><div>${esc(p.display_name)}</div><span class="muted">›</span></div>`).join("");
+    $("#mt-searchresults").onclick = e => {
+      const row = e.target.closest(".mt-search-result"); if (!row) return;
+      const p = places[+row.dataset.place];
+      $("#mt-mapcard").style.display = "";
+      ensureMap();
+      if (MYT.map) MYT.map.flyTo({ center: [+p.lon, +p.lat], zoom: 15, duration: 600 });
+      setSearchPin(+p.lat, +p.lon);
+    };
+  } catch (e) {
+    $("#mt-searchresults").innerHTML = `<p class="muted small">Couldn't reach OpenStreetMap's search right now.</p>`;
+  }
+}
+function wireMyTimelineChrome() {
+  wireDrillPicker();
+  const up = $("#mt-uploadpick"); if (up) up.onclick = e => { const b = e.target.closest("[data-mtupload]"); if (b && b.dataset.mtupload !== MYT.uploadId) { MYT.uploadId = b.dataset.mtupload; MYT.year = MYT.month = MYT.day = null; renderMyTimeline(); } };
+  $("#mt-scrub").oninput = updateScrub;
+  $("#mt-play").onclick = () => {
+    if (MYT.playTimer) { clearInterval(MYT.playTimer); MYT.playTimer = 0; $("#mt-play").textContent = "▶ Play"; return; }
+    const scr = $("#mt-scrub"); if (+scr.value >= 1000) scr.value = 0;
+    $("#mt-play").textContent = "❚❚ Pause";
+    MYT.playTimer = setInterval(() => { scr.value = Math.min(1000, +scr.value + 4); updateScrub(); if (+scr.value >= 1000) { clearInterval(MYT.playTimer); MYT.playTimer = 0; $("#mt-play").textContent = "▶ Play"; } }, 50);
+  };
+  $("#mt-locbtn").onclick = showLiveLocation;
+  $("#mt-radius").oninput = () => { $("#mt-radiusv").textContent = $("#mt-radius").value; if (MYT.pinLat != null) runSearch(); };
+  $("#mt-pickbtn").onclick = () => { MYT.pickMode = !MYT.pickMode; $("#mt-pickbtn").textContent = MYT.pickMode ? "Tap the map to drop a pin…" : "📍 Or tap a point on the map above"; };
+  $("#mt-searchgo").onclick = searchPlaceName;
+}
+let liveWatchId = null, liveMarker = null;
+function showLiveLocation() {
+  if (!navigator.geolocation) { toast("Location isn't available in this browser", true); return; }
+  const btn = $("#mt-locbtn");
+  if (liveWatchId) {
+    navigator.geolocation.clearWatch(liveWatchId); liveWatchId = null;
+    if (liveMarker) { liveMarker.remove(); liveMarker = null; }
+    btn.style.background = ""; btn.style.color = "";
+    return;
+  }
+  ensureMap();
+  btn.style.background = "#1d3a2a"; btn.style.color = "#4ade80";
+  liveWatchId = navigator.geolocation.watchPosition(
+    pos => {
+      const { latitude, longitude } = pos.coords;
+      if (!MYT.map) return;
+      if (!liveMarker) { const el = document.createElement("div"); el.className = "me"; el.style.background = "#4ade80"; liveMarker = new maplibregl.Marker({ element: el }).setLngLat([longitude, latitude]).addTo(MYT.map); }
+      else liveMarker.setLngLat([longitude, latitude]);
+    },
+    () => toast("Couldn't get your location — check the browser's location permission", true),
+    { enableHighAccuracy: true, maximumAge: 5000 }
+  );
+}
+
+/* ---------- actions ---------- */
+document.addEventListener("click", async e => {
+  const a = e.target.closest("[data-act]"); if (!a) return;
+  const act = a.dataset.act, id = a.dataset.id;
+  if (a.tagName === "A") e.preventDefault();
+  switch (act) {
+    case "logout": return logout();
+    case "settings": return settingsSheet();
+    case "mode": state.authMode = a.dataset.m; return renderAuth();
+    case "auth": return run(async () => {
+      const handle = $("#a_user").value, password = $("#a_pass").value, reg = state.authMode === "register";
+      const r = await api(reg ? "/api/register" : "/api/login", { method: "POST", body: { handle, password, invite: $("#a_inv") && $("#a_inv").value } });
+      state.token = r.token; localStorage.setItem("cp_token", r.token); await boot();
+    });
+    case "tab": state.tab = a.dataset.t; renderTabs(); return render();
+    case "rmzone": return run(async () => {
+      const u = state.uploads.find(x => x.id === id), zones = u.zones.filter((_, i) => i !== +a.dataset.i);
+      await api(`/api/uploads/${id}/zones`, { method: "PUT", body: { zones } }); await refreshAll(); renderTimeline();
+    });
+    case "rmupload": if (!confirm("Delete this timeline from the server now?")) return;
+      return run(async () => { await api("/api/uploads/" + id, { method: "DELETE" }); await refreshAll(); renderTimeline(); });
+    case "sendreq": return run(async () => {
+      const h = $("#handle").value.trim(); if (!h) return;
+      await api("/api/connections", { method: "POST", body: { handle: h } }); toast("Request sent"); await refreshAll(); renderPeople();
+    });
+    case "respond": return run(async () => { await api(`/api/connections/${id}/respond`, { method: "POST", body: { action: a.dataset.a } }); await refreshAll(); renderTabs(); renderPeople(); });
+    case "rmconn": if (!confirm("Remove this connection and any results with them?")) return;
+      return run(async () => { await api("/api/connections/" + id, { method: "DELETE" }); await refreshAll(); renderTabs(); renderPeople(); });
+    case "newcheck": return newCheckSheet(id, a.dataset.o);
+    case "paircode": return pairCodeSheet();
+    case "pairenter": return pairEnterSheet("");
+    case "createcheck": return run(async () => {
+      const body = { connection_id: id, upload_id: $("#c_up").value, radius_m: +$("#c_r").value, window_min: +$("#c_w").value, ...readDates() };
+      await api("/api/checks", { method: "POST", body }); closeSheet(); toast("Request sent. It runs once they agree.");
+      await refreshAll(); state.tab = "checks"; renderTabs(); render();
+    });
+    case "review": return reviewSheet(state.checks.find(c => c.id === id));
+    case "consent": return run(async () => {
+      await api(`/api/checks/${id}/consent`, { method: "POST", body: { upload_id: $("#c_up").value, ...readDates() } });
+      closeSheet(); await refreshAll(); renderTabs(); renderChecks();
+    });
+    case "declinecheck": return run(async () => { await api(`/api/checks/${id}/decline`, { method: "POST" }); closeSheet(); await refreshAll(); renderTabs(); renderChecks(); });
+    case "rmcheck": if (!confirm("Delete this check and its results?")) return;
+      return run(async () => { await api("/api/checks/" + id, { method: "DELETE" }); await refreshAll(); renderTabs(); renderChecks(); });
+    case "results": return run(() => openResults(id));
+    case "closeresults": return closeResults();
+  }
+});
+document.addEventListener("keydown", e => { if (e.key === "Enter" && ["a_user", "a_pass", "a_inv"].includes(e.target.id)) document.querySelector('[data-act="auth"]').click(); if (e.key === "Enter" && e.target.id === "handle") document.querySelector('[data-act="sendreq"]').click(); });
+// Keep whatever the person is typing into visible above the on-screen keyboard.
+document.addEventListener("focusin", e => {
+  if (e.target.matches("input,select,textarea")) setTimeout(() => e.target.scrollIntoView({ block: "center", behavior: "smooth" }), 300);
+});
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js").catch(() => {});
+boot();
+</script>
+</body>
+</html>
