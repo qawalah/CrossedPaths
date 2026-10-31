@@ -58,7 +58,7 @@ eas build --platform ios --profile preview        # needs an Apple Developer acc
 ## Before it'll work
 
 1. **Server address.** On first launch, open "Server settings" from the sign-in screen and
-   enter your CrossPaths server's URL (Tailscale address, tunnel, or LAN IP). Or set it once
+   enter your CrossPaths server's URL (e.g. `https://crosspaths.example.com`). Or set it once
    for everyone in `app.json` under `expo.extra.apiUrl` before building.
 2. **Android Google Maps key.** `react-native-maps` on Android needs a Google Maps SDK key in
    `app.json` (`expo.android.config.googleMaps.apiKey` — currently a placeholder). iOS uses

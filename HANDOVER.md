@@ -34,7 +34,7 @@ Main features:
 - **Settings:**
   - theme: system, dark or light, plus five accent colours;
   - per-user upload retention: 24 h (default), 7 days, 30 days, or until deleted;
-  - two server addresses (home LAN + Tailscale) with automatic switching.
+  - two server addresses (main + backup) with automatic switching.
 - **Trust:** a heuristic check flags timelines that look fake or edited, shown as a warning on
   results.
 
@@ -42,7 +42,7 @@ Main features:
 
 | Part | Folder | Type |
 |---|---|---|
-| Server + web client | `server/` | Python (Flask) server for the NAS, runs in **Docker** on a Synology (ARM64 and x86). Serves the REST API and a single-page web client (`server/server/static/index.html`, installable as a PWA over HTTPS). |
+| Server + web client | `server/` | Python (Flask) server, runs as one **Docker** container on any Linux host (ARM64 and x86). Serves the REST API and a single-page web client (`server/server/static/index.html`, installable as a PWA over HTTPS). |
 | Mobile app | `mobile/` | **Android app** built with Expo SDK 51 / React Native 0.74 (prebuilt bare `android/` folder is committed). iOS project exists (`mobile/ios/`) but has never been built. |
 | Store assets | `store-listing/` | Play Store screenshots (1080×1920), feature graphic, 512 icon, listing text. Not code. |
 
@@ -71,7 +71,7 @@ port 8787.
 
 ## How it's built and run
 
-### Server (NAS)
+### Server (Docker)
 ```bash
 cd server
 docker compose up -d --build        # first time, or when requirements.txt / Dockerfile change
@@ -94,8 +94,7 @@ The tests never touch the network (`PLACE_NAMES=False` in tests).
 
 Local dev: `DATA_DIR=./data python -c "from server.app import create_app; create_app().run(port=8787)"`.
 
-Deployment notes for Synology (Container Manager, Tailscale, HTTPS options) are in
-`server/DEPLOY-SYNOLOGY.md`. The changelog is in `server/CHANGELOG.md`.
+Deployment notes (Docker, HTTPS, updating) are in `server/DEPLOY.md`. The changelog is in `server/CHANGELOG.md`.
 
 ### Mobile (Android APK)
 Requirements:
@@ -118,7 +117,7 @@ cd android
 - **Build flags:** keep the minify flags and arm64-only. Without them the APK is ~23 MB.
   `expo.useLegacyPackaging=true` is set in `gradle.properties` and by the config plugin.
 - **Prebuild:** `android/` came from `expo prebuild`, plus `plugins/withCrossPathsAndroid.js`
-  (allows plain-HTTP traffic for LAN servers, legacy packaging, arm64 `abiFilters`). Re-running
+  (allows plain-HTTP traffic for self-hosted/dev servers, legacy packaging, arm64 `abiFilters`). Re-running
   `npx expo prebuild --platform android` should reproduce it. Last time it wiped
   `local.properties`, and a later `packagingOptions` block overrode legacy packaging; that's why
   the plugin and the gradle property both exist.
@@ -129,7 +128,7 @@ cd android
 
 **Server port:** 8787 (HTTP). The web client and API are on the same port.
 
-**Data:** everything is in `DATA_DIR` (`/data` in the container = `./data` on the NAS):
+**Data:** everything is in `DATA_DIR` (`/data` in the container = `./data` next to `docker-compose.yml` on the host):
 - `crosspaths.db`: SQLite (users, connections, uploads metadata, checks, crossing events, pairing
   codes, rate-limit counters, audit log). Migrations run at start-up via `PRAGMA table_info` /
   `PRAGMA user_version` in `server/server/db.py`.
@@ -152,7 +151,7 @@ cd android
 - Expo push service: notifications are skipped when there's no EAS `projectId`.
 
 **Mobile, on the device:**
-- SecureStore holds: the token, the home and Tailscale server URLs, the auto-switch flag, the
+- SecureStore holds: the token, the main and backup server URLs, the auto-switch flag, the
   last active URL, the server `instance` and the theme.
 - Nothing else is stored on the device.
 
@@ -177,12 +176,12 @@ cd android
   hit-tests by elevation;
 - a theme switch: the navigator remounts and should keep your place;
 - the one-line chip rows with edge arrows;
-- Tailscale auto-switching.
+- automatic switching between the main and backup addresses.
 
 **Publishing to Play:**
 - Rename the package and create a real signing key.
-- Reviewer access: the server must be reachable publicly during review (Cloudflare Tunnel or
-  Tailscale Funnel), with a demo account.
+- Reviewer access: the server must be reachable publicly over HTTPS during review, with a demo
+  account.
 - A privacy policy URL and the Data safety form are required.
 - The store screenshots in `store-listing/` were rendered from the **web client** at phone size,
   with the web top bar hidden and demo accounts @sara and @omar. Swap them for real phone
@@ -193,8 +192,8 @@ cd android
 - **Push notifications** need an EAS `projectId`; until then registration is skipped.
 
 **Scale and hosting:**
-- **Web install (PWA)** needs HTTPS: `tailscale serve` or a reverse proxy.
-- **Scale:** SQLite and one gunicorn worker are deliberate for a 2 GB NAS. There's a
+- **Web install (PWA)** needs HTTPS: a reverse proxy, load balancer or tunnel (see `server/DEPLOY.md`).
+- **Scale:** SQLite and one gunicorn worker are deliberate for a small (2 GB) host. There's a
   PostgreSQL/PostGIS schema for a larger version in `server/sql/schema.sql`, which is unused.
 
 **Small cleanups:**
@@ -257,5 +256,5 @@ cd android
 
 **Builds and deployment**
 - **APK:** arm64-only, minified, legacy packaging (about 18 MB).
-- **NAS updates:** code is bind-mounted read-only so updates are "copy and restart". The
+- **Server updates:** code is bind-mounted read-only so updates are "copy and restart". The
   `data/` folder holds everything that matters.

@@ -86,7 +86,7 @@
       "./plugins/withCrossPathsAndroid"
     ],
     "extra": {
-      "apiUrl": "https://your-nas-or-tunnel-address.example.com"
+      "apiUrl": "https://crosspaths.example.com"
     },
     "scheme": "crosspaths"
   }

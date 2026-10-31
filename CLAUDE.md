@@ -9,7 +9,7 @@ known issues and the decisions not to undo.
 ## Layout
 
 - `server/`: Flask + SQLite API and the single-page web client (`server/server/static/index.html`).
-  Matching engine is the `crosspaths/` package. Runs in Docker on a Synology NAS, port 8787.
+  Matching engine is the `crosspaths/` package. Runs as one Docker container, port 8787.
 - `mobile/`: Expo SDK 51 / React Native 0.74 Android app. The prebuilt `android/` folder is
   committed. `ios/` exists but has never been built.
 - `store-listing/`: Play Store images and text. Not code.
@@ -57,6 +57,6 @@ The Gradle build needs JDK 17–21, Android SDK 34, `android/local.properties` a
   `StyleSheet.create`.
 - `mobile/plugins/withCrossPathsAndroid.js` and `expo.useLegacyPackaging` in
   `gradle.properties` both exist on purpose; re-running prebuild without them breaks the build.
-- NAS deploys bind-mount code read-only, so updates are "copy and restart". Never touch the
+- Deploys bind-mount code read-only, so updates are "copy and restart". Never touch the
   server's `data/` folder (it holds `keys.json`; losing it signs everyone out and makes uploads
   unreadable).

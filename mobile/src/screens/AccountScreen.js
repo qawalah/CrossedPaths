@@ -144,8 +144,8 @@ export default function AccountScreen({ navigation }) {
         <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
           <Text style={{ color: colors.muted, fontSize: 12.5 }}>Server</Text>
           {server.alt ? (
-            <Text style={{ color: server.via === "tailscale" ? colors.accent2 : colors.good, fontSize: 12.5, fontWeight: "700" }}>
-              {server.via === "tailscale" ? "via Tailscale" : "on home network"}
+            <Text style={{ color: server.via === "backup" ? colors.accent2 : colors.good, fontSize: 12.5, fontWeight: "700" }}>
+              {server.via === "backup" ? "via backup address" : "main address"}
               {server.auto ? " · auto" : ""}
             </Text>
           ) : null}
@@ -155,14 +155,14 @@ export default function AccountScreen({ navigation }) {
         </Text>
         {server.alt ? (
           <Text style={{ color: colors.muted, fontSize: 12.5, marginTop: 4 }} numberOfLines={1}>
-            {server.via === "tailscale" ? `Home: ${server.home}` : `Away: ${server.alt}`}
+            {server.via === "backup" ? `Main: ${server.home}` : `Backup: ${server.alt}`}
           </Text>
         ) : (
           <Text style={{ color: colors.muted, fontSize: 12.5, marginTop: 4, lineHeight: 18 }}>
-            Add your NAS's Tailscale address to keep using the app away from home.
+            Add a backup address to keep using the app if the main one can't be reached.
           </Text>
         )}
-        <Button title={server.alt ? "Server addresses" : "Server addresses & Tailscale"} variant="ghost" onPress={() => navigation.navigate("Settings")} style={{ marginTop: 12 }} />
+        <Button title={server.alt ? "Server addresses" : "Server addresses"} variant="ghost" onPress={() => navigation.navigate("Settings")} style={{ marginTop: 12 }} />
       </Card>
 
       <Card>

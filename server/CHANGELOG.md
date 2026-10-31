@@ -8,12 +8,12 @@ To check what's running on your server, visit `/api/config` — it reports the r
 `version`. That's the number to compare against this file when deciding whether to update.
 
 ## 0.11.1
-- **App: home address + Tailscale, switching automatically.** Account → Server addresses now
-  takes your NAS's home address and (optionally) its Tailscale address. With "Switch
-  automatically" on, the app uses home when it answers and Tailscale when it doesn't - checked
+- **App: main + backup address, switching automatically.** Account → Server addresses now
+  takes the server's address and (optionally) a backup address. With "Switch
+  automatically" on, the app uses the main address when it answers and the backup when it doesn't - checked
   when the app opens, when you return to it, and whenever the server can't be reached (a request
   that fails is retried on the other address, unless it may already have reached the server).
-  **Test** checks both addresses. Setup steps: DEPLOY-SYNOLOGY.md, section 2.
+  **Test** checks both addresses. Setup steps: DEPLOY.md, section 2.
 - `/api/config` now includes `instance`, a value derived from the server's secret key that's the
   same at every address of one server. The app only switches between addresses of the same
   server, so your sign-in is never sent to a different one.
@@ -121,8 +121,8 @@ To check what's running on your server, visit `/api/config` — it reports the r
   to a third party) to see every time your timeline passed within a chosen radius of it.
   Backed by `GET /api/uploads/<id>/visits`.
 - **New:** a "Live" toggle on the My Timeline map shows your current position via the
-  browser's location — useful on a phone. Requires HTTPS (see DEPLOY-SYNOLOGY.md); most
-  browsers refuse geolocation on a plain `http://` LAN address. Comparing your live position
+  browser's location — useful on a phone. Requires HTTPS (see DEPLOY.md); most
+  browsers refuse geolocation on a plain `http://` address. Comparing your live position
   against past visits automatically isn't built yet — for now, use place search for that.
 - **Fixed:** the sign-in screen no longer requires scrolling to reach the password field and
   button on shorter phone screens, and any focused field now scrolls above the on-screen
@@ -153,7 +153,7 @@ To check what's running on your server, visit `/api/config` — it reports the r
 
 ## 0.2.0
 - **New:** Flask + SQLite server (`server/`), installable web app (PWA) in `server/static/`,
-  Docker + Synology deployment (`Dockerfile`, `docker-compose.yml`, `DEPLOY-SYNOLOGY.md`).
+  Docker deployment (`Dockerfile`, `docker-compose.yml`, `DEPLOY.md`).
   Consent-gated checks, encrypted-at-rest uploads, auto-purge, rate limits, spoof-trust
   labels surfaced to the counterpart.
 

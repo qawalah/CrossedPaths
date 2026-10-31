@@ -6,7 +6,7 @@ registers its "ExponentPushToken[...]" after asking the user for permission; we 
 to Expo's endpoint and it fans out to the right platform.
 
 This makes a real request over the network when called, so it needs outbound internet
-access from wherever the server runs (a Synology NAS is fine as long as it can reach
+access from wherever the server runs (it must be able to reach
 exp.host over HTTPS). Failures are swallowed - a missed push should never break the
 underlying action (connection request, check finishing, etc).
 """

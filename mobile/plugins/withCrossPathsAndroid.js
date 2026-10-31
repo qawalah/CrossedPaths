@@ -3,7 +3,7 @@
 const { withAndroidManifest, withAppBuildGradle, withGradleProperties } = require("@expo/config-plugins");
 
 module.exports = function withCrossPathsAndroid(config) {
-  // Plain http:// to a NAS on the LAN (e.g. http://192.168.0.24:8787). Android blocks it by default.
+  // Allow plain http:// server addresses (self-hosted or dev servers). Android blocks them by default.
   config = withAndroidManifest(config, (c) => {
     const app = c.modResults.manifest.application[0];
     app.$["android:usesCleartextTraffic"] = "true";
