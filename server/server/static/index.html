@@ -26,10 +26,7 @@ h1,h2,h3{margin:0}
 #app{height:100%;display:flex;flex-direction:column;padding-top:var(--sat)}
 header.top{padding:14px 18px 6px;display:flex;align-items:center;justify-content:space-between}
 .brand{font-weight:800;letter-spacing:.2px;font-size:20px;display:flex;align-items:center;gap:8px}
-.brand i{width:26px;height:26px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:inline-block;position:relative}
-.brand i:before,.brand i:after{content:"";position:absolute;background:var(--bg);border-radius:2px}
-.brand i:before{left:5px;right:5px;top:11px;height:4px;transform:rotate(35deg)}
-.brand i:after{left:5px;right:5px;top:11px;height:4px;transform:rotate(-35deg)}
+.brand img{width:30px;height:30px;border-radius:8px;flex:none}
 #view{flex:1;overflow:auto;padding:8px 16px 96px;-webkit-overflow-scrolling:touch}
 nav.tabs{position:fixed;left:0;right:0;bottom:0;display:flex;background:var(--chrome);backdrop-filter:blur(12px);border-top:1px solid var(--line);padding-bottom:var(--sab);z-index:5}
 nav.tabs button{flex:1;background:none;border:0;padding:10px 4px 9px;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:2px;font-size:12px;position:relative}
@@ -57,6 +54,11 @@ a{color:var(--accent2)}
 .hero{padding:22px 4px 6px}.hero h1{font-size:26px;line-height:1.15}.hero p{color:var(--muted);margin:8px 0 0}
 .drop{border:1.5px dashed var(--line);border-radius:14px;padding:20px;text-align:center;color:var(--muted);cursor:pointer;transition:border-color .2s,background .2s}
 .drop:hover,.drop.over{border-color:var(--accent);background:rgba(45,212,191,.06)}
+.addopts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}.addopts .card{margin:0}
+.addopt{display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:left;font:inherit;color:var(--text);cursor:pointer;transition:border-color .2s}
+.addopt .ico{font-size:24px}.addopt:hover,.addopt.on{border-color:var(--accent)}.addopt.on{box-shadow:inset 0 0 0 1px var(--accent)}
+@media(max-width:380px){.addopts{grid-template-columns:1fr}}
+.guide{margin:12px 0 14px}.guide ol{margin:6px 0 0 18px;padding:0;font-size:13.5px;line-height:1.5}.guide li{margin:4px 0}
 .spin{width:18px;height:18px;border:2.5px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;display:inline-block;vertical-align:-4px}
 .pulse-dot{width:9px;height:9px;border-radius:50%;background:var(--accent2);display:inline-block;animation:blink 1.2s ease-in-out infinite}
 .toast{position:fixed;left:16px;right:16px;bottom:calc(84px + var(--sab));background:var(--toast);border:1px solid var(--line);padding:12px 14px;border-radius:12px;z-index:50;animation:rise .25s ease both;box-shadow:0 8px 30px var(--shadow)}
@@ -192,7 +194,7 @@ details summary{cursor:pointer;color:var(--accent2);font-size:13px;margin-top:8p
 </head>
 <body>
 <div id="app">
-  <header class="top" id="header"><div class="brand"><i></i>CrossPaths</div><div class="row" style="gap:8px"><button class="btn ghost sm iconbtn" id="settingsbtn" style="display:none" data-act="settings" aria-label="Settings" title="Settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button><button class="btn ghost sm" id="logout" style="display:none" data-act="logout">Sign out</button></div></header>
+  <header class="top" id="header"><div class="brand"><img src="/static/icon-192.png" alt="">CrossPaths</div><div class="row" style="gap:8px"><button class="btn ghost sm iconbtn" id="settingsbtn" style="display:none" data-act="settings" aria-label="Settings" title="Settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button><button class="btn ghost sm" id="logout" style="display:none" data-act="logout">Sign out</button></div></header>
   <main id="view"></main>
   <nav class="tabs" id="tabs" style="display:none"></nav>
 </div>
@@ -304,7 +306,7 @@ function renderAuth() {
     ${reg && c.invite_required ? `<label>Invite code</label><input type="text" id="a_inv" autocapitalize="none">` : ""}
     <div style="margin-top:18px"><button class="btn" style="width:100%" data-act="auth">${reg ? "Create account" : "Sign in"}</button></div>
     ${reg && c.registration_open === false ? `<p class="muted small">Registration is closed on this server.</p>` : ""}
-    <p class="muted small" style="margin-top:18px">Compare Google Timeline exports with a friend or a stranger — see only the places and times you both were there. Your raw timeline is encrypted and, unless you choose otherwise, deleted ${esc(keepLabel(c.upload_ttl_hours || 24))} after you upload it.</p></div>`;
+    <p class="muted small" style="margin-top:18px">Compare location histories (Google Maps Timeline, Strava, Apple Health, Garmin, Swarm, photos and more) with a friend or a stranger — see only the places and times you both were there. Your raw timeline is encrypted and, unless you choose otherwise, deleted ${esc(keepLabel(c.upload_ttl_hours || 24))} after you upload it.</p></div>`;
 }
 
 /* ---------- data ---------- */
@@ -335,18 +337,73 @@ function renderTabs() {
 function render() { ({ uploads: renderTimeline, mytimeline: renderMyTimeline, people: renderPeople, checks: renderChecks })[state.tab](); }
 
 /* ---------- timeline tab ---------- */
+// Where people can get a location history from, and how to export it. Shown under "Import a file".
+const SOURCES = [
+  { id: "google", name: "Google Maps", what: "Timeline export (.json)", steps: [
+    "Android: open <b>Settings → Location → Location services → Timeline</b> (or in Google Maps: profile picture → <b>Your Timeline</b> → ⚙️) and choose <b>Export Timeline data</b>.",
+    "iPhone: Google Maps → profile picture → <b>Settings → Personal content → Export Timeline data</b>.",
+    "Menu names vary a little between app versions. Choose the saved <i>.json</i> file here. Older Google Takeout downloads work too: <i>Records.json</i> or the <i>Semantic Location History</i> files (or the whole Takeout .zip)."] },
+  { id: "strava", name: "Strava", what: "GPX / FIT / TCX", steps: [
+    "One activity: open it on strava.com → <b>⋯</b> → <b>Export GPX</b>.",
+    "Everything: on strava.com go to <b>Settings → My Account → Download or Delete Your Account → Get Started → Request Your Archive</b>. Don't press anything else on that page. Strava emails you a link.",
+    "Upload the .zip as it is. If it's over the size limit (photos make it big), unzip it and choose the files inside the <i>activities</i> folder."] },
+  { id: "apple", name: "Apple Health", what: "Workout routes (GPX)", steps: [
+    "On your iPhone open <b>Health</b> → your picture (top right) → <b>Export All Health Data</b> → save <i>export.zip</i> to Files.",
+    "Upload <i>export.zip</i> here. Only the workout routes are read; your other health data is skipped.",
+    "Too big? Tap the zip in Files to unzip it, open <i>apple_health_export/workout-routes</i> and choose all the .gpx files there.",
+    "Only workouts recorded with GPS (outdoor walks, runs, rides) have routes."] },
+  { id: "samsung", name: "Samsung Health", what: "Exercise routes", steps: [
+    "Open <b>Samsung Health</b> → ☰ or your profile → <b>Settings → Download personal data</b>.",
+    "The files go to <b>My Files → Internal storage → Download → Samsung Health</b>. Long-press that folder → <b>Compress</b> to make a .zip.",
+    "Upload the .zip. The routes are in the <i>location_data.json</i> files; everything else is skipped."] },
+  { id: "garmin", name: "Garmin", what: "FIT / GPX", steps: [
+    "One activity: Garmin Connect website → the activity → ⚙️ → <b>Export Original</b> (.fit, inside a .zip) or <b>Export to GPX</b>.",
+    "Everything: Garmin account → <b>Data Management → Export Your Data</b>. Garmin emails you a .zip; upload it as it is."] },
+  { id: "fitbit", name: "Fitbit · Google Fit", what: "TCX", steps: [
+    "Fitbit: open a GPS exercise → <b>⋯</b> → <b>Export as TCX file</b> (one exercise at a time).",
+    "Google Fit: Google Takeout → choose only <b>Fit</b> → download. Upload the .zip; the activity .tcx files are read.",
+    "Health Connect on Android has no route export. Export from the app that recorded the workout instead (Strava, Samsung Health, Garmin…)."] },
+  { id: "swarm", name: "Swarm", what: "Check-ins", steps: [
+    "In the <b>Swarm</b> app: <b>Settings → Privacy Settings → Initiate Data Download Request</b>. Foursquare emails you a link to a .zip.",
+    "Upload the .zip (or the <i>checkins*.json</i> files from it).",
+    "Each check-in counts as 30 minutes at that place, so matches are rougher than with GPS tracks."] },
+  { id: "other", name: "Other apps", what: "GPX · KML · GeoJSON · CSV", steps: [
+    "Any app that exports GPX, KML/KMZ, GeoJSON or FIT works: OwnTracks, GPSLogger, Dawarich, Arc, Komoot, Wikiloc, Polarsteps, car and dashcam apps…",
+    "CSV files need a <b>latitude</b>, a <b>longitude</b> and a <b>time</b> column (any common column name works).",
+    "Points without a time can't be compared, so planned routes without times are skipped."] },
+];
+const ACCEPT = ".json,.geojson,.gpx,.tcx,.fit,.kml,.kmz,.csv,.zip,.gz,application/json,application/zip,application/gpx+xml,text/csv";
 function renderTimeline() {
+  const mode = state.addMode, src = SOURCES.find(s => s.id === (state.addSrc || "google"));
   $("#view").innerHTML = `
-  <div class="hero"><h1>Uploads</h1><p>Upload your Google Maps Timeline export. It stays private and is ${keepPhrase()}. <a href="#" data-act="settings">Change</a></p></div>
-  <div class="card"><label class="drop" id="drop" style="display:block;margin:0"><input id="file" type="file" accept=".json,application/json" hidden>
-    <div style="font-size:28px">📂</div><div><b>Tap to choose your Timeline .json</b></div><div class="small">up to ${esc(state.cfg.max_upload_mb || 80)} MB</div></label>
-    <details><summary>How do I export it?</summary><p class="muted small">In Google Maps on your phone: profile picture → <b>Your Timeline</b> → ⚙️ settings → <b>Export Timeline data</b>. Menu names vary a little between app versions. Then choose the saved .json file here. On older Takeout exports use <i>Records.json</i> or the <i>Semantic Location History</i> files.</p></details></div>
+  <div class="hero"><h1>Uploads</h1><p>Add your location history. It stays private and is ${keepPhrase()}. <a href="#" data-act="settings">Change</a></p></div>
+  <div class="addopts">
+    <button class="card addopt${mode === "import" ? " on" : ""}" data-act="addmode" data-m="import"><span class="ico">📂</span><b>Import a timeline</b><span class="muted small">Google Maps, Strava, Apple Health, Samsung Health, Garmin, Swarm, GPX, CSV…</span></button>
+    <button class="card addopt${mode === "photos" ? " on" : ""}" data-act="addmode" data-m="photos"><span class="ico">📷</span><b>Scan my photos</b><span class="muted small">Build one from the place and time saved in your photos.</span></button>
+  </div>
+  ${mode === "import" ? `<div class="card">
+    <label style="margin-top:0">Where is your history from?</label>
+    <div class="fchips">${SOURCES.map(s => `<button class="fchip${s.id === src.id ? " on" : ""}" data-act="addsrc" data-s="${s.id}">${esc(s.name)}</button>`).join("")}</div>
+    <div class="guide"><div class="muted small">${esc(src.name)} · ${esc(src.what)}</div><ol>${src.steps.map(x => `<li>${x}</li>`).join("")}</ol></div>
+    <label class="drop" id="drop" style="display:block;margin:0"><input id="file" type="file" accept="${ACCEPT}" multiple hidden>
+      <div style="font-size:28px">📂</div><div><b>Choose file(s)</b></div><div class="small">One file, several at once, or a .zip · up to ${esc(state.cfg.max_upload_mb || 80)} MB in total</div></label>
+  </div>` : ""}
+  ${mode === "photos" ? `<div class="card">
+    <p class="muted small" style="margin:0 0 12px">Choose photos and CrossPaths reads the GPS position and time saved inside each one, right here in your browser. Only those points are uploaded, never the photos. Screenshots and photos sent through chat apps usually have no location and are skipped.</p>
+    <label class="drop" id="pdrop" style="display:block;margin:0"><input id="pfile" type="file" accept="image/jpeg,image/heic,image/heif,image/*" multiple hidden>
+      <div style="font-size:28px">📷</div><div><b>Choose photos</b></div><div class="small">Select as many as you like. At least 20 need a location.</div></label>
+    <p class="muted small" style="margin:10px 0 0">On an Android phone the CrossPaths app can scan your whole library in one go. On iPhone, some browsers remove the location from photos you pick; if none is found, try a computer.</p>
+  </div>` : ""}
   <div id="ulist">${state.uploads.map(uploadCard).join("") || `<p class="muted" style="text-align:center;margin-top:24px">No timeline uploaded yet.</p>`}</div>`;
-  const drop = $("#drop"), file = $("#file");
-  file.onchange = () => file.files[0] && doUpload(file.files[0]);
-  ["dragover", "dragenter"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add("over"); }));
-  ["dragleave", "drop"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove("over"); }));
-  drop.addEventListener("drop", e => e.dataTransfer.files[0] && doUpload(e.dataTransfer.files[0]));
+  const wire = (dropId, inputId, fn) => {
+    const drop = $("#" + dropId), file = $("#" + inputId); if (!drop) return;
+    file.onchange = () => file.files.length && fn([...file.files]);
+    ["dragover", "dragenter"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add("over"); }));
+    ["dragleave", "drop"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove("over"); }));
+    drop.addEventListener("drop", e => e.dataTransfer.files.length && fn([...e.dataTransfer.files]));
+  };
+  wire("drop", "file", doUpload);
+  wire("pdrop", "pfile", scanPhotos);
 }
 function uploadCard(u) {
   const t = u.trust, zs = u.zones || [];
@@ -358,13 +415,79 @@ function uploadCard(u) {
       ${zs.map((z, i) => `<div class="zone"><span>Area ${i + 1} · ${z.lat.toFixed(3)}, ${z.lon.toFixed(3)} · ${Math.round(z.radius_m)} m</span><button class="btn ghost sm" data-act="rmzone" data-id="${u.id}" data-i="${i}">Remove</button></div>`).join("") || `<div class="muted small">None detected.</div>`}</details>
     <div class="row" style="margin-top:12px"><button class="btn bad sm" data-act="rmupload" data-id="${u.id}">Delete now</button></div></div>`;
 }
-async function doUpload(f) {
-  const max = (state.cfg.max_upload_mb || 80) * 1048576;
-  if (f.size > max) return toast(`That file is ${(f.size / 1048576).toFixed(0)} MB; the limit is ${state.cfg.max_upload_mb} MB. Trim it to a shorter period.`, true);
-  $("#drop").innerHTML = `<span class="spin"></span> &nbsp;Reading and checking your timeline…`;
-  const fd = new FormData(); fd.append("file", f);
-  await run(async () => { const u = await api("/api/uploads", { method: "POST", form: fd }); toast("Timeline added · " + trustLabel(u.trust.level)); await refreshAll(); });
+const skippedNote = u => u.import && u.import.skipped ? ` · ${u.import.skipped} file${u.import.skipped === 1 ? "" : "s"} had no locations` : "";
+async function doUpload(files, dropId = "drop") {
+  const max = (state.cfg.max_upload_mb || 80) * 1048576, size = files.reduce((s, f) => s + f.size, 0);
+  if (size > max) return toast(`That's ${(size / 1048576).toFixed(0)} MB; the limit is ${state.cfg.max_upload_mb} MB. Choose fewer files or a shorter period.`, true);
+  $("#" + dropId).innerHTML = `<span class="spin"></span> &nbsp;Reading and checking ${files.length === 1 ? "your timeline" : files.length + " files"}…`;
+  const fd = new FormData(); files.forEach(f => fd.append("file", f, f.name));
+  await run(async () => {
+    const u = await api("/api/uploads", { method: "POST", form: fd });
+    toast("Timeline added · " + trustLabel(u.trust.level) + skippedNote(u)); state.addMode = null; await refreshAll();
+  });
   renderTimeline();
+}
+
+/* ---- photo scan: GPS + time from each photo's EXIF, read in the browser ---- */
+// Returns {t, lat, lon} or null. Reads only the first 256 KB of the file (EXIF lives at the start of JPEGs).
+async function photoPoint(file) {
+  const v = new DataView(await file.slice(0, 262144).arrayBuffer());
+  if (v.byteLength < 4 || v.getUint16(0) !== 0xFFD8) return null;            // JPEG only (HEIC: browsers usually convert)
+  let p = 2;
+  while (p + 4 <= v.byteLength) {
+    const m = v.getUint16(p), len = v.getUint16(p + 2);
+    if (m === 0xFFE1 && v.getUint32(p + 4) === 0x45786966) return exifPoint(v, p + 10, file);  // "Exif"
+    if ((m & 0xFF00) !== 0xFF00 || m === 0xFFDA) break;
+    p += 2 + len;
+  }
+  return null;
+}
+function exifPoint(v, tiff, file) {
+  const le = v.getUint16(tiff) === 0x4949, u16 = o => v.getUint16(tiff + o, le), u32 = o => v.getUint32(tiff + o, le);
+  const ifd = off => {   // tag -> {type, count, at}
+    const out = {}; if (tiff + off + 2 > v.byteLength) return out;
+    const n = u16(off);
+    for (let i = 0; i < n; i++) {
+      const e = off + 2 + i * 12; if (tiff + e + 12 > v.byteLength) break;
+      const type = u16(e + 2), count = u32(e + 4), size = ({ 1: 1, 2: 1, 3: 2, 4: 4, 5: 8, 7: 1, 9: 4, 10: 8 }[type] || 1) * count;
+      out[u16(e)] = { type, count, at: size > 4 ? u32(e + 8) : e + 8 };
+    }
+    return out;
+  };
+  const str = x => { if (!x) return ""; let s = ""; for (let i = 0; i < x.count && tiff + x.at + i < v.byteLength; i++) { const c = v.getUint8(tiff + x.at + i); if (!c) break; s += String.fromCharCode(c); } return s; };
+  const rats = x => x && tiff + x.at + 8 * x.count <= v.byteLength ? [...Array(x.count)].map((_, i) => u32(x.at + 8 * i) / (u32(x.at + 8 * i + 4) || 1)) : null;
+  const root = ifd(u32(4)), gps = root[0x8825] ? ifd(u32(root[0x8825].at)) : {}, ex = root[0x8769] ? ifd(u32(root[0x8769].at)) : {};
+  const la = rats(gps[2]), lo = rats(gps[4]);
+  if (!la || !lo || la.length < 3 || lo.length < 3) return null;
+  let lat = la[0] + la[1] / 60 + la[2] / 3600, lon = lo[0] + lo[1] / 60 + lo[2] / 3600;
+  if (str(gps[1]) === "S") lat = -lat;
+  if (str(gps[3]) === "W") lon = -lon;
+  if (!isFinite(lat) || !isFinite(lon) || (lat === 0 && lon === 0) || Math.abs(lat) > 90 || Math.abs(lon) > 180) return null;
+  // Time: the GPS clock (UTC) is best; then the camera clock with its offset; then the camera clock as local time.
+  let t = NaN;
+  const gd = str(gps[29]), gt = rats(gps[7]);
+  if (/^\d{4}:\d\d:\d\d/.test(gd) && gt && gt.length >= 3) t = Date.UTC(+gd.slice(0, 4), +gd.slice(5, 7) - 1, +gd.slice(8, 10), gt[0], gt[1], Math.floor(gt[2])) / 1000;
+  const dt = str(ex[0x9003]) || str(root[0x0132]), off = str(ex[0x9011]);
+  if (!isFinite(t) && /^\d{4}:\d\d:\d\d \d\d:\d\d:\d\d/.test(dt)) {
+    const iso = dt.slice(0, 10).replace(/:/g, "-") + "T" + dt.slice(11, 19);
+    t = Date.parse(iso + (/^[+-]\d\d:\d\d$/.test(off) ? off : "")) / 1000;
+  }
+  if (!isFinite(t)) t = file.lastModified / 1000;
+  return { t: Math.round(t), lat, lon };
+}
+async function scanPhotos(files) {
+  const drop = $("#pdrop"), pts = [];
+  for (let i = 0; i < files.length; i++) {
+    if (i % 25 === 0) drop.innerHTML = `<span class="spin"></span> &nbsp;Reading photo ${i + 1} of ${files.length} · ${pts.length} with a location`;
+    try { const p = await photoPoint(files[i]); if (p) pts.push(p); } catch (e) { /* unreadable photo: skip */ }
+  }
+  if (pts.length < 20) {
+    toast(pts.length ? `Only ${pts.length} of those photos have a location; at least 20 are needed. Choose more photos.` : "None of those photos have a location saved in them. Try photos straight from the camera, or the Android app.", true);
+    return renderTimeline();
+  }
+  pts.sort((a, b) => a.t - b.t);
+  const f = new File([JSON.stringify({ photoPoints: pts })], "photo-timeline.json", { type: "application/json" });
+  await doUpload([f], "pdrop");
 }
 
 /* ---------- people tab ---------- */
@@ -1469,6 +1592,8 @@ document.addEventListener("click", async e => {
       state.token = r.token; localStorage.setItem("cp_token", r.token); await boot();
     });
     case "tab": state.tab = a.dataset.t; renderTabs(); return render();
+    case "addmode": state.addMode = state.addMode === a.dataset.m ? null : a.dataset.m; return renderTimeline();
+    case "addsrc": state.addSrc = a.dataset.s; return renderTimeline();
     case "rmzone": return run(async () => {
       const u = state.uploads.find(x => x.id === id), zones = u.zones.filter((_, i) => i !== +a.dataset.i);
       await api(`/api/uploads/${id}/zones`, { method: "PUT", body: { zones } }); await refreshAll(); renderTimeline();

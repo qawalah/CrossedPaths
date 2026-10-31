@@ -2,7 +2,7 @@
   "expo": {
     "name": "CrossPaths",
     "slug": "crosspaths",
-    "version": "1.6.0",
+    "version": "1.7.0",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
     "backgroundColor": "#0b1220",
@@ -37,13 +37,13 @@
       "package": "com.example.crosspaths",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#0b1220"
+        "backgroundColor": "#f5f1e8"
       },
       "permissions": [
         "NOTIFICATIONS"
       ],
       "usesCleartextTraffic": true,
-      "versionCode": 7
+      "versionCode": 9
     },
     "plugins": [
       "expo-secure-store",
@@ -86,7 +86,7 @@
       "./plugins/withCrossPathsAndroid"
     ],
     "extra": {
-      "apiUrl": "https://your-nas-or-tunnel-address.example.com"
+      "apiUrl": "https://crosspaths.example.com"
     },
     "scheme": "crosspaths"
   }

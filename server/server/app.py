@@ -10,7 +10,7 @@ from functools import wraps
 from flask import Flask, abort, g, jsonify, request, send_from_directory
 
 from crosspaths.geo import haversine_m
-from crosspaths.parser import parse_timeline
+from crosspaths.importers import Limits, parse_files
 from crosspaths.privacy import detect_anchor_zones
 from crosspaths.spoofcheck import assess
 
@@ -115,7 +115,7 @@ def create_app(overrides=None, start_background=True):
                         "invite_required": bool(c["INVITE_CODE"]), "registration_open": c["ALLOW_REGISTRATION"],
                         "upload_ttl_hours": c["UPLOAD_TTL_HOURS"], "results_ttl_days": c["RESULTS_TTL_DAYS"],
                         "upload_keep_options": retention.keep_options(c),
-                        # Same value at every address of this server (LAN, Tailscale, tunnel), different on any
+                        # Same value at every address of this server (main, backup, tunnel), different on any
                         # other server: lets the app switch addresses without ever sending its token elsewhere.
                         "instance": hashlib.sha256(("instance:" + c["SECRET_KEY"]).encode()).hexdigest()[:16],
                         "version": c["VERSION"]})
@@ -130,7 +130,7 @@ def create_app(overrides=None, start_background=True):
 
     @app.errorhandler(413)
     def too_big(_e):
-        return jsonify({"error": f"File too large (limit {app.config['MAX_UPLOAD_MB']} MB). Trim the export to a shorter date range and try again."}), 413
+        return jsonify({"error": f"File too large (limit {app.config['MAX_UPLOAD_MB']} MB). Trim the export to a shorter date range, or upload only the files with your routes, and try again."}), 413
 
     # ---------------- auth ----------------
     @app.post("/api/register")
@@ -231,16 +231,21 @@ def create_app(overrides=None, start_background=True):
     @app.post("/api/uploads")
     @auth
     def upload():
-        f = request.files.get("file")
-        if not f:
-            err("Attach your Timeline export as 'file'")
+        files = [f for f in request.files.getlist("file") if f]
+        if not files:
+            err("Attach your location file(s) as 'file'")
+        if len(files) > 2000:
+            err("Too many files at once (limit 2000). Zip them, or upload them in a few goes.")
         limit("upload", app.config["LIMIT_UPLOADS_PER_DAY"])
-        raw = f.read()
+        mb = app.config["MAX_UPLOAD_MB"] * 1024 * 1024
         try:
-            track = parse_timeline(json.loads(raw))
-        except (ValueError, KeyError, TypeError, AttributeError):
-            err("Couldn't read this file. Use the JSON exported from Google Maps Timeline (Records.json, Semantic Location History, or the on-device export).")
-        del raw
+            # Zips are read one file at a time; cap what they may expand to on a small host.
+            track, imported = parse_files(((f.filename, f.read()) for f in files),
+                                        Limits(max_entry_bytes=2 * mb, max_total_bytes=8 * mb))
+        except ValueError:
+            err("Couldn't find any time-stamped locations in " + ("this file" if len(files) == 1 else "these files") +
+                ". Use a Google Maps Timeline export, or GPX, TCX, FIT, KML, GeoJSON or CSV files with times "
+                "(from Strava, Apple Health, Garmin, Samsung Health, Swarm and similar apps).")
         if len(track) < 20:
             err("That file contains too few location points to compare.")
         pts = track.points
@@ -263,7 +268,9 @@ def create_app(overrides=None, start_background=True):
                     json.dumps(zones), now, retention.purge_time(now, retention.keep_hours(app.config, g.user))))
         audit(db, g.user["id"], "upload", uid, {"points": len(pts), "trust": level})
         db.commit()
-        return jsonify(upload_dict(db.execute("SELECT * FROM uploads WHERE id=?", (uid,)).fetchone())), 201
+        out = upload_dict(db.execute("SELECT * FROM uploads WHERE id=?", (uid,)).fetchone())
+        out["import"] = {"formats": imported.formats, "skipped": len(imported.skipped), "skipped_names": imported.skipped[:5]}
+        return jsonify(out), 201
 
     @app.get("/api/uploads")
     @auth

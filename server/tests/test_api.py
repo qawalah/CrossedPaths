@@ -576,3 +576,21 @@ def test_config_instance_is_stable_and_server_specific():
     app2, c2, d2 = make_client(SECRET_KEY="another-secret-key-another-secret-key-99")
     assert c2.get("/api/config").get_json()["instance"] != a
     shutil.rmtree(d, ignore_errors=True); shutil.rmtree(d2, ignore_errors=True)
+
+
+def test_upload_many_files_and_archives():
+    from test_importers import gpx, fit, zipped
+    app, c, d = make_client()
+    h = reg(c, "runner")
+    pts = synth.raw_points("A", 11)
+    files = [(io.BytesIO(gpx(pts[:400])), "1.gpx"), (io.BytesIO(fit(pts[400:800])), "2.fit"), (io.BytesIO(b"nope"), "x.txt")]
+    r = c.post("/api/uploads", headers=h, data={"file": files}, content_type="multipart/form-data")
+    j = r.get_json()
+    assert r.status_code == 201, j
+    assert j["format"] in ("fit+gpx (2 files)", "gpx+fit (2 files)") and j["import"]["skipped"] == 1
+    z = zipped([("activities/a.gpx", gpx(pts[800:1200]))])
+    r = c.post("/api/uploads", headers=h, data={"file": (io.BytesIO(z), "export.zip")}, content_type="multipart/form-data")
+    assert r.status_code == 201 and r.get_json()["format"] == "gpx"
+    r = c.post("/api/uploads", headers=h, data={"file": (io.BytesIO(b"hello"), "x.txt")}, content_type="multipart/form-data")
+    assert r.status_code == 400 and "GPX" in r.get_json()["error"]
+    shutil.rmtree(d, ignore_errors=True)
