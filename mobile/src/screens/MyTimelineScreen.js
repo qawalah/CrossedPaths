@@ -1,9 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ActivityIndicator, FlatList, Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { ActivityIndicator, FlatList, Pressable, Text, TextInput, View } from "react-native";
 import { MapView, Camera, ShapeSource, LineLayer, CircleLayer } from "@maplibre/maplibre-react-native";
 import Slider from "@react-native-community/slider";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useToast } from "../components/Toast";
+import DateScrubber from "../components/DateScrubber";
+import ScrubberTutorial from "../components/ScrubberTutorial";
+import { setScrubberPrefs, useScrubberPrefs } from "../scrubberPrefs";
 import { useAuth } from "../auth";
 import { Api } from "../api";
 import { boundsOf, positionAt, segmentsFeature, segmentsUntil } from "../geo";
@@ -11,27 +14,7 @@ import { colors, fmtDay, fmtTime, MAP_STYLE_FALLBACK, tzOffsetMin } from "../the
 
 const EMPTY_FC = { type: "FeatureCollection", features: [] };
 
-const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const pad2 = (n) => String(n).padStart(2, "0");
-
-function Chip({ label, selected, onPress }) {
-  return (
-    <Pressable
-      onPress={onPress}
-      style={{
-        paddingHorizontal: 13,
-        paddingVertical: 7,
-        borderRadius: 99,
-        marginRight: 8,
-        backgroundColor: selected ? colors.accent : colors.panel2,
-        borderWidth: 1,
-        borderColor: selected ? colors.accent : colors.line,
-      }}
-    >
-      <Text style={{ color: selected ? colors.onAccent : colors.text, fontWeight: "700", fontSize: 13 }}>{label}</Text>
-    </Pressable>
-  );
-}
 
 export default function MyTimelineScreen({ route, navigation }) {
   const { uploadId, uploadLabel } = route.params;
@@ -42,8 +25,6 @@ export default function MyTimelineScreen({ route, navigation }) {
 
   const [summary, setSummary] = useState(null);
   const [loadErr, setLoadErr] = useState(null);
-  const [expandedYear, setExpandedYear] = useState(null);
-  const [expandedMonth, setExpandedMonth] = useState(null);
   const [loadedDate, setLoadedDate] = useState(null); // { year, month, day }
   const [dayLabel, setDayLabel] = useState("");
   const [daySegs, setDaySegs] = useState([]);
@@ -65,12 +46,12 @@ export default function MyTimelineScreen({ route, navigation }) {
   const dayPts = useMemo(() => daySegs.flat().sort((a, b) => a[0] - b[0]), [daySegs]);
   const [mapReady, setMapReady] = useState(false);
   const dayReq = useRef(0); // only the latest day request may update the screen
-  const [scrollLock, setScrollLock] = useState(false); // while a finger is on the map
+  const [scrollLock, setScrollLock] = useState(false); // while a finger is on the map or the date bar
+  const [scrubPrefs, scrubPrefsReady] = useScrubberPrefs();
+  const [tutorial, setTutorial] = useState(false);
 
   const loadDay = useCallback(
     async (y, m, d) => {
-      setExpandedYear(y);
-      setExpandedMonth(m);
       setLoadedDate({ year: y, month: m, day: d });
       setDayLabel(fmtDay(new Date(y, m - 1, d)));
       setDayLoading(true);
@@ -106,6 +87,16 @@ export default function MyTimelineScreen({ route, navigation }) {
       }
     })();
   }, [uploadId]);
+
+  // first visit: show how the date bar works, once the timeline is on screen
+  const hasDays = !!(summary && summary.years.length);
+  useEffect(() => {
+    if (scrubPrefsReady && hasDays && !scrubPrefs.tutorialSeen) setTutorial(true);
+  }, [scrubPrefsReady, hasDays]);
+  function closeTutorial() {
+    setTutorial(false);
+    if (!scrubPrefs.tutorialSeen) setScrubberPrefs({ tutorialSeen: true });
+  }
 
   useEffect(() => {
     if (pendingScrubTime == null || !dayPts.length) return;
@@ -227,9 +218,6 @@ export default function MyTimelineScreen({ route, navigation }) {
     );
   }
 
-  const yearObj = summary.years.find((y) => y.year === expandedYear);
-  const monthObj = yearObj && yearObj.months.find((m) => m.month === expandedMonth);
-
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <View style={{ flexDirection: "row", alignItems: "center", padding: 12, paddingTop: insets.top + 12, gap: 10 }}>
@@ -249,42 +237,17 @@ export default function MyTimelineScreen({ route, navigation }) {
         renderItem={null}
         ListHeaderComponent={
           <View>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ paddingLeft: 12, marginBottom: 8 }}>
-              {summary.years.map((y) => (
-                <Chip
-                  key={y.year}
-                  label={String(y.year)}
-                  selected={y.year === expandedYear}
-                  onPress={() => {
-                    setExpandedYear(y.year);
-                    setExpandedMonth(y.months[y.months.length - 1].month);
-                  }}
-                />
-              ))}
-            </ScrollView>
-            {yearObj ? (
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ paddingLeft: 12, marginBottom: 8 }}>
-                {yearObj.months.map((m) => (
-                  <Chip
-                    key={m.month}
-                    label={MONTH_NAMES[m.month - 1]}
-                    selected={m.month === expandedMonth}
-                    onPress={() => setExpandedMonth(m.month)}
-                  />
-                ))}
-              </ScrollView>
-            ) : null}
-            {monthObj ? (
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ paddingLeft: 12, marginBottom: 12 }}>
-                {monthObj.days.map((d) => {
-                  const sel =
-                    loadedDate && loadedDate.year === expandedYear && loadedDate.month === expandedMonth && loadedDate.day === d.day;
-                  return (
-                    <Chip key={d.day} label={String(d.day)} selected={sel} onPress={() => loadDay(expandedYear, expandedMonth, d.day)} />
-                  );
-                })}
-              </ScrollView>
-            ) : null}
+            <View style={{ marginBottom: 12 }}>
+              <DateScrubber
+                summary={summary}
+                selected={loadedDate}
+                onPick={loadDay}
+                onActiveChange={setScrollLock}
+                gesture={scrubPrefs.gesture}
+                holdMs={scrubPrefs.holdMs}
+                onHelp={() => setTutorial(true)}
+              />
+            </View>
 
             <View style={{ marginHorizontal: 12, borderRadius: 16, overflow: "hidden", borderWidth: 1, borderColor: colors.line }}>
               <View
@@ -326,7 +289,7 @@ export default function MyTimelineScreen({ route, navigation }) {
               <View style={{ backgroundColor: colors.panel, padding: 12 }}>
                 <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 2 }}>
                   <Text style={{ color: colors.muted, fontSize: 12 }}>
-                    {dayPts.length ? `${dayLabel} · ${fmtTime(new Date((mePos ? mePos.t : tMin) * 1000))}` : dayLabel ? `${dayLabel} · no points recorded` : "Pick a day above"}
+                    {dayPts.length ? `${dayLabel} · ${fmtTime(new Date((mePos ? mePos.t : tMin) * 1000))}` : dayLabel ? `${dayLabel} · no points recorded` : "Pick a day on the bar above"}
                   </Text>
                   {dayPts.length ? (
                     <Pressable onPress={togglePlay}>
@@ -430,6 +393,7 @@ export default function MyTimelineScreen({ route, navigation }) {
           </View>
         }
       />
+      <ScrubberTutorial visible={tutorial} gesture={scrubPrefs.gesture} onClose={closeTutorial} />
     </View>
   );
 }
