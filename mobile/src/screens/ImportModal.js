@@ -104,7 +104,8 @@ export default function ImportModal({ navigation, cfg, onDone }) {
       </Card>
 
       <Button
-        title={busy ? (count > 1 ? `Reading ${count} files…` : "Reading your timeline…") : "📂 Choose file(s)"}
+        title={busy ? (count > 1 ? `Reading ${count} files…` : "Reading your timeline…") : "Choose file(s)"}
+        icon="folder"
         onPress={pickAndUpload}
         loading={busy}
         style={{ marginTop: 18 }}

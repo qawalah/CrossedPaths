@@ -7,6 +7,15 @@ migration), MINOR for new features, PATCH for bugfixes. Pre-1.0, expect MINOR bu
 To check what's running on your server, visit `/api/config` — it reports the running
 `version`. That's the number to compare against this file when deciding whether to update.
 
+## 0.12.2 (Android 1.7.1)
+- **One icon style everywhere.** Emoji and text symbols used as icons (tab bar, Back, Play/Pause,
+  Filter, Sort, Fit, Delete, warnings, Meet in person, Choose file, Scan photos…) are replaced by
+  one set of line icons that matches the app icon, in both the Android app and the web client.
+  The three crossing types are redrawn in the same language: a pin (same place), two routes
+  crossing (crossed paths) and two routes side by side (travelled together). The set lives in
+  `mobile/src/icons.js`, with an identical copy in the web client.
+- Web: the settings button's gear icon is no longer squeezed to half width.
+
 ## 0.12.1
 - **Deploy: updates install themselves.** `docker-compose.yml` now runs the published image
   `ghcr.io/qawalah/crosspaths:latest` with the Watchtower label, instead of building on the

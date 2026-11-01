@@ -11,6 +11,7 @@ import UploadPicker from "../components/UploadPicker";
 import { useToast } from "../components/Toast";
 import { Api } from "../api";
 import { colors } from "../theme";
+import Icon from "../components/Icon";
 
 const MODES = [
   ["show", "Show my code"],
@@ -422,7 +423,7 @@ function ShakeToPair({ uploadId, onPaired }) {
 
   return (
     <View style={{ alignItems: "center", marginTop: 24 }}>
-      <Text style={{ fontSize: 64 }}>{state === "waiting" || state === "sending" ? "📳" : "🤝"}</Text>
+      <Icon name={state === "waiting" || state === "sending" ? "nearby" : "people"} size={64} color={colors.accent} strokeWidth={1.5} />
       <Text style={{ color: colors.text, fontSize: 16, fontWeight: "700", textAlign: "center", marginTop: 12, lineHeight: 22 }}>{status}</Text>
       {state === "waiting" || state === "sending" ? <ActivityIndicator color={colors.accent} style={{ marginTop: 12 }} /> : null}
       {fix ? (
@@ -459,7 +460,10 @@ function PairResult({ result, navigation, onAgain }) {
 
   return (
     <Card style={{ marginTop: 18 }}>
-      <Text style={{ color: colors.text, fontSize: 18, fontWeight: "800" }}>✅ Connected with @{result.other}</Text>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+        <Icon name="ok" size={22} color={colors.good} />
+        <Text style={{ color: colors.text, fontSize: 18, fontWeight: "800", flexShrink: 1 }}>Connected with @{result.other}</Text>
+      </View>
       {result.note ? <Text style={{ color: colors.muted, marginTop: 8, lineHeight: 20 }}>{result.note}</Text> : null}
       {check ? (
         check.status === "running" ? (

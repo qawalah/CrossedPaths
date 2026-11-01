@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Button from "../components/Button";
 import { getServerState, probeServer, setServerAddresses } from "../api";
 import { colors } from "../theme";
+import Icon from "../components/Icon";
 import { useAuth } from "../auth";
 import { useToast } from "../components/Toast";
 import { useServerState } from "../useServer";
@@ -155,9 +156,15 @@ function TestLine({ r }) {
   if (r.pending) return <Text style={{ color: colors.muted, fontSize: 12.5, marginTop: 6 }}>Checking…</Text>;
   if (r.cfg)
     return (
-      <Text style={{ color: colors.good, fontSize: 12.5, marginTop: 6 }}>
-        ✓ Reachable · CrossPaths {r.cfg.version} · {r.ms} ms
-      </Text>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 6 }}>
+        <Icon name="ok" size={15} color={colors.good} />
+        <Text style={{ color: colors.good, fontSize: 12.5, flexShrink: 1 }}>Reachable · CrossPaths {r.cfg.version} · {r.ms} ms</Text>
+      </View>
     );
-  return <Text style={{ color: colors.bad, fontSize: 12.5, marginTop: 6 }}>✗ Not reachable from here ({r.error})</Text>;
+  return (
+    <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 6 }}>
+      <Icon name="error" size={15} color={colors.bad} />
+      <Text style={{ color: colors.bad, fontSize: 12.5, flexShrink: 1 }}>Not reachable from here ({r.error})</Text>
+    </View>
+  );
 }
