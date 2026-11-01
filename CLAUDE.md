@@ -23,7 +23,7 @@ Server (from `server/`):
 
 ```bash
 pip install -r requirements.txt pytest
-python -m pytest -q                  # 55 tests, no network (PLACE_NAMES=False)
+python -m pytest -q                  # 56 tests, no network (PLACE_NAMES=False)
 DATA_DIR=./data python -c "from server.app import create_app; create_app().run(port=8787)"
 ```
 
@@ -75,6 +75,7 @@ read its log in the Actions tab and fix it.
   `StyleSheet.create`.
 - `mobile/plugins/withCrossPathsAndroid.js` and `expo.useLegacyPackaging` in
   `gradle.properties` both exist on purpose; re-running prebuild without them breaks the build.
-- Deploys bind-mount code read-only, so updates are "copy and restart". Never touch the
+- Deploys run `ghcr.io/qawalah/crosspaths:latest` with the Watchtower label; a version bump on
+  `main` is the deploy. Don't bind-mount code into the container. Never touch the
   server's `data/` folder (it holds `keys.json`; losing it signs everyone out and makes uploads
   unreadable).

@@ -3,7 +3,9 @@ import { Animated, Pressable, Text, View } from "react-native";
 import { colors } from "../theme";
 import { EASE_OUT, reduceMotion, tint } from "../motion";
 import PulseRings from "./PulseRings";
-import TabIcon from "./TabIcon";
+import Icon from "./Icon";
+
+const ICONS = { Timeline: "route", People: "people", Checks: "checks", Account: "account" };
 
 const PILL_W = 60;
 const PILL_H = 32;
@@ -100,7 +102,7 @@ function Tab({ name, focused, badge, invite, onPress }) {
       <View style={{ height: PILL_H, justifyContent: "center", alignItems: "center" }}>
         <Animated.View style={{ transform: [{ scale: pop }] }}>
           <PulseRings size={26} color={colors.accent} active={invite}>
-            <TabIcon name={name} color={color} />
+            <Icon name={ICONS[name] || "account"} size={23} color={color} />
           </PulseRings>
         </Animated.View>
         {badge ? (

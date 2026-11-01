@@ -9,6 +9,7 @@ import { useToast } from "../components/Toast";
 import { confirm } from "../components/confirm";
 import { Api } from "../api";
 import { colors } from "../theme";
+import Icon from "../components/Icon";
 
 export default function PeopleScreen({ navigation, data, uploads }) {
   const { connections, refresh } = data;
@@ -76,7 +77,10 @@ export default function PeopleScreen({ navigation, data, uploads }) {
       </Text>
 
       <Card>
-        <Text style={{ color: colors.text, fontWeight: "800", fontSize: 16 }}>🤝 Meet in person</Text>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+          <Icon name="nearby" size={20} color={colors.accent} />
+          <Text style={{ color: colors.text, fontWeight: "800", fontSize: 16 }}>Meet in person</Text>
+        </View>
         <Text style={{ color: colors.muted, fontSize: 13, marginTop: 4, lineHeight: 18 }}>
           With someone right now? Scan each other's code or shake your phones together - you're connected and your paths are
           checked in one go.

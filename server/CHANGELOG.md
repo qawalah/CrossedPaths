@@ -7,8 +7,8 @@ migration), MINOR for new features, PATCH for bugfixes. Pre-1.0, expect MINOR bu
 To check what's running on your server, visit `/api/config` — it reports the running
 `version`. That's the number to compare against this file when deciding whether to update.
 
-## 0.13.0
-- **A guided path in the web client.** A four-step strip under the header (timeline → connect →
+## 0.14.0 (Android 1.9.0)
+- **A guided path in the web client and the Android app.** A four-step strip under the header (timeline → connect →
   check → crossings) shows where you are and what to do next, with a button for that step. It
   fills in as steps are done and disappears once you have a finished check.
 - **"Run a check" invitation.** When you have a timeline and a connection you haven't checked
@@ -17,6 +17,37 @@ To check what's running on your server, visit `/api/config` — it reports the r
 - **Motion.** Tabs switch with a sliding indicator and the page slides in from the side of the
   tab you picked; the results page rises in and out, and its Summary / Map switch slides too.
   All of it respects the system "reduce motion" setting.
+
+## 0.13.0
+- **Combine sources into one timeline.** A timeline can now be built from several sources at
+  once (app files, a photo scan, and your other timelines) and you can add more sources later.
+  New: `POST /api/uploads/<id>/sources` (same fields as `POST /api/uploads`). Both take `file`
+  (any number) and `merge_ids` (your other timelines); `remove_merged=1` deletes those once they
+  are folded in. Duplicate points are dropped; trust and home/work areas are re-checked, keeping
+  areas you edited. Adding sources restarts the timeline's retention clock.
+- Each timeline lists its sources (`sources`: label, files, points, added_at). The `format`
+  field now reads like "Google Maps, GPX, Photos". Timelines from before this version show one source.
+- **Export:** `GET /api/uploads/<id>/export?format=gpx|geojson|csv` downloads your own timeline,
+  all sources combined. Only ever your own points.
+- Web: the Uploads tab builds a timeline from staged sources (Files / Photos / My timelines),
+  then offers to export a copy. Each timeline has *＋ Add source* and *Export a copy*.
+- Database: new nullable `uploads.sources` column, added automatically at start-up.
+
+## 0.12.2 (Android 1.7.1)
+- **One icon style everywhere.** Emoji and text symbols used as icons (tab bar, Back, Play/Pause,
+  Filter, Sort, Fit, Delete, warnings, Meet in person, Choose file, Scan photos…) are replaced by
+  one set of line icons that matches the app icon, in both the Android app and the web client.
+  The three crossing types are redrawn in the same language: a pin (same place), two routes
+  crossing (crossed paths) and two routes side by side (travelled together). The set lives in
+  `mobile/src/icons.js`, with an identical copy in the web client.
+- Web: the settings button's gear icon is no longer squeezed to half width.
+
+## 0.12.1
+- **Deploy: updates install themselves.** `docker-compose.yml` now runs the published image
+  `ghcr.io/qawalah/crosspaths:latest` with the Watchtower label, instead of building on the
+  host and mounting the code. Only `./data` is mounted. To switch, replace `docker-compose.yml`
+  on the host (keep `.env` and `data/`) and start the project again. The image is
+  `linux/amd64` only; ARM hosts build it themselves. See DEPLOY.md, section 3.
 
 ## 0.12.0
 - **Import from more apps.** Uploads now accept GPX, TCX, FIT, KML/KMZ, GeoJSON and CSV files

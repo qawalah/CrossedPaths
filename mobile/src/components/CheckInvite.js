@@ -4,7 +4,7 @@ import { colors } from "../theme";
 import Button from "./Button";
 import Card from "./Card";
 import PulseRings from "./PulseRings";
-import { CrossIcon } from "./TabIcon";
+import Icon from "./Icon";
 
 /** The Checks tab's invitation: a pulsing mark plus a button per person you haven't checked with yet. */
 export default function CheckInvite({ j, uploads, navigation }) {
@@ -28,7 +28,7 @@ export default function CheckInvite({ j, uploads, navigation }) {
       <View style={{ padding: 2 }}>
         <PulseRings size={52} color={colors.accent} ringWidth={2.5} active>
           <View style={{ width: 52, height: 52, borderRadius: 26, backgroundColor: colors.accent, alignItems: "center", justifyContent: "center" }}>
-            <CrossIcon color={colors.onAccent} />
+            <Icon name="crossing" size={28} color={colors.onAccent} strokeWidth={2} />
           </View>
         </PulseRings>
       </View>

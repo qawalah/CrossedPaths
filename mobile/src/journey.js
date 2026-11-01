@@ -45,7 +45,7 @@ export function flowHint(j, connections = []) {
 
 /** Where the hint's button (or a tapped step) goes. */
 export function flowGo(navigation, j, k, uploads = []) {
-  if (k === "upload") return navigation.navigate("Import");
+  if (k === "upload") return navigation.navigate("Build", { start: "files" });
   if (k === "check" || k === "results") {
     if (j.review) return navigation.navigate("ReviewCheck", { checkId: j.review.id });
     if (k === "results" && j.done) return navigation.navigate("Results", { checkId: j.done.id });

@@ -198,7 +198,7 @@ const TIMEOUT_MS = 12000;
 const UPLOAD_TIMEOUT_MS = 180000;
 
 async function request(path, opts = {}, retried = false) {
-  const { method = "GET", body, form, auth = true } = opts;
+  const { method = "GET", body, form, auth = true, raw = false } = opts;
   if (resolving) await resolving.catch(() => {}); // an address check is running: use its answer
   const base = ACTIVE;
   if (!base) throw new ApiError("Server address not set. Open Settings and enter your CrossPaths server URL.", 0);
@@ -241,6 +241,7 @@ async function request(path, opts = {}, retried = false) {
   } finally {
     clearTimeout(timer);
   }
+  if (raw && res.ok) return res.text(); // a file download (timeline export)
   let json = null;
   try {
     json = await res.json();
@@ -271,12 +272,16 @@ export const Api = {
     form.append("file", { uri: fileUri, name: fileName || "timeline.json", type: "application/json" });
     return request("/api/uploads", { method: "POST", form });
   },
-  // Several files in one upload (GPX, FIT, zips…): the server combines them into one timeline.
-  uploadFiles: (files) => {
+  // One timeline from several sources: files (GPX, FIT, zips, a photo-scan JSON…) and/or your other
+  // timelines (mergeIds). With targetId the sources are added to that timeline instead of a new one.
+  saveTimeline: ({ targetId, files = [], mergeIds = [], removeMerged = false }) => {
     const form = new FormData();
     files.forEach((f) => form.append("file", { uri: f.uri, name: f.name || "location-file", type: f.type || "application/octet-stream" }));
-    return request("/api/uploads", { method: "POST", form });
+    mergeIds.forEach((id) => form.append("merge_ids", id));
+    if (removeMerged) form.append("remove_merged", "1");
+    return request(targetId ? `/api/uploads/${targetId}/sources` : "/api/uploads", { method: "POST", form });
   },
+  exportUpload: (id, format) => request(`/api/uploads/${id}/export?format=${format}`, { raw: true }),
   deleteUpload: (id) => request(`/api/uploads/${id}`, { method: "DELETE" }),
   putZones: (id, zones) => request(`/api/uploads/${id}/zones`, { method: "PUT", body: { zones } }),
   uploadSummary: (id, tz = 0) => request(`/api/uploads/${id}/summary?tz=${tz}`),

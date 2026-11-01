@@ -1,10 +1,10 @@
 import React, { useEffect, useRef } from "react";
 import { Animated, Pressable, Text, View } from "react-native";
-import Svg, { Path } from "react-native-svg";
 import { colors } from "../theme";
 import { EASE_OUT, reduceMotion, tint } from "../motion";
 import { FLOW, flowGo, flowHint, journey } from "../journey";
 import Button from "./Button";
+import Icon from "./Icon";
 
 const NODE = 28;
 
@@ -124,9 +124,7 @@ function Step({ n, label, state, delay, onPress }) {
           />
         ) : null}
         {done ? (
-          <Svg width={15} height={15} viewBox="0 0 24 24">
-            <Path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke={colors.onAccent} strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round" />
-          </Svg>
+          <Icon name="check" size={15} color={colors.onAccent} strokeWidth={2.6} />
         ) : (
           <Text style={{ color: cur ? colors.accent : colors.muted, fontSize: 12.5, fontWeight: "800" }}>{n}</Text>
         )}

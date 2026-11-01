@@ -11,8 +11,7 @@ import NewCheckModal from "../screens/NewCheckModal";
 import ReviewCheckModal from "../screens/ReviewCheckModal";
 import ResultsScreen from "../screens/ResultsScreen";
 import MyTimelineScreen from "../screens/MyTimelineScreen";
-import ImportModal from "../screens/ImportModal";
-import PhotoScanModal from "../screens/PhotoScanModal";
+import BuildTimelineModal from "../screens/BuildTimelineModal";
 import AddNearbyScreen, { codeFrom } from "../screens/AddNearbyScreen";
 import MainTabs from "./MainTabs";
 import { colors } from "../theme";
@@ -107,11 +106,8 @@ export default function RootNavigator() {
             <Stack.Screen name="AddNearby" options={{ presentation: "modal", animation: "slide_from_bottom" }}>
               {(props) => <AddNearbyScreen {...props} uploads={data.uploads} loaded={data.loaded} onDone={data.refresh} />}
             </Stack.Screen>
-            <Stack.Screen name="Import" options={{ presentation: "modal", animation: "slide_from_bottom" }}>
-              {(props) => <ImportModal {...props} cfg={data.cfg} onDone={data.refresh} />}
-            </Stack.Screen>
-            <Stack.Screen name="PhotoScan" options={{ presentation: "modal", animation: "slide_from_bottom" }}>
-              {(props) => <PhotoScanModal {...props} cfg={data.cfg} onDone={data.refresh} />}
+            <Stack.Screen name="Build" options={{ presentation: "modal", animation: "slide_from_bottom" }}>
+              {(props) => <BuildTimelineModal {...props} cfg={data.cfg} uploads={data.uploads} onDone={data.refresh} />}
             </Stack.Screen>
           </>
         )}
