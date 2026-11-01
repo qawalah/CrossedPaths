@@ -88,7 +88,7 @@ export default function ScrubberTutorial({ visible, gesture = "pull", onClose })
         <View style={{ backgroundColor: colors.panel, borderRadius: 20, borderWidth: 1, borderColor: colors.line, padding: 18 }}>
           <Text style={{ color: colors.text, fontSize: 19, fontWeight: "800" }}>Pick a day by scrubbing</Text>
           <Text style={{ color: colors.muted, fontSize: 13, marginTop: 4, lineHeight: 18 }}>
-            The bar under My timeline works like the seek bar on a long video.
+            The date bar under the map works like the seek bar on a long video.
           </Text>
 
           <View style={{ marginTop: 18, paddingTop: 70, paddingBottom: 14, paddingHorizontal: 14, borderRadius: 14, backgroundColor: colors.panel2 }}>

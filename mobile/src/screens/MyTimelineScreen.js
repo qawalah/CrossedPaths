@@ -244,18 +244,6 @@ export default function MyTimelineScreen({ route, navigation }) {
         renderItem={null}
         ListHeaderComponent={
           <View>
-            <View style={{ marginBottom: 12 }}>
-              <DateScrubber
-                summary={summary}
-                selected={loadedDate}
-                onPick={loadDay}
-                onActiveChange={setScrollLock}
-                gesture={scrubPrefs.gesture}
-                holdMs={scrubPrefs.holdMs}
-                onHelp={() => setTutorial(true)}
-              />
-            </View>
-
             <View style={{ marginHorizontal: 12, borderRadius: 16, overflow: "hidden", borderWidth: 1, borderColor: colors.line }}>
               <View
                 style={{ height: 280 }}
@@ -296,7 +284,7 @@ export default function MyTimelineScreen({ route, navigation }) {
               <View style={{ backgroundColor: colors.panel, padding: 12 }}>
                 <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 2 }}>
                   <Text style={{ color: colors.muted, fontSize: 12 }}>
-                    {dayPts.length ? `${dayLabel} · ${fmtTime(new Date((mePos ? mePos.t : tMin) * 1000))}` : dayLabel ? `${dayLabel} · no points recorded` : "Pick a day on the bar above"}
+                    {dayPts.length ? `${dayLabel} · ${fmtTime(new Date((mePos ? mePos.t : tMin) * 1000))}` : dayLabel ? `${dayLabel} · no points recorded` : "Pick a day on the bar below"}
                   </Text>
                   {dayPts.length ? (
                     <Pressable onPress={togglePlay} hitSlop={10} style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
@@ -321,6 +309,18 @@ export default function MyTimelineScreen({ route, navigation }) {
                   />
                 ) : null}
               </View>
+            </View>
+
+            <View style={{ marginTop: 12 }}>
+              <DateScrubber
+                summary={summary}
+                selected={loadedDate}
+                onPick={loadDay}
+                onActiveChange={setScrollLock}
+                gesture={scrubPrefs.gesture}
+                holdMs={scrubPrefs.holdMs}
+                onHelp={() => setTutorial(true)}
+              />
             </View>
 
             <View style={{ margin: 12, backgroundColor: colors.panel, borderWidth: 1, borderColor: colors.line, borderRadius: 16, padding: 14 }}>
