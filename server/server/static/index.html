@@ -980,6 +980,7 @@ function openSheet(html) {
 }
 function closeSheet(instant) {
   if (typeof stopPairPoll === "function") stopPairPoll();
+  if (typeof stopRoadsPoll === "function") stopRoadsPoll();
   const bg = $("#sbg"), sh = $("#sheet"); if (!sh) return;
   if (instant) { bg.remove(); sh.remove(); return; }
   bg.classList.remove("on"); sh.classList.remove("on"); setTimeout(() => { bg.remove(); sh.remove(); }, 320);
@@ -1313,7 +1314,9 @@ function settingsBody() {
   return `<label>Theme</label><div class="seg" id="thmode" style="margin-top:0">${[["system", "System"], ["dark", "Dark"], ["light", "Light"]].map(([k, l]) => `<button data-mode="${k}" class="${p.mode === k ? "on" : ""}">${l}</button>`).join("")}</div>
     <label>Accent colour</label><div class="swatches" id="thacc">${Object.entries(ACCENTS).map(([k, a]) => `<button class="sw2${p.accent === k ? " on" : ""}" data-acc="${k}" style="--c:${a.dark[0]};--c2:${a.light[0]}" aria-label="${a.name}" title="${a.name}"></button>`).join("")}</div>
     <label style="margin-top:18px">Keep my uploaded timelines</label>${hsRow(opts.map(h => `<button class="fchip${h === keep ? " on" : ""}" data-keep="${h}">${keepLabel(h)}</button>`).join(""), 'id="keepopts"')}
-    <p class="muted small" id="keepnote" style="margin:8px 0 0">${note(keep)}</p>`;
+    <p class="muted small" id="keepnote" style="margin:8px 0 0">${note(keep)}</p>
+    ${u.is_admin ? `<label style="margin-top:18px">Server (admin)</label>
+    <div class="zone"><span>Street maps: draw journeys along roads</span><button class="btn ghost sm" id="roadsbtn">Manage</button></div>` : ""}`;
 }
 function settingsSheet() {
   openSheet(`<h2>Settings</h2>${settingsBody()}<div class="row" style="margin-top:18px"><button class="btn grow" id="setdone">Done</button></div>`);
@@ -1323,6 +1326,7 @@ function settingsSheet() {
 function wireSettings(sh) {
   const note = keepNote, $$ = q => $(q, sh);
   wireHScroll(sh);
+  if ($$("#roadsbtn")) $$("#roadsbtn").onclick = () => roadsSheet();
   $$("#thmode").onclick = e => { const b = e.target.closest("[data-mode]"); if (!b) return; setTheme({ mode: b.dataset.mode }); $$("#thmode").querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b)); };
   $$("#thacc").onclick = e => { const b = e.target.closest("[data-acc]"); if (!b) return; setTheme({ accent: b.dataset.acc }); $$("#thacc").querySelectorAll(".sw2").forEach(x => x.classList.toggle("on", x === b)); };
   $$("#keepopts").onclick = async e => {
@@ -1340,6 +1344,85 @@ function wireSettings(sh) {
       toast(h ? `Uploads are now deleted after ${keepLabel(h)}` : "Uploads are now kept until you delete them");
     } catch (err) { toast(err.message, true); }
   };
+}
+
+/* ---- admin: street maps (countries whose roads journeys are drawn along) ---- */
+const ROADS = { timer: 0, catalog: null, data: null };
+function stopRoadsPoll() { clearInterval(ROADS.timer); ROADS.timer = 0; }
+function roadsState(r) {
+  const p = r.progress || {}, mins = r.started_at ? Math.max(1, Math.round((Date.now() / 1000 - r.started_at) / 60)) : 0;
+  if (r.state === "downloading") return `<span class="spin"></span> Downloading ${p.done_mb != null ? Math.round(p.done_mb) : 0}${p.total_mb ? " of " + Math.round(p.total_mb) : ""} MB`;
+  if (r.state === "building") return `<span class="spin"></span> Preparing map… ${mins} min so far`;
+  const ready = r.state === "ready";
+  const info = r.disk_mb != null ? `${r.disk_mb < 1 ? "<1" : Math.round(r.disk_mb).toLocaleString()} MB` : "";
+  const when = r.osm_date ? " · map data " + new Date(r.osm_date).toLocaleDateString(UI_LOCALE, { day: "numeric", month: "short", year: "numeric" }) : "";
+  return (ready ? `${pill("done", "Ready")} ${info}${when}` : pill("failed", "Failed")) + (r.error ? `<div class="small" style="color:var(--bad);margin-top:4px">${esc(r.error)}</div>` : "");
+}
+function roadsList() {
+  const d = ROADS.data; if (!d || !$("#rdlist")) return;
+  const busy = d.regions.some(r => r.state === "downloading" || r.state === "building");
+  const warn = !d.supported ? `<p class="small" style="color:var(--bad)">The routing engine (pyvalhalla) isn't installed on this server, so maps can't be prepared. Use the Docker image, or <i>pip install pyvalhalla</i>.</p>`
+    : !d.enabled ? `<p class="small muted">Street drawing is switched off on this server (STREET_SNAP=false). Maps can still be prepared.</p>` : "";
+  $("#rdlist").innerHTML = warn + (d.regions.length ? d.regions.map(r => `<div class="zone" style="align-items:flex-start;gap:10px">
+      <div class="grow"><b>${esc(r.name || r.id)}</b>${r.parent ? ` <span class="muted small">· ${esc(r.parent)}</span>` : ""}<div class="small muted" style="margin-top:3px">${roadsState(r)}</div></div>
+      ${r.state === "downloading" || r.state === "building" ? "" : `<div class="row" style="gap:6px;flex:none">
+        <button class="btn ghost sm" data-rdup="${esc(r.region_id || "")}" ${busy || !r.region_id ? "disabled" : ""} title="Download fresh map data">${r.state === "failed" ? "Retry" : "Update"}</button>
+        <button class="btn ghost sm" data-rdrm="${esc(r.id)}" data-name="${esc(r.name || r.id)}">Remove</button></div>`}</div>`).join("")
+    : `<p class="muted small">No countries yet. Journeys are drawn as straight lines between recorded points.</p>`);
+  roadsResults();
+}
+async function roadsRefresh() {
+  try { ROADS.data = await api("/api/admin/roads"); roadsList(); } catch (e) { stopRoadsPoll(); toast(e.message, true); }
+}
+function roadsResults() {
+  const box = $("#rdres"), q = ($("#rdq") || {}).value || ""; if (!box) return;
+  if (!q.trim()) { box.innerHTML = ""; return; }
+  if (!ROADS.catalog) { box.innerHTML = `<p class="muted small"><span class="spin"></span> Loading the list…</p>`; return; }
+  const ql = q.trim().toLowerCase(), have = new Set((ROADS.data ? ROADS.data.regions : []).map(r => r.region_id));
+  const busy = ROADS.data && ROADS.data.regions.some(r => r.state === "downloading" || r.state === "building");
+  const hits = ROADS.catalog.filter(c => c.name.toLowerCase().includes(ql)).sort((a, b) => (b.name.toLowerCase().startsWith(ql)) - (a.name.toLowerCase().startsWith(ql))).slice(0, 25);
+  box.innerHTML = hits.length ? hits.map(c => `<div class="zone"><span>${esc(c.name)}${c.parent ? ` <span class="muted small">· ${esc(c.parent)}</span>` : ""}</span>
+      ${have.has(c.id) ? `<span class="muted small">Added</span>` : `<button class="btn ghost sm" data-rdadd="${esc(c.id)}" data-name="${esc(c.name)}" ${busy ? "disabled" : ""}>Add</button>`}</div>`).join("")
+    : `<p class="muted small">Nothing matches “${esc(q)}”.</p>`;
+}
+async function roadsSheet() {
+  openSheet(`<h2>Street maps</h2>
+    <p class="muted small" style="margin-top:0">In these countries, journeys on the map follow the streets instead of cutting straight through buildings and water. Trains, flights and ferries keep straight lines. The maps come from OpenStreetMap (via Geofabrik) and are prepared on this server: nobody's path leaves it.</p>
+    <div id="rdlist"><p class="muted small"><span class="spin"></span> Loading…</p></div>
+    <label style="margin-top:18px">Add a country or region</label>
+    <input type="text" id="rdq" placeholder="Search, e.g. Saudi Arabia" autocomplete="off">
+    <div id="rdres"></div>
+    <p class="muted small" style="margin:10px 0 0">Preparing a map takes minutes for a small country and up to an hour or more for a large one, and briefly needs 1–4 GB of memory. If it fails for lack of memory, raise <i>mem_limit</i> in docker-compose.yml. Check results from before a map was added keep straight lines until the check is run again.</p>
+    <div class="row" style="margin-top:18px"><button class="btn grow" id="rddone">Done</button></div>`);
+  $("#rddone").onclick = () => closeSheet();
+  const sh = $("#sheet");
+  $("#rdq").oninput = async () => {
+    roadsResults();
+    if (!ROADS.catalog && !ROADS.loading) {
+      ROADS.loading = true;
+      try { ROADS.catalog = await api("/api/admin/roads/catalog"); } catch (e) { toast(e.message, true); } finally { ROADS.loading = false; }
+      roadsResults();
+    }
+  };
+  sh.addEventListener("click", async e => {
+    const add = e.target.closest("[data-rdadd]"), up = e.target.closest("[data-rdup]"), rm = e.target.closest("[data-rdrm]");
+    if (add) {
+      if (!confirm(`Download the street map for ${add.dataset.name} and prepare it on the server? Big regions can take a long time and use a lot of disk.`)) return;
+      add.disabled = true;
+      await run(async () => { await api("/api/admin/roads", { method: "POST", body: { region: add.dataset.rdadd } }); $("#rdq").value = ""; toast("Download started"); });
+      roadsRefresh();
+    } else if (up) {
+      up.disabled = true;
+      await run(async () => { await api("/api/admin/roads", { method: "POST", body: { region: up.dataset.rdup } }); toast("Download started"); });
+      roadsRefresh();
+    } else if (rm) {
+      if (!confirm(`Remove the street map for ${rm.dataset.name}? Journeys there go back to straight lines.`)) return;
+      await run(async () => { await api("/api/admin/roads/" + encodeURIComponent(rm.dataset.rdrm), { method: "DELETE" }); toast("Removed"); });
+      roadsRefresh();
+    }
+  });
+  await roadsRefresh();
+  stopRoadsPoll(); ROADS.timer = setInterval(() => { if ($("#rdlist") && !document.hidden) roadsRefresh(); else if (!$("#rdlist")) stopRoadsPoll(); }, 3000);
 }
 
 /* ---- filters ---- */

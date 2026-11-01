@@ -5,6 +5,7 @@ import os
 import re
 import threading
 import time
+from collections import OrderedDict
 from functools import wraps
 
 from flask import Flask, Response, abort, g, jsonify, request, send_from_directory
@@ -13,9 +14,11 @@ from crosspaths.geo import haversine_m
 from crosspaths.exporters import FORMATS as EXPORT_FORMATS
 from crosspaths.importers import FRIENDLY, Limits, merge_points, parse_files, sources_of
 from crosspaths.privacy import detect_anchor_zones
+from crosspaths.snap import snap_points
 from crosspaths.spoofcheck import assess
 
 from . import analysis, retention, runner
+from .roads import roads_for
 from .config import Config
 from .notifications import send_expo_push
 from .db import audit, close_db, get_db, init_db, new_id
@@ -75,9 +78,21 @@ def create_app(overrides=None, start_background=True):
     def body():
         return request.get_json(silent=True) or {}
 
+    def is_admin(u):
+        return u["handle"].lower() in app.config["ADMIN_HANDLES"]
+
     def user_dict(u):
         return {"id": u["id"], "handle": u["handle"], "display_name": u["display_name"],
-                "upload_keep_hours": retention.keep_hours(app.config, u)}
+                "upload_keep_hours": retention.keep_hours(app.config, u), "is_admin": is_admin(u)}
+
+    def admin(fn):
+        """Only usernames listed in ADMIN_HANDLES (use under @auth)."""
+        @wraps(fn)
+        def wrapper(*a, **kw):
+            if not is_admin(g.user):
+                err("Only the server's admins can do this", 403)
+            return fn(*a, **kw)
+        return wrapper
 
     def num(v, lo, hi, default):
         try:
@@ -437,8 +452,32 @@ def create_app(overrides=None, start_background=True):
             t0, t1 = analysis.day_range(request.args.get("date", ""), analysis.tz_param(request.args.get("tz")))
         except ValueError:
             err("date must be in YYYY-MM-DD format")
-        day_pts = analysis.points_in_range(load_points(app.config, upload_id), t0, t1)
-        return jsonify({"segments": runner.thin_track(day_pts, max_points=2000, min_move_m=15), "date": request.args.get("date")})
+        route = runner.street_router(app.config)
+        key = (upload_id, t0, t1, roads_for(app.config).version if route else 0)
+        segs = day_cache_get(key)
+        if segs is None:
+            day_pts = analysis.points_in_range(load_points(app.config, upload_id), t0, t1)
+            if route is not None:
+                day_pts = snap_points(day_pts, route, budget_s=6, max_routes=600)
+            segs = runner.thin_track(day_pts, max_points=2000, min_move_m=15)
+            day_cache_put(key, segs)
+        return jsonify({"segments": segs, "date": request.args.get("date")})
+
+    # Street-snapped days take a moment to route, and people flick back and forth between days.
+    day_cache, day_cache_lock = OrderedDict(), threading.Lock()
+
+    def day_cache_get(key):
+        with day_cache_lock:
+            if key in day_cache:
+                day_cache.move_to_end(key)
+                return day_cache[key]
+        return None
+
+    def day_cache_put(key, segs):
+        with day_cache_lock:
+            day_cache[key] = segs
+            while len(day_cache) > 64:
+                day_cache.popitem(last=False)
 
     @app.get("/api/uploads/<upload_id>/visits")
     @auth
@@ -691,6 +730,58 @@ def create_app(overrides=None, start_background=True):
         db = get_db()
         db.execute("DELETE FROM checks WHERE id=?", (check_id,))
         audit(db, g.user["id"], "check_deleted", check_id)
+        db.commit()
+        return jsonify({"ok": True})
+
+    # ---------------- admin: street maps ----------------
+    @app.get("/api/admin/roads")
+    @auth
+    @admin
+    def roads_status():
+        r = roads_for(app.config)
+        return jsonify({"supported": r.supported, "enabled": bool(app.config["STREET_SNAP"]),
+                        "max_download_mb": r.max_download_mb, "regions": r.regions()})
+
+    @app.get("/api/admin/roads/catalog")
+    @auth
+    @admin
+    def roads_catalog():
+        try:
+            items = roads_for(app.config).catalog()
+        except Exception:  # noqa: BLE001
+            err("Couldn't load the list of countries from download.geofabrik.de. Check the server's internet access.", 502)
+        return jsonify([{k: c[k] for k in ("id", "name", "parent")} for c in items])
+
+    @app.post("/api/admin/roads")
+    @auth
+    @admin
+    def roads_add():
+        region = str(body().get("region") or "").strip()
+        if not region:
+            err("Pick a region")
+        try:
+            rid = roads_for(app.config).start(region)
+        except ValueError as ex:
+            err(str(ex), 409 if "Another map" in str(ex) else 400)
+        except Exception:  # noqa: BLE001
+            err("Couldn't load the list of countries from download.geofabrik.de. Check the server's internet access.", 502)
+        db = get_db()
+        audit(db, g.user["id"], "roads_add", rid)
+        db.commit()
+        return jsonify({"ok": True, "id": rid})
+
+    @app.delete("/api/admin/roads/<rid>")
+    @auth
+    @admin
+    def roads_delete(rid):
+        try:
+            roads_for(app.config).delete(rid)
+        except KeyError:
+            err("Not found", 404)
+        except ValueError as ex:
+            err(str(ex), 409)
+        db = get_db()
+        audit(db, g.user["id"], "roads_delete", rid)
         db.commit()
         return jsonify({"ok": True})
 

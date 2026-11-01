@@ -7,7 +7,11 @@ on an ARM host, build it yourself (section 3).
 ## 0. Sizing
 
 CrossPaths is built for a small machine (2 GB RAM is enough): one container, SQLite (no
-database container), one worker, one check at a time, 900 MB memory cap, 80 MB upload limit.
+database container), one worker, one check at a time, 1.5 GB memory cap, 80 MB upload limit.
+
+Street maps (optional, see section 4) need disk for each country: roughly the size of the
+country's OpenStreetMap download again (e.g. 50 MB-1 GB for most single countries), and 1-4 GB
+of memory for the minutes to an hour it takes to prepare one.
 
 ## 1. Install
 
@@ -83,6 +87,13 @@ Never delete or overwrite `data/`.
 - `MAP_STYLE_URL` if you'd rather use MapTiler / Stadia (key in the URL)
 - `MAX_UPLOAD_MB`: the whole JSON is parsed in RAM (~5-10x file size). Raise it only with more
   RAM (and raise `mem_limit` in `docker-compose.yml` to match).
+
+- `ADMIN_HANDLES=yourname` to manage **street maps**: then *Settings → Server (admin) → Street
+  maps* on the web lets you add countries. Journeys there are drawn along roads instead of
+  straight lines. Pick single countries (or US states etc.), not whole continents; downloads over
+  `ROADS_MAX_DOWNLOAD_MB` are refused. Maps live in `data/roads/` and survive updates. If one
+  fails with "ran out of memory", raise `mem_limit` in `docker-compose.yml`. `STREET_SNAP=false`
+  turns the feature off.
 
 After editing `.env`: `docker compose up -d` (recreates the container with the new values).
 
