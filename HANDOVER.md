@@ -34,7 +34,15 @@ Main features:
   check in one step.
 - **My Timeline:** browse your own upload by year, month and day on a map, with replay, and
   search for every visit to a place.
-- **Adding a timeline:** two choices on both clients.
+- **Timelines are built from sources** and can be combined: on both clients you stage any
+  number of sources (files from apps, a photo scan, your other timelines), then save them as one
+  timeline. Each timeline lists its sources and has *Add source* (adds to it, dropping duplicate
+  points) and *Export* (GPX / GeoJSON / CSV of your own points; the app saves through Android's
+  folder picker). Server: `gather_sources` / `save_timeline` in `server/app.py`,
+  `POST /api/uploads`, `POST /api/uploads/<id>/sources`, `GET /api/uploads/<id>/export`.
+  The app's builder is `mobile/src/screens/BuildTimelineModal.js` (photo scanning in
+  `src/photoScan.js`, export in `src/exportTimeline.js`).
+- **Adding a source:** two starting points on both clients.
   - *Import a timeline*: pick a source (Google Maps, Strava, Apple Health, Samsung Health,
     Garmin, Fitbit/Google Fit, Swarm, other apps) to see how to export from it, then choose one
     file, several, or a .zip. `crosspaths/importers.py` recognises each file by content: GPX, TCX,
@@ -67,7 +75,7 @@ Main features:
 - `applicationId` / namespace: `com.example.crosspaths`. **This must change before Play**: Play
   rejects `com.example.*`. The suggested name is `com.abu.crosspaths`. Changing it makes it a new
   app for anyone with the sideloaded version, so they'll need to install it fresh.
-- `versionCode` **9**, `versionName` **1.7.0** (in `mobile/app.json` and
+- `versionCode` **11**, `versionName` **1.8.0** (in `mobile/app.json` and
   `mobile/android/app/build.gradle`). `package.json` still says 1.0.0; ignore it.
 - **Signing:** there's no own key yet. Release builds are signed with React Native's stock
   **debug keystore** (`android/app/debug.keystore`, alias `androiddebugkey`; deliberately not in
@@ -80,27 +88,20 @@ Main features:
 planned), `buildNumber` 4. Waiting on the owner's Apple Developer enrollment; plan was EAS build
 and then TestFlight. `eas.json` exists, but there's no EAS `projectId` yet.
 
-**Server:** version in `server/VERSION`, currently **0.13.0**, reported at `GET /api/config`.
+**Server:** version in `server/VERSION`, currently **0.16.0**, reported at `GET /api/config`.
 Entry point `server/wsgi.py` → `server.app:create_app()`. Run by gunicorn: 1 worker, 8 threads,
 port 8787.
 
 ## How it's built and run
 
 ### Server (Docker)
-```bash
-cd server
-docker compose up -d --build        # first time, or when requirements.txt / Dockerfile change
-```
-`docker-compose.yml` bind-mounts the code read-only:
-- `./server`
-- `./crosspaths`
-- `./wsgi.py`
-- `./VERSION`
+The image is built by `.github/workflows/release.yml` (DevStore) when `server/devstore.json`'s
+version is bumped on `main`, and published as `ghcr.io/qawalah/crosspaths:<version>` and
+`:latest` (linux/amd64, public). `server/docker-compose.yml` runs `:latest` with the Watchtower
+label, so **deploying is: bump the version, push to `main`; Watchtower installs it**. Code is not
+bind-mounted any more; only `./data` is mounted. Never touch `./data`.
 
-So **most updates are "copy those four in, restart the container"**, with no rebuild. Never touch
-`./data`.
-
-Tests (65 passing), from `server/`:
+Tests (66 passing), from `server/`:
 ```bash
 pip install -r requirements.txt pytest
 python -m pytest -q
@@ -312,5 +313,5 @@ route files then. Separate workouts close together in place (within 200 m and 6 
 
 **Builds and deployment**
 - **APK:** arm64-only, minified, legacy packaging (about 18 MB).
-- **Server updates:** code is bind-mounted read-only so updates are "copy and restart". The
-  `data/` folder holds everything that matters.
+- **Server updates:** DevStore publishes the image to ghcr.io on a version bump; Watchtower
+  installs it. The `data/` folder holds everything that matters.

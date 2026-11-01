@@ -1,8 +1,22 @@
+# CrossPaths server for a NAS (Synology Container Manager) or any Intel/AMD machine with Docker.
+#
+# The image is built on GitHub (DevStore, .github/workflows/release.yml) for every new server
+# version and published to ghcr.io/qawalah/crosspaths. Watchtower installs new versions by
+# itself: see docs/nas-setup.md in DevStore (qawalah/devstore). The image is linux/amd64 only.
+#
+# Put this file and your .env in their own folder on the NAS, then:
+#   Synology: Container Manager -> Project -> Create -> choose that folder
+#   Command line: docker compose up -d
+# To build from source instead, replace the image and pull_policy lines with `build: .`
+
 services:
   crosspaths:
-    build: .
+    image: ghcr.io/qawalah/crosspaths:latest   # to roll back, put the previous version here (e.g. :0.11.1)
+    pull_policy: always
     container_name: crosspaths
     restart: unless-stopped
+    labels:
+      - com.centurylinklabs.watchtower.enable=true   # Watchtower keeps this container on the newest version
     ports:
       - "8787:8787"
     environment:
@@ -23,13 +37,7 @@ services:
       STREET_SNAP: ${STREET_SNAP:-true}
       ROADS_MAX_DOWNLOAD_MB: ${ROADS_MAX_DOWNLOAD_MB:-1500}
     volumes:
-      - ./data:/data
-      # Code is bind-mounted read-only so most updates are copy-files-and-restart, no
-      # rebuild needed. Rebuild (docker compose build) only when requirements.txt changes.
-      - ./server:/app/server:ro
-      - ./crosspaths:/app/crosspaths:ro
-      - ./wsgi.py:/app/wsgi.py:ro
-      - ./VERSION:/app/VERSION:ro
+      - ./data:/data   # database, encrypted uploads and keys.json: back it up, never delete it
     # Preparing a street map needs 1-4 GB for a while (more for big countries); the app itself
     # stays well under 900 MB. Raise this if a map fails with "ran out of memory".
     mem_limit: 1500m

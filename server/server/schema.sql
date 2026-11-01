@@ -34,7 +34,8 @@ CREATE TABLE IF NOT EXISTS uploads (
     zones         TEXT NOT NULL DEFAULT '[]',     -- home/work exclusion zones (auto-detected, user-editable)
     created_at    REAL NOT NULL,
     purge_after   REAL NOT NULL,
-    purged_at     REAL
+    purged_at     REAL,
+    sources       TEXT                            -- JSON list of what it was built from (NULL on uploads before 0.13.0)
 );
 CREATE INDEX IF NOT EXISTS uploads_user_idx ON uploads (user_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS uploads_sha_idx  ON uploads (sha256);

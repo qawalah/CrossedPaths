@@ -7,7 +7,7 @@ migration), MINOR for new features, PATCH for bugfixes. Pre-1.0, expect MINOR bu
 To check what's running on your server, visit `/api/config` — it reports the running
 `version`. That's the number to compare against this file when deciding whether to update.
 
-## 0.13.0
+## 0.16.0
 - **Street maps: journeys follow the roads.** Sparse histories (Google Timeline above all) keep
   a trip as a handful of points, so the map drew straight lines through buildings and water.
   Now, in countries the admin has downloaded, those stretches are drawn along the streets, both
@@ -22,8 +22,63 @@ To check what's running on your server, visit `/api/config` — it reports the r
 - New settings: `STREET_SNAP` (default on), `ROADS_MAX_DOWNLOAD_MB` (default 1500),
   `ROADS_CATALOG_URL`. `mem_limit` in `docker-compose.yml` goes from 900m to 1500m because
   preparing a map needs more memory for a while.
-- **Rebuild needed:** `requirements.txt` changed (the image is about 260 MB larger).
+- The image is about 260 MB larger (new `pyvalhalla` dependency). Copy the new
+  `docker-compose.yml` settings (`ADMIN_HANDLES`, `mem_limit`) to the NAS folder.
 - Check results from before a map was added keep straight lines until the check is run again.
+
+## 0.15.0 (Android 1.11.0)
+- **Five tabs:** Import · My Map · Checks · People · Account, in the web client and the Android
+  app. Checks is a raised round button in the middle. *Uploads* is now called *Import*.
+- **My Map** is its own tab: your timeline on the map by year, month and day (pick which
+  timeline when you have several). On Android it used to open only from a timeline's card.
+- **Account tab** on the web: theme, accent colour, how long uploads are kept, and Sign out
+  (these used to be in the header).
+- **New Checks page.** It opens with a big animated version of the app icon: the blue and green
+  routes draw in and cross, then the pin drops onto the crossing. Below it is what to do next (run
+  a check, review a request, import, connect), and tapping the crossing does it. Previous checks
+  are listed underneath and open up for details, results and delete.
+
+## 0.14.0 (Android 1.9.0)
+- **A guided path in the web client and the Android app.** A four-step strip under the header (timeline → connect →
+  check → crossings) shows where you are and what to do next, with a button for that step. It
+  fills in as steps are done and disappears once you have a finished check.
+- **"Run a check" invitation.** When you have a timeline and a connection you haven't checked
+  with yet (or someone is waiting for your agreement), the Checks tab icon pulses and the Checks
+  page opens with a card to start the check in one tap.
+- **Motion.** Tabs switch with a sliding indicator and the page slides in from the side of the
+  tab you picked; the results page rises in and out, and its Summary / Map switch slides too.
+  All of it respects the system "reduce motion" setting.
+
+## 0.13.0
+- **Combine sources into one timeline.** A timeline can now be built from several sources at
+  once (app files, a photo scan, and your other timelines) and you can add more sources later.
+  New: `POST /api/uploads/<id>/sources` (same fields as `POST /api/uploads`). Both take `file`
+  (any number) and `merge_ids` (your other timelines); `remove_merged=1` deletes those once they
+  are folded in. Duplicate points are dropped; trust and home/work areas are re-checked, keeping
+  areas you edited. Adding sources restarts the timeline's retention clock.
+- Each timeline lists its sources (`sources`: label, files, points, added_at). The `format`
+  field now reads like "Google Maps, GPX, Photos". Timelines from before this version show one source.
+- **Export:** `GET /api/uploads/<id>/export?format=gpx|geojson|csv` downloads your own timeline,
+  all sources combined. Only ever your own points.
+- Web: the Uploads tab builds a timeline from staged sources (Files / Photos / My timelines),
+  then offers to export a copy. Each timeline has *＋ Add source* and *Export a copy*.
+- Database: new nullable `uploads.sources` column, added automatically at start-up.
+
+## 0.12.2 (Android 1.7.1)
+- **One icon style everywhere.** Emoji and text symbols used as icons (tab bar, Back, Play/Pause,
+  Filter, Sort, Fit, Delete, warnings, Meet in person, Choose file, Scan photos…) are replaced by
+  one set of line icons that matches the app icon, in both the Android app and the web client.
+  The three crossing types are redrawn in the same language: a pin (same place), two routes
+  crossing (crossed paths) and two routes side by side (travelled together). The set lives in
+  `mobile/src/icons.js`, with an identical copy in the web client.
+- Web: the settings button's gear icon is no longer squeezed to half width.
+
+## 0.12.1
+- **Deploy: updates install themselves.** `docker-compose.yml` now runs the published image
+  `ghcr.io/qawalah/crosspaths:latest` with the Watchtower label, instead of building on the
+  host and mounting the code. Only `./data` is mounted. To switch, replace `docker-compose.yml`
+  on the host (keep `.env` and `data/`) and start the project again. The image is
+  `linux/amd64` only; ARM hosts build it themselves. See DEPLOY.md, section 3.
 
 ## 0.12.0
 - **Import from more apps.** Uploads now accept GPX, TCX, FIT, KML/KMZ, GeoJSON and CSV files

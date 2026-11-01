@@ -52,6 +52,7 @@ class Limits:
 @dataclass
 class ImportReport:
     formats: dict = field(default_factory=dict)  # fmt -> number of files
+    points: dict = field(default_factory=dict)   # fmt -> points read (before de-duplication)
     skipped: list = field(default_factory=list)  # names of files that held no usable points
     files: int = 0
     _bytes: int = 0
@@ -62,6 +63,26 @@ class ImportReport:
         fmt = "+".join(sorted(self.formats, key=lambda k: -self.formats[k]))
         n = sum(self.formats.values())
         return fmt if n == 1 else f"{fmt} ({n} files)"
+
+
+# What people call each format, for the list of sources a timeline was built from.
+FRIENDLY = {
+    "records": "Google Maps", "semantic-history": "Google Maps", "on-device": "Google Maps",
+    "segments-list": "Google Maps", "photo-library": "Photos", "swarm": "Swarm check-ins",
+    "gpx": "GPX", "tcx": "TCX", "fit": "FIT", "kml": "KML", "geojson": "GeoJSON", "csv": "CSV",
+    "points": "JSON points",
+}
+
+
+def sources_of(rep: "ImportReport", at: float) -> list[dict]:
+    """One entry per kind of source in this import, e.g. GPX (12 files, 30,000 points)."""
+    merged: dict = {}
+    for fmt, n in rep.formats.items():
+        name = FRIENDLY.get(fmt, fmt.upper())
+        e = merged.setdefault(name, {"label": name, "files": 0, "points": 0, "added_at": at})
+        e["files"] += n
+        e["points"] += rep.points.get(fmt, 0)
+    return sorted(merged.values(), key=lambda e: -e["points"])
 
 
 # ---------- small helpers ----------
@@ -522,6 +543,7 @@ def _parse_one(name: str, data: bytes, rep: ImportReport, lim: Limits, depth: in
         pts = _thin_tracks(pts)
     if pts:
         rep.formats[fmt] = rep.formats.get(fmt, 0) + 1
+        rep.points[fmt] = rep.points.get(fmt, 0) + len(pts)
     return pts
 
 
@@ -611,3 +633,15 @@ def parse_files(files, limits: Limits | None = None) -> tuple[Track, ImportRepor
             dedup.append(p)
         last = key
     return Track(dedup, rep.label()), rep
+
+
+def merge_points(points) -> list[Point]:
+    """Time-sort and drop exact duplicates (same time and place), e.g. after combining sources."""
+    pts = sorted(points, key=lambda p: p.t)
+    out, last = [], None
+    for p in pts:
+        key = (round(p.t, 3), round(p.lat, 7), round(p.lon, 7))
+        if key != last:
+            out.append(p)
+        last = key
+    return out
