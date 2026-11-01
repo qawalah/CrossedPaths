@@ -10,7 +10,7 @@ primary_region = 'fra'
   dockerfile = 'Dockerfile'
 
 [env]
-  ADMIN_HANDLES = ''
+  ADMIN_HANDLES = 'hamza'
   ALLOW_REGISTRATION = 'true'
   BLUR_M = '100'
   DATA_DIR = '/data'
