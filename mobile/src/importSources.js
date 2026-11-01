@@ -83,3 +83,17 @@ export const SOURCES = [
     ],
   },
 ];
+
+// The illustrated step-by-step guide for each source (docs/wiki in the repo).
+export const GUIDE_BASE = "https://github.com/qawalah/CrossedPaths/blob/main/docs/wiki/";
+export const GUIDE_PAGE = {
+  google: "Google-Maps",
+  strava: "Strava",
+  apple: "Apple-Health",
+  samsung: "Samsung-Health",
+  garmin: "Garmin",
+  fitbit: "Fitbit-Google-Fit",
+  swarm: "Swarm",
+  other: "Other-Apps",
+};
+export const guideUrl = (id) => GUIDE_BASE + (GUIDE_PAGE[id] || "Home") + ".md";

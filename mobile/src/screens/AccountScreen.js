@@ -13,6 +13,7 @@ import { useTheme } from "../themeContext";
 import { ACCENTS, colors, keepLabel, THEME_MODES } from "../theme";
 import Slider from "@react-native-community/slider";
 import { setScrubberPrefs, useScrubberPrefs, ZOOM_GESTURES } from "../scrubberPrefs";
+import { showWelcomeAgain } from "../welcome";
 
 export default function AccountScreen({ navigation }) {
   const insets = useSafeAreaInsets();
@@ -78,7 +79,8 @@ export default function AccountScreen({ navigation }) {
             Can't reach the server right now. Everything will refresh once it's reachable.
           </Text>
         ) : null}
-        <Button title="Sign out" variant="bad" onPress={confirmLogout} style={{ marginTop: 14 }} />
+        <Button title="Show the tutorial again" icon="help" variant="ghost" onPress={showWelcomeAgain} style={{ marginTop: 14 }} />
+        <Button title="Sign out" variant="bad" onPress={confirmLogout} style={{ marginTop: 10 }} />
       </Card>
 
       <Card>
