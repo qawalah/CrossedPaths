@@ -14,6 +14,8 @@ import MyTimelineScreen from "../screens/MyTimelineScreen";
 import BuildTimelineModal from "../screens/BuildTimelineModal";
 import AddNearbyScreen, { codeFrom } from "../screens/AddNearbyScreen";
 import MainTabs from "./MainTabs";
+import WelcomeScreen from "../screens/WelcomeScreen";
+import { markWelcomeSeen, useWelcomeSeen } from "../welcome";
 import { colors } from "../theme";
 import { useTheme } from "../themeContext";
 
@@ -34,6 +36,7 @@ export default function RootNavigator() {
   const data = { ...appData, cfg };
   // A theme change remounts the navigator (every screen reads the new colours) but keeps where you are.
   const { themeKey } = useTheme();
+  const welcomeSeen = useWelcomeSeen(); // the first-start tutorial, shown once (Account can show it again)
   const navState = useRef(undefined);
   const navTheme = {
     dark: colors.isDark,
@@ -65,13 +68,14 @@ export default function RootNavigator() {
     return () => clearTimeout(t);
   }, [user, pendingCode]);
 
-  if (!ready) {
+  if (!ready || welcomeSeen === null) {
     return (
       <View style={{ flex: 1, backgroundColor: colors.bg, alignItems: "center", justifyContent: "center" }}>
         <ActivityIndicator color={colors.accent} />
       </View>
     );
   }
+  if (!welcomeSeen) return <WelcomeScreen onDone={markWelcomeSeen} />;
 
   return (
     <NavigationContainer

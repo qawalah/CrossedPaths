@@ -5,7 +5,6 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Button from "../components/Button";
 import CrossingHero from "../components/CrossingHero";
 import Icon from "../components/Icon";
-import JourneyFlow from "../components/JourneyFlow";
 import Pill from "../components/Pill";
 import { useToast } from "../components/Toast";
 import { confirm } from "../components/confirm";
@@ -105,8 +104,6 @@ export default function ChecksScreen({ navigation, data }) {
       keyExtractor={(c) => c.id}
       ListHeaderComponent={
         <View>
-          {/* the big crossing says what to do, so the strip shows the steps without its hint */}
-          <JourneyFlow data={data} navigation={navigation} hideHint />
           <CrossingHero
             width={Math.min(300, width * 0.82)}
             playKey={playKey}

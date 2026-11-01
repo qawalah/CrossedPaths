@@ -7,6 +7,18 @@ migration), MINOR for new features, PATCH for bugfixes. Pre-1.0, expect MINOR bu
 To check what's running on your server, visit `/api/config` — it reports the running
 `version`. That's the number to compare against this file when deciding whether to update.
 
+## 0.17.0 (Android 1.12.0)
+- **Android: a tutorial on first start.** Five full-screen cards you swipe through: the animated
+  crossing, then Import, Connect, Check together and See where you crossed, each with its own
+  small animation. Shown once; *Account → Show the tutorial again* brings it back. The four-step
+  strip at the top of the screens is gone, since the tutorial covers it.
+- **Adding a timeline is one thing at a time.** *Import a timeline file* and *Scan my photos*
+  each open only their own screen (no second Files / Photos switch). Adding photos, another file
+  or your other timelines appears only after something is added, under *Add more to this
+  timeline*. Same on the web.
+- **"How to export your timeline"** names the list of apps clearly as guides. Each guide links to
+  the full illustrated guide in the wiki.
+
 ## 0.16.0
 - **Street maps: journeys follow the roads.** Sparse histories (Google Timeline above all) keep
   a trip as a handful of points, so the map drew straight lines through buildings and water.
