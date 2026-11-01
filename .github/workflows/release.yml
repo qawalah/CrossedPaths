@@ -1,0 +1,34 @@
+# DevStore: every push to main builds both parts. A bumped versionCode releases the
+# Android APK (tag android-v...), a bumped version in server/devstore.json publishes the
+# server image to ghcr.io/qawalah/crosspaths (tag docker-v...) after it starts healthy.
+name: Release
+
+on:
+  push:
+    branches: [main]
+  # Test builds: every pull request from a branch in this repo gets a
+  # pre-release you can install before merging; closing the PR deletes them.
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  android:
+    uses: qawalah/devstore/.github/workflows/android-release.yml@main
+    secrets: inherit
+    with:
+      working-directory: mobile/android   # Gradle runs `npm ci` in mobile/ itself
+
+  docker:
+    # Images are only published from main, never from pull requests.
+    if: github.event_name != 'pull_request'
+    uses: qawalah/devstore/.github/workflows/docker-release.yml@main
+    permissions:
+      contents: write           # tag and release docker-v...
+      packages: write           # push to ghcr.io and delete old versions
+    secrets: inherit
+    with:
+      working-directory: server # devstore.json and Dockerfile

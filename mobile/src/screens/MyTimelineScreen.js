@@ -1,40 +1,25 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ActivityIndicator, FlatList, Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { ActivityIndicator, FlatList, Pressable, Text, TextInput, View } from "react-native";
 import { MapView, Camera, ShapeSource, LineLayer, CircleLayer } from "@maplibre/maplibre-react-native";
 import Slider from "@react-native-community/slider";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useToast } from "../components/Toast";
+import DateScrubber from "../components/DateScrubber";
+import ScrubberTutorial from "../components/ScrubberTutorial";
+import { setScrubberPrefs, useScrubberPrefs } from "../scrubberPrefs";
 import { useAuth } from "../auth";
 import { Api } from "../api";
 import { boundsOf, positionAt, segmentsFeature, segmentsUntil } from "../geo";
 import { colors, fmtDay, fmtTime, MAP_STYLE_FALLBACK, tzOffsetMin } from "../theme";
+import Icon from "../components/Icon";
 
 const EMPTY_FC = { type: "FeatureCollection", features: [] };
 
-const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const pad2 = (n) => String(n).padStart(2, "0");
 
-function Chip({ label, selected, onPress }) {
-  return (
-    <Pressable
-      onPress={onPress}
-      style={{
-        paddingHorizontal: 13,
-        paddingVertical: 7,
-        borderRadius: 99,
-        marginRight: 8,
-        backgroundColor: selected ? colors.accent : colors.panel2,
-        borderWidth: 1,
-        borderColor: selected ? colors.accent : colors.line,
-      }}
-    >
-      <Text style={{ color: selected ? colors.onAccent : colors.text, fontWeight: "700", fontSize: 13 }}>{label}</Text>
-    </Pressable>
-  );
-}
-
 export default function MyTimelineScreen({ route, navigation }) {
-  const { uploadId, uploadLabel } = route.params;
+  // inTab: shown as the My Map tab (no Back button, the tab bar is there instead)
+  const { uploadId, uploadLabel, inTab, noTopInset } = route.params;
   const insets = useSafeAreaInsets();
   const toast = useToast();
   const { cfg } = useAuth();
@@ -42,8 +27,6 @@ export default function MyTimelineScreen({ route, navigation }) {
 
   const [summary, setSummary] = useState(null);
   const [loadErr, setLoadErr] = useState(null);
-  const [expandedYear, setExpandedYear] = useState(null);
-  const [expandedMonth, setExpandedMonth] = useState(null);
   const [loadedDate, setLoadedDate] = useState(null); // { year, month, day }
   const [dayLabel, setDayLabel] = useState("");
   const [daySegs, setDaySegs] = useState([]);
@@ -65,12 +48,12 @@ export default function MyTimelineScreen({ route, navigation }) {
   const dayPts = useMemo(() => daySegs.flat().sort((a, b) => a[0] - b[0]), [daySegs]);
   const [mapReady, setMapReady] = useState(false);
   const dayReq = useRef(0); // only the latest day request may update the screen
-  const [scrollLock, setScrollLock] = useState(false); // while a finger is on the map
+  const [scrollLock, setScrollLock] = useState(false); // while a finger is on the map or the date bar
+  const [scrubPrefs, scrubPrefsReady] = useScrubberPrefs();
+  const [tutorial, setTutorial] = useState(false);
 
   const loadDay = useCallback(
     async (y, m, d) => {
-      setExpandedYear(y);
-      setExpandedMonth(m);
       setLoadedDate({ year: y, month: m, day: d });
       setDayLabel(fmtDay(new Date(y, m - 1, d)));
       setDayLoading(true);
@@ -106,6 +89,16 @@ export default function MyTimelineScreen({ route, navigation }) {
       }
     })();
   }, [uploadId]);
+
+  // first visit: show how the date bar works, once the timeline is on screen
+  const hasDays = !!(summary && summary.years.length);
+  useEffect(() => {
+    if (scrubPrefsReady && hasDays && !scrubPrefs.tutorialSeen) setTutorial(true);
+  }, [scrubPrefsReady, hasDays]);
+  function closeTutorial() {
+    setTutorial(false);
+    if (!scrubPrefs.tutorialSeen) setScrubberPrefs({ tutorialSeen: true });
+  }
 
   useEffect(() => {
     if (pendingScrubTime == null || !dayPts.length) return;
@@ -203,9 +196,12 @@ export default function MyTimelineScreen({ route, navigation }) {
     return (
       <View style={{ flex: 1, backgroundColor: colors.bg, alignItems: "center", justifyContent: "center", padding: 24 }}>
         <Text style={{ color: colors.muted, textAlign: "center" }}>{loadErr}</Text>
-        <Pressable onPress={() => navigation.goBack()} style={{ marginTop: 18, padding: 10 }}>
-          <Text style={{ color: colors.accent, fontWeight: "700" }}>← Back</Text>
-        </Pressable>
+        {inTab ? null : <Pressable onPress={() => navigation.goBack()} style={{ marginTop: 18, padding: 10 }}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+            <Icon name="back" size={18} color={colors.accent} />
+            <Text style={{ color: colors.accent, fontWeight: "700" }}>Back</Text>
+          </View>
+        </Pressable>}
       </View>
     );
   }
@@ -219,25 +215,27 @@ export default function MyTimelineScreen({ route, navigation }) {
   if (!summary.years.length) {
     return (
       <View style={{ flex: 1, backgroundColor: colors.bg, padding: 24, paddingTop: insets.top + 24 }}>
-        <Pressable onPress={() => navigation.goBack()} style={{ marginBottom: 16 }}>
-          <Text style={{ color: colors.text, fontSize: 18 }}>← Back</Text>
-        </Pressable>
+        {inTab ? null : <Pressable onPress={() => navigation.goBack()} style={{ marginBottom: 16 }}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+            <Icon name="back" size={20} />
+            <Text style={{ color: colors.text, fontSize: 16, fontWeight: "600" }}>Back</Text>
+          </View>
+        </Pressable>}
         <Text style={{ color: colors.muted, textAlign: "center", marginTop: 20 }}>This timeline has no points to show.</Text>
       </View>
     );
   }
 
-  const yearObj = summary.years.find((y) => y.year === expandedYear);
-  const monthObj = yearObj && yearObj.months.find((m) => m.month === expandedMonth);
-
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
-      <View style={{ flexDirection: "row", alignItems: "center", padding: 12, paddingTop: insets.top + 12, gap: 10 }}>
-        <Pressable onPress={() => navigation.goBack()} style={{ padding: 6 }}>
-          <Text style={{ color: colors.text, fontSize: 18 }}>←</Text>
-        </Pressable>
+      <View style={{ flexDirection: "row", alignItems: "center", padding: 12, paddingTop: (noTopInset ? 0 : insets.top) + 12, gap: 10 }}>
+        {inTab ? null : (
+          <Pressable onPress={() => navigation.goBack()} style={{ padding: 6 }}>
+            <Icon name="back" size={22} />
+          </Pressable>
+        )}
         <View style={{ flex: 1 }}>
-          <Text style={{ color: colors.text, fontWeight: "800", fontSize: 16 }}>My timeline</Text>
+          <Text style={{ color: colors.text, fontWeight: "800", fontSize: inTab ? 24 : 16 }}>{inTab ? "My map" : "My timeline"}</Text>
           {uploadLabel ? <Text style={{ color: colors.muted, fontSize: 12 }}>{uploadLabel}</Text> : null}
         </View>
       </View>
@@ -249,43 +247,6 @@ export default function MyTimelineScreen({ route, navigation }) {
         renderItem={null}
         ListHeaderComponent={
           <View>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ paddingLeft: 12, marginBottom: 8 }}>
-              {summary.years.map((y) => (
-                <Chip
-                  key={y.year}
-                  label={String(y.year)}
-                  selected={y.year === expandedYear}
-                  onPress={() => {
-                    setExpandedYear(y.year);
-                    setExpandedMonth(y.months[y.months.length - 1].month);
-                  }}
-                />
-              ))}
-            </ScrollView>
-            {yearObj ? (
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ paddingLeft: 12, marginBottom: 8 }}>
-                {yearObj.months.map((m) => (
-                  <Chip
-                    key={m.month}
-                    label={MONTH_NAMES[m.month - 1]}
-                    selected={m.month === expandedMonth}
-                    onPress={() => setExpandedMonth(m.month)}
-                  />
-                ))}
-              </ScrollView>
-            ) : null}
-            {monthObj ? (
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ paddingLeft: 12, marginBottom: 12 }}>
-                {monthObj.days.map((d) => {
-                  const sel =
-                    loadedDate && loadedDate.year === expandedYear && loadedDate.month === expandedMonth && loadedDate.day === d.day;
-                  return (
-                    <Chip key={d.day} label={String(d.day)} selected={sel} onPress={() => loadDay(expandedYear, expandedMonth, d.day)} />
-                  );
-                })}
-              </ScrollView>
-            ) : null}
-
             <View style={{ marginHorizontal: 12, borderRadius: 16, overflow: "hidden", borderWidth: 1, borderColor: colors.line }}>
               <View
                 style={{ height: 280 }}
@@ -326,11 +287,12 @@ export default function MyTimelineScreen({ route, navigation }) {
               <View style={{ backgroundColor: colors.panel, padding: 12 }}>
                 <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 2 }}>
                   <Text style={{ color: colors.muted, fontSize: 12 }}>
-                    {dayPts.length ? `${dayLabel} · ${fmtTime(new Date((mePos ? mePos.t : tMin) * 1000))}` : dayLabel ? `${dayLabel} · no points recorded` : "Pick a day above"}
+                    {dayPts.length ? `${dayLabel} · ${fmtTime(new Date((mePos ? mePos.t : tMin) * 1000))}` : dayLabel ? `${dayLabel} · no points recorded` : "Pick a day on the bar below"}
                   </Text>
                   {dayPts.length ? (
-                    <Pressable onPress={togglePlay}>
-                      <Text style={{ color: colors.accent, fontWeight: "700", fontSize: 12 }}>{playing ? "❚❚ Pause" : "▶ Play"}</Text>
+                    <Pressable onPress={togglePlay} hitSlop={10} style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+                      <Icon name={playing ? "pause" : "play"} size={14} color={colors.accent} strokeWidth={2.2} />
+                      <Text style={{ color: colors.accent, fontWeight: "700", fontSize: 12 }}>{playing ? "Pause" : "Play"}</Text>
                     </Pressable>
                   ) : null}
                 </View>
@@ -350,6 +312,18 @@ export default function MyTimelineScreen({ route, navigation }) {
                   />
                 ) : null}
               </View>
+            </View>
+
+            <View style={{ marginTop: 12 }}>
+              <DateScrubber
+                summary={summary}
+                selected={loadedDate}
+                onPick={loadDay}
+                onActiveChange={setScrollLock}
+                gesture={scrubPrefs.gesture}
+                holdMs={scrubPrefs.holdMs}
+                onHelp={() => setTutorial(true)}
+              />
             </View>
 
             <View style={{ margin: 12, backgroundColor: colors.panel, borderWidth: 1, borderColor: colors.line, borderRadius: 16, padding: 14 }}>
@@ -375,10 +349,11 @@ export default function MyTimelineScreen({ route, navigation }) {
               <Text style={{ color: colors.muted, fontSize: 11, marginTop: 4 }}>Place search uses OpenStreetMap and sends your search text there.</Text>
               <Pressable
                 onPress={() => setPickMode((v) => !v)}
-                style={{ marginTop: 10, padding: 10, borderRadius: 10, backgroundColor: pickMode ? colors.accent : colors.panel2, borderWidth: 1, borderColor: pickMode ? colors.accent : colors.line, alignItems: "center" }}
+                style={{ marginTop: 10, padding: 10, borderRadius: 10, backgroundColor: pickMode ? colors.accent : colors.panel2, borderWidth: 1, borderColor: pickMode ? colors.accent : colors.line, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6 }}
               >
+                <Icon name="pin" size={17} color={pickMode ? colors.onAccent : colors.text} />
                 <Text style={{ color: pickMode ? colors.onAccent : colors.text, fontWeight: "700", fontSize: 13 }}>
-                  {pickMode ? "Tap a point on the map above…" : "📍 Or tap a point on the map above"}
+                  {pickMode ? "Tap a point on the map above…" : "Or tap a point on the map above"}
                 </Text>
               </Pressable>
               <Text style={{ color: colors.text, marginTop: 12, fontSize: 13 }}>
@@ -430,6 +405,7 @@ export default function MyTimelineScreen({ route, navigation }) {
           </View>
         }
       />
+      <ScrubberTutorial visible={tutorial} gesture={scrubPrefs.gesture} onClose={closeTutorial} />
     </View>
   );
 }

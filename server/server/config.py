@@ -21,7 +21,7 @@ def _read_version():
 class Config:
     VERSION = _read_version()
     DATA_DIR = os.environ.get("DATA_DIR", os.path.abspath("./data"))
-    MAX_UPLOAD_MB = int(os.environ.get("MAX_UPLOAD_MB", "80"))          # JSON is parsed in RAM: keep modest on a 2 GB NAS
+    MAX_UPLOAD_MB = int(os.environ.get("MAX_UPLOAD_MB", "80"))          # JSON is parsed in RAM: keep modest on a 2 GB host
     UPLOAD_TTL_HOURS = float(os.environ.get("UPLOAD_TTL_HOURS", "24"))   # raw timeline lifetime (default; users can choose)
     UPLOAD_KEEP_MAX_DAYS = float(os.environ.get("UPLOAD_KEEP_MAX_DAYS", "0"))  # longest a user may keep uploads; 0 = no limit
     RESULTS_TTL_DAYS = float(os.environ.get("RESULTS_TTL_DAYS", "14"))   # results + own map track lifetime

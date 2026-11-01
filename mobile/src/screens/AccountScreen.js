@@ -11,11 +11,16 @@ import { useServerState } from "../useServer";
 import { useAuth } from "../auth";
 import { useTheme } from "../themeContext";
 import { ACCENTS, colors, keepLabel, THEME_MODES } from "../theme";
+import Slider from "@react-native-community/slider";
+import { setScrubberPrefs, useScrubberPrefs, ZOOM_GESTURES } from "../scrubberPrefs";
 
 export default function AccountScreen({ navigation }) {
   const insets = useSafeAreaInsets();
   const { user, setUser, cfg, logout } = useAuth();
   const { pref, setTheme } = useTheme();
+  const [scrub] = useScrubberPrefs();
+  const [holdMsDrag, setHoldMs] = useState(null);
+  const holdMs = Math.round(holdMsDrag ?? scrub.holdMs);
   const server = useServerState();
   const toast = useToast();
   const [saving, setSaving] = useState(false);
@@ -109,6 +114,58 @@ export default function AccountScreen({ navigation }) {
       </Card>
 
       <Card>
+        <Text style={{ color: colors.text, fontWeight: "700", fontSize: 15 }}>Timeline date bar</Text>
+        <Text style={{ color: colors.muted, fontSize: 12.5, marginTop: 4, lineHeight: 18 }}>
+          How to zoom from years into months and days while dragging along the date bar in My timeline.
+        </Text>
+        <View style={{ flexDirection: "row", backgroundColor: colors.panel2, borderRadius: 12, padding: 3, marginTop: 12 }}>
+          {ZOOM_GESTURES.map(([k, label]) => (
+            <Pressable
+              key={k}
+              onPress={() => setScrubberPrefs({ gesture: k })}
+              style={{ flex: 1, paddingVertical: 9, borderRadius: 10, alignItems: "center", backgroundColor: scrub.gesture === k ? colors.panel : "transparent" }}
+            >
+              <Text style={{ color: scrub.gesture === k ? colors.text : colors.muted, fontWeight: "700", fontSize: 13 }}>{label}</Text>
+            </Pressable>
+          ))}
+        </View>
+        <Text style={{ color: colors.muted, fontSize: 12.5, marginTop: 8, lineHeight: 18 }}>
+          {scrub.gesture === "pull"
+            ? "Slide your finger up to zoom in, down to zoom out."
+            : scrub.gesture === "hold"
+              ? "Keep your finger still for a moment to zoom in one step."
+              : "Slide up or hold still to zoom in; slide down to zoom out."}
+        </Text>
+        {scrub.gesture !== "pull" ? (
+          <View style={{ marginTop: 12 }}>
+            <Text style={{ color: colors.text, fontSize: 13 }}>
+              Hold for <Text style={{ fontWeight: "800" }}>{holdMs} ms</Text> before zooming
+            </Text>
+            <Slider
+              minimumValue={250}
+              maximumValue={1200}
+              step={50}
+              value={scrub.holdMs}
+              onValueChange={setHoldMs}
+              onSlidingComplete={(v) => setScrubberPrefs({ holdMs: v })}
+              minimumTrackTintColor={colors.accent}
+              maximumTrackTintColor={colors.line}
+              thumbTintColor={colors.accent}
+            />
+          </View>
+        ) : null}
+        <Button
+          title="Show the tutorial again"
+          variant="ghost"
+          onPress={() => {
+            setScrubberPrefs({ tutorialSeen: false });
+            toast("The tutorial will show next time you open My timeline");
+          }}
+          style={{ marginTop: 12 }}
+        />
+      </Card>
+
+      <Card>
         <Text style={{ color: colors.text, fontWeight: "700", fontSize: 15 }}>Keep my uploaded timelines</Text>
         <View style={{ marginTop: 12, opacity: saving ? 0.6 : 1 }}>
           <ChipScroller selected={keepOptions.indexOf(keep)}>
@@ -136,7 +193,7 @@ export default function AccountScreen({ navigation }) {
         <Text style={{ color: colors.muted, fontSize: 12.5, marginTop: 10, lineHeight: 18 }}>
           {keep
             ? `Each timeline you upload is deleted ${keepLabel(keep)} after you upload it. Keep it longer to look at My timeline or run new checks without uploading again.`
-            : "Your timelines stay on the server, encrypted, until you delete them on the Timeline tab."}
+            : "Your timelines stay on the server, encrypted, until you delete them on the Import tab."}
         </Text>
       </Card>
 
@@ -144,8 +201,8 @@ export default function AccountScreen({ navigation }) {
         <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
           <Text style={{ color: colors.muted, fontSize: 12.5 }}>Server</Text>
           {server.alt ? (
-            <Text style={{ color: server.via === "tailscale" ? colors.accent2 : colors.good, fontSize: 12.5, fontWeight: "700" }}>
-              {server.via === "tailscale" ? "via Tailscale" : "on home network"}
+            <Text style={{ color: server.via === "backup" ? colors.accent2 : colors.good, fontSize: 12.5, fontWeight: "700" }}>
+              {server.via === "backup" ? "via backup address" : "main address"}
               {server.auto ? " · auto" : ""}
             </Text>
           ) : null}
@@ -155,14 +212,14 @@ export default function AccountScreen({ navigation }) {
         </Text>
         {server.alt ? (
           <Text style={{ color: colors.muted, fontSize: 12.5, marginTop: 4 }} numberOfLines={1}>
-            {server.via === "tailscale" ? `Home: ${server.home}` : `Away: ${server.alt}`}
+            {server.via === "backup" ? `Main: ${server.home}` : `Backup: ${server.alt}`}
           </Text>
         ) : (
           <Text style={{ color: colors.muted, fontSize: 12.5, marginTop: 4, lineHeight: 18 }}>
-            Add your NAS's Tailscale address to keep using the app away from home.
+            Add a backup address to keep using the app if the main one can't be reached.
           </Text>
         )}
-        <Button title={server.alt ? "Server addresses" : "Server addresses & Tailscale"} variant="ghost" onPress={() => navigation.navigate("Settings")} style={{ marginTop: 12 }} />
+        <Button title={server.alt ? "Server addresses" : "Server addresses"} variant="ghost" onPress={() => navigation.navigate("Settings")} style={{ marginTop: 12 }} />
       </Card>
 
       <Card>

@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Button from "../components/Button";
 import { getServerState, probeServer, setServerAddresses } from "../api";
 import { colors } from "../theme";
+import Icon from "../components/Icon";
 import { useAuth } from "../auth";
 import { useToast } from "../components/Toast";
 import { useServerState } from "../useServer";
@@ -31,15 +32,15 @@ export default function SettingsScreen({ navigation }) {
 
   async function save() {
     const h = home.trim(), a = alt.trim();
-    if (!URL_RE.test(h)) return toast("Enter the home address in full, starting with http:// or https://", true);
-    if (a && !URL_RE.test(a)) return toast("Enter the Tailscale address in full, starting with http:// or https://", true);
+    if (!URL_RE.test(h)) return toast("Enter the server address in full, starting with http:// or https://", true);
+    if (a && !URL_RE.test(a)) return toast("Enter the backup address in full, starting with http:// or https://", true);
     setBusy(true);
     try {
       if (a) {
         const [ph, pa] = await Promise.all([probeServer(h, 4000), probeServer(a, 4000)]);
         if (ph.cfg && pa.cfg && ph.cfg.instance && pa.cfg.instance && ph.cfg.instance !== pa.cfg.instance) {
           setTest({ home: ph, alt: pa, mismatch: true });
-          return toast("Those two addresses are different servers. Check the Tailscale address.", true);
+          return toast("Those two addresses are different servers. Check the backup address.", true);
         }
       }
       await setServerAddresses({ home: h, alt: a, auto });
@@ -48,7 +49,7 @@ export default function SettingsScreen({ navigation }) {
         toast("Server addresses saved");
       } catch (e) {
         // Saved anyway (you may be setting it up away from home), but say so.
-        toast("Saved, but the server can't be reached right now. Check the addresses, and that Tailscale is on if you're away.", true);
+        toast("Saved, but the server can't be reached right now. Check the addresses and your connection.", true);
       }
       navigation.goBack();
     } finally {
@@ -75,38 +76,37 @@ export default function SettingsScreen({ navigation }) {
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 18 }}>
           <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: colors.good }} />
           <Text style={{ color: colors.muted, fontSize: 13, flex: 1 }} numberOfLines={1}>
-            Using {now.via === "tailscale" ? "Tailscale" : "the home address"} · {now.active}
+            Using {now.via === "backup" ? "the backup address" : "the main address"} · {now.active}
           </Text>
         </View>
       ) : null}
 
-      <Text style={{ color: colors.text, fontWeight: "700", fontSize: 15 }}>Home address</Text>
+      <Text style={{ color: colors.text, fontWeight: "700", fontSize: 15 }}>Server address</Text>
       <Text style={{ color: colors.muted, fontSize: 12.5, marginTop: 4, marginBottom: 8, lineHeight: 18 }}>
-        Your NAS on your home Wi-Fi.
+        Your CrossPaths server's address, starting with https://.
       </Text>
       <TextInput
         value={home}
         onChangeText={setHome}
         autoCapitalize="none"
         autoCorrect={false}
-        placeholder="http://192.168.0.24:8787"
+        placeholder="https://crosspaths.example.com"
         keyboardType="url"
         placeholderTextColor={colors.muted}
         style={input}
       />
       <TestLine r={test && test.home} />
 
-      <Text style={{ color: colors.text, fontWeight: "700", fontSize: 15, marginTop: 22 }}>Tailscale address (optional)</Text>
+      <Text style={{ color: colors.text, fontWeight: "700", fontSize: 15, marginTop: 22 }}>Backup address (optional)</Text>
       <Text style={{ color: colors.muted, fontSize: 12.5, marginTop: 4, marginBottom: 8, lineHeight: 18 }}>
-        For when you're away from home. In the Tailscale app, open Machines, tap your NAS and copy its 100.x.x.x address (or its
-        MagicDNS name), then add :8787.
+        Another address of the same server, used when the main one can't be reached.
       </Text>
       <TextInput
         value={alt}
         onChangeText={setAlt}
         autoCapitalize="none"
         autoCorrect={false}
-        placeholder="http://100.101.102.103:8787"
+        placeholder="https://backup.crosspaths.example.com"
         keyboardType="url"
         placeholderTextColor={colors.muted}
         style={input}
@@ -133,14 +133,14 @@ export default function SettingsScreen({ navigation }) {
         <View style={{ flex: 1 }}>
           <Text style={{ color: colors.text, fontWeight: "700" }}>Switch automatically</Text>
           <Text style={{ color: colors.muted, fontSize: 12.5, marginTop: 3, lineHeight: 18 }}>
-            Use the home address when it answers, Tailscale when it doesn't. Checked when the app opens, when you come back to it, and
+            Use the main address when it answers, the backup when it doesn't. Checked when the app opens, when you come back to it, and
             whenever the server can't be reached.
           </Text>
         </View>
         <Switch value={auto && !!alt.trim()} disabled={!alt.trim()} onValueChange={setAuto} trackColor={{ true: colors.accent, false: colors.line }} />
       </View>
       {alt.trim() && !auto ? (
-        <Text style={{ color: colors.muted, fontSize: 12.5, marginTop: 8 }}>Off: the app always uses the home address.</Text>
+        <Text style={{ color: colors.muted, fontSize: 12.5, marginTop: 8 }}>Off: the app always uses the main address.</Text>
       ) : null}
 
       <View style={{ flexDirection: "row", gap: 10, marginTop: 24 }}>
@@ -156,9 +156,15 @@ function TestLine({ r }) {
   if (r.pending) return <Text style={{ color: colors.muted, fontSize: 12.5, marginTop: 6 }}>Checking…</Text>;
   if (r.cfg)
     return (
-      <Text style={{ color: colors.good, fontSize: 12.5, marginTop: 6 }}>
-        ✓ Reachable · CrossPaths {r.cfg.version} · {r.ms} ms
-      </Text>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 6 }}>
+        <Icon name="ok" size={15} color={colors.good} />
+        <Text style={{ color: colors.good, fontSize: 12.5, flexShrink: 1 }}>Reachable · CrossPaths {r.cfg.version} · {r.ms} ms</Text>
+      </View>
     );
-  return <Text style={{ color: colors.bad, fontSize: 12.5, marginTop: 6 }}>✗ Not reachable from here ({r.error})</Text>;
+  return (
+    <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 6 }}>
+      <Icon name="error" size={15} color={colors.bad} />
+      <Text style={{ color: colors.bad, fontSize: 12.5, flexShrink: 1 }}>Not reachable from here ({r.error})</Text>
+    </View>
+  );
 }

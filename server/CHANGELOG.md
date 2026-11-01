@@ -7,13 +7,93 @@ migration), MINOR for new features, PATCH for bugfixes. Pre-1.0, expect MINOR bu
 To check what's running on your server, visit `/api/config` — it reports the running
 `version`. That's the number to compare against this file when deciding whether to update.
 
+## 0.15.0 (Android 1.11.0)
+- **Five tabs:** Import · My Map · Checks · People · Account, in the web client and the Android
+  app. Checks is a raised round button in the middle. *Uploads* is now called *Import*.
+- **My Map** is its own tab: your timeline on the map by year, month and day (pick which
+  timeline when you have several). On Android it used to open only from a timeline's card.
+- **Account tab** on the web: theme, accent colour, how long uploads are kept, and Sign out
+  (these used to be in the header).
+- **New Checks page.** It opens with a big animated version of the app icon: the blue and green
+  routes draw in and cross, then the pin drops onto the crossing. Below it is what to do next (run
+  a check, review a request, import, connect), and tapping the crossing does it. Previous checks
+  are listed underneath and open up for details, results and delete.
+
+## 0.14.0 (Android 1.9.0)
+- **A guided path in the web client and the Android app.** A four-step strip under the header (timeline → connect →
+  check → crossings) shows where you are and what to do next, with a button for that step. It
+  fills in as steps are done and disappears once you have a finished check.
+- **"Run a check" invitation.** When you have a timeline and a connection you haven't checked
+  with yet (or someone is waiting for your agreement), the Checks tab icon pulses and the Checks
+  page opens with a card to start the check in one tap.
+- **Motion.** Tabs switch with a sliding indicator and the page slides in from the side of the
+  tab you picked; the results page rises in and out, and its Summary / Map switch slides too.
+  All of it respects the system "reduce motion" setting.
+
+## 0.13.0
+- **Combine sources into one timeline.** A timeline can now be built from several sources at
+  once (app files, a photo scan, and your other timelines) and you can add more sources later.
+  New: `POST /api/uploads/<id>/sources` (same fields as `POST /api/uploads`). Both take `file`
+  (any number) and `merge_ids` (your other timelines); `remove_merged=1` deletes those once they
+  are folded in. Duplicate points are dropped; trust and home/work areas are re-checked, keeping
+  areas you edited. Adding sources restarts the timeline's retention clock.
+- Each timeline lists its sources (`sources`: label, files, points, added_at). The `format`
+  field now reads like "Google Maps, GPX, Photos". Timelines from before this version show one source.
+- **Export:** `GET /api/uploads/<id>/export?format=gpx|geojson|csv` downloads your own timeline,
+  all sources combined. Only ever your own points.
+- Web: the Uploads tab builds a timeline from staged sources (Files / Photos / My timelines),
+  then offers to export a copy. Each timeline has *＋ Add source* and *Export a copy*.
+- Database: new nullable `uploads.sources` column, added automatically at start-up.
+
+## 0.12.2 (Android 1.7.1)
+- **One icon style everywhere.** Emoji and text symbols used as icons (tab bar, Back, Play/Pause,
+  Filter, Sort, Fit, Delete, warnings, Meet in person, Choose file, Scan photos…) are replaced by
+  one set of line icons that matches the app icon, in both the Android app and the web client.
+  The three crossing types are redrawn in the same language: a pin (same place), two routes
+  crossing (crossed paths) and two routes side by side (travelled together). The set lives in
+  `mobile/src/icons.js`, with an identical copy in the web client.
+- Web: the settings button's gear icon is no longer squeezed to half width.
+
+## 0.12.1
+- **Deploy: updates install themselves.** `docker-compose.yml` now runs the published image
+  `ghcr.io/qawalah/crosspaths:latest` with the Watchtower label, instead of building on the
+  host and mounting the code. Only `./data` is mounted. To switch, replace `docker-compose.yml`
+  on the host (keep `.env` and `data/`) and start the project again. The image is
+  `linux/amd64` only; ARM hosts build it themselves. See DEPLOY.md, section 3.
+
+## 0.12.0
+- **Import from more apps.** Uploads now accept GPX, TCX, FIT, KML/KMZ, GeoJSON and CSV files
+  as well as Google Maps Timeline JSON, so routes from Strava, Apple Health, Samsung Health,
+  Garmin, Fitbit, Google Fit, GPS logger apps and Swarm check-ins can be compared. Each file is
+  recognised by its content; .zip and .gz archives are opened (whole Strava, Apple Health, Garmin,
+  Swarm and Samsung Health exports work as they are, subject to the upload size limit).
+- Several files can be uploaded at once and become one timeline. The response says how many
+  files had no usable locations (`import.skipped`).
+- Swarm check-ins count as a 30-minute stay (shorter if the next check-in comes sooner).
+- Dense 1-per-second workout tracks are thinned to one fix per 5 s on import. The "regular
+  intervals" fake-timeline check no longer applies to these recordings, since they log on a fixed
+  clock by design.
+- Zips are read one file at a time and capped at 2× / 8× `MAX_UPLOAD_MB` once unzipped (per
+  file / in total). Apple Health's `export.xml` is skipped. XML with entity declarations is refused.
+- **Web: two ways to add a timeline.** The Uploads tab now offers *Import a timeline*, with
+  step-by-step export guides for each app, or *Scan my photos*, which reads the GPS position and
+  time from photos in the browser and uploads only those points.
+
+## 0.11.2
+- **New icon.** A map pin standing where a green and a blue route cross, inside a soft blue
+  circle (the match radius), on a light tile. Replaces the X everywhere: web client (tab icon,
+  install icons, header logo), Android app (launcher, adaptive, round and notification icons),
+  the Play Store listing and `store/icon.png`. Every size is generated by
+  `node store-listing/icon-src/make-icons.js --design apple`; `--preview sheet.png` compares the
+  designs in `store-listing/icon-src/designs.js`.
+
 ## 0.11.1
-- **App: home address + Tailscale, switching automatically.** Account → Server addresses now
-  takes your NAS's home address and (optionally) its Tailscale address. With "Switch
-  automatically" on, the app uses home when it answers and Tailscale when it doesn't - checked
+- **App: main + backup address, switching automatically.** Account → Server addresses now
+  takes the server's address and (optionally) a backup address. With "Switch
+  automatically" on, the app uses the main address when it answers and the backup when it doesn't - checked
   when the app opens, when you return to it, and whenever the server can't be reached (a request
   that fails is retried on the other address, unless it may already have reached the server).
-  **Test** checks both addresses. Setup steps: DEPLOY-SYNOLOGY.md, section 2.
+  **Test** checks both addresses. Setup steps: DEPLOY.md, section 2.
 - `/api/config` now includes `instance`, a value derived from the server's secret key that's the
   same at every address of one server. The app only switches between addresses of the same
   server, so your sign-in is never sent to a different one.
@@ -121,8 +201,8 @@ To check what's running on your server, visit `/api/config` — it reports the r
   to a third party) to see every time your timeline passed within a chosen radius of it.
   Backed by `GET /api/uploads/<id>/visits`.
 - **New:** a "Live" toggle on the My Timeline map shows your current position via the
-  browser's location — useful on a phone. Requires HTTPS (see DEPLOY-SYNOLOGY.md); most
-  browsers refuse geolocation on a plain `http://` LAN address. Comparing your live position
+  browser's location — useful on a phone. Requires HTTPS (see DEPLOY.md); most
+  browsers refuse geolocation on a plain `http://` address. Comparing your live position
   against past visits automatically isn't built yet — for now, use place search for that.
 - **Fixed:** the sign-in screen no longer requires scrolling to reach the password field and
   button on shorter phone screens, and any focused field now scrolls above the on-screen
@@ -153,7 +233,7 @@ To check what's running on your server, visit `/api/config` — it reports the r
 
 ## 0.2.0
 - **New:** Flask + SQLite server (`server/`), installable web app (PWA) in `server/static/`,
-  Docker + Synology deployment (`Dockerfile`, `docker-compose.yml`, `DEPLOY-SYNOLOGY.md`).
+  Docker deployment (`Dockerfile`, `docker-compose.yml`, `DEPLOY.md`).
   Consent-gated checks, encrypted-at-rest uploads, auto-purge, rate limits, spoof-trust
   labels surfaced to the counterpart.
 

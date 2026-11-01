@@ -1,4 +1,10 @@
 pluginManagement {
+  // DevStore CI checks out only the repo, so install the JS dependencies when they're missing.
+  if (!new File(rootDir, "../node_modules/react-native/package.json").exists()) {
+    def npm = ["npm", "ci", "--no-audit", "--no-fund"].execute(null, new File(rootDir, ".."))
+    npm.waitForProcessOutput(System.out, System.err)
+    if (npm.exitValue() != 0) throw new RuntimeException("npm ci failed in mobile/")
+  }
   def version = providers.exec {
     commandLine("node", "-e", "console.log(require('react-native/package.json').version);")
   }.standardOutput.asText.get().trim()
