@@ -1,7 +1,7 @@
 # Deploying CrossPaths
 
 CrossPaths runs as one Docker container on any Linux host: a NAS (Synology Container Manager),
-a cloud VM or a VPS. The published image `ghcr.io/qawalah/crosspaths` is `linux/amd64` only;
+a cloud VM or a VPS. For Fly.io, see [DEPLOY-FLY.md](DEPLOY-FLY.md). The published image `ghcr.io/qawalah/crosspaths` is `linux/amd64` only;
 on an ARM host, build it yourself (section 3).
 
 ## 0. Sizing
