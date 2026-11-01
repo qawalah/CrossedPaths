@@ -1,55 +1,105 @@
 # Google Maps Timeline
 
-Timeline now lives on your phone, so you export it from the phone (not Takeout).
+Your Timeline is stored on your phone now, so export it from the phone. Google Takeout no longer has it for most people.
 
-> Pictures are simplified drawings of each screen with the button to press circled in red. Menu names change a little between app versions.
+> The pictures are simple drawings. The red circle and number show what to tap in each step. Menu names can differ slightly between app versions.
 
 ## Android
 
-**Step 1.** Open the phone's **Settings** and tap **Location**.
+### Step 1: **Location**
 
-![Open the phone's **Settings** and tap **Location**](images/google-android-1.png)
+- **Where:** The phone's **Settings** app (the gear icon, not Google Maps)
+- **Tap:** **Location**
+- **You'll see:** the Location page with a *Use location* switch.
 
-**Step 2.** Tap **Location services**.
+![Step 1](images/google-android-1.png)
 
-![Tap **Location services**](images/google-android-2.png)
+### Step 2: **Location services**
 
-**Step 3.** Tap **Timeline**.
+- **Where:** Location
+- **Tap:** **Location services**
+- **You'll see:** a list that includes *Timeline*.
 
-![Tap **Timeline**](images/google-android-3.png)
+![Step 2](images/google-android-2.png)
 
-**Step 4.** Tap **Export Timeline data**.
+### Step 3: **Timeline**
 
-![Tap **Export Timeline data**](images/google-android-4.png)
+- **Where:** Location services
+- **Tap:** **Timeline**
+- **You'll see:** Timeline settings.
 
-**Step 5.** Pick a folder (e.g. Downloads) and tap **Save**. You get a `.json` file.
+![Step 3](images/google-android-3.png)
 
-![Pick a folder (e](images/google-android-5.png)
+### Step 4: **Export Timeline data**, then **Continue**
+
+- **Where:** Timeline
+- **Tap:** **Export Timeline data**, then **Continue**
+- **You'll see:** a screen asking where to save the file.
+
+![Step 4](images/google-android-4.png)
+
+### Step 5: a folder (e.g. **Downloads**), then **Save**
+
+- **Where:** The save screen
+- **Tap:** a folder (e.g. **Downloads**), then **Save**
+- **You'll see:** the file saved, usually *Timeline.json*.
+
+![Step 5](images/google-android-5.png)
 
 ## iPhone
 
-**Step 1.** Open **Google Maps** and tap your **profile picture** (top right).
+### Step 1: your **profile picture** (top right)
 
-![Open **Google Maps** and tap your **profile picture** (top right)](images/google-iphone-1.png)
+- **Where:** The **Google Maps** app
+- **Tap:** your **profile picture** (top right)
+- **You'll see:** your account menu.
 
-**Step 2.** Tap **Settings**.
+![Step 1](images/google-iphone-1.png)
 
-![Tap **Settings**](images/google-iphone-2.png)
+### Step 2: **Settings**
 
-**Step 3.** Tap **Personal content**.
+- **Where:** Account menu
+- **Tap:** **Settings**
+- **You'll see:** the Maps settings list.
 
-![Tap **Personal content**](images/google-iphone-3.png)
+![Step 2](images/google-iphone-2.png)
 
-**Step 4.** Tap **Export Timeline data**.
+### Step 3: **Personal content** (in some versions **Location & Privacy**)
 
-![Tap **Export Timeline data**](images/google-iphone-4.png)
+- **Where:** Settings
+- **Tap:** **Personal content** (in some versions **Location & Privacy**)
+- **You'll see:** a page with *Export Timeline data*.
 
-**Step 5.** Choose **Save to Files** and tap **Save** (same save screen as Android).
+![Step 3](images/google-iphone-3.png)
 
-![Choose **Save to Files** and tap **Save** (same save screen as Android)](images/google-iphone-5.png)
+### Step 4: **Export Timeline data**
 
-## Then upload it
+- **Where:** Personal content
+- **Tap:** **Export Timeline data**
+- **You'll see:** the iPhone share sheet.
 
-Upload the `.json` file. Older Google Takeout downloads also work: `Records.json`, the *Semantic Location History* folder, or the whole Takeout `.zip`.
+![Step 4](images/google-iphone-4.png)
 
-See [Uploading to CrossPaths](Upload.md).
+### Step 5: **Save to Files**, then a folder and **Save**
+
+- **Where:** Share sheet
+- **Tap:** **Save to Files**, then a folder and **Save**
+- **You'll see:** the file in the Files app.
+
+![Step 5](images/google-iphone-5.png)
+
+## Good to know
+
+- In some countries (e.g. the EU) the export can come out as **CSV** instead of JSON. That's fine to upload too.
+- Some exports only cover a short time. Before you upload, check the file covers the dates you need.
+- Timeline isn't available on Android Go phones.
+
+## Upload it
+
+Upload the `.json` file. Old Google Takeout files also work: `Records.json`, the *Semantic Location History* folder, or the whole Takeout `.zip`. How: [Uploading to CrossPaths](Upload.md).
+
+## Official guides (with their own screenshots)
+
+- [Google: Timeline on your device](https://support.google.com/maps/answer/14169818)
+- [MileageWise: export on Android](https://www.mileagewise.com/help/how-to-import-trips-from-google-maps-timeline-on-android-devices/)
+- [MileageWise: export on iPhone](https://www.mileagewise.com/help/how-to-import-trips-from-google-maps-timeline-on-ios-devices/)

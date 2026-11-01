@@ -1,21 +1,35 @@
 # Photos
 
-No export needed: CrossPaths reads the GPS position and time saved in your photos, on your device. Only those points are uploaded, never the photos.
+Nothing to export. CrossPaths reads the place and time saved in your photos, on your device, and uploads only those points, never the photos.
 
-> Pictures are simplified drawings of each screen with the button to press circled in red. Menu names change a little between app versions.
+> The pictures are simple drawings. The red circle and number show what to tap in each step. Menu names can differ slightly between app versions.
 
 ## In CrossPaths
 
-**Step 1.** On **Uploads**, tap **Scan my photos**.
+### Step 1: **Scan my photos**
 
-![On **Uploads**, tap **Scan my photos**](images/photos-1.png)
+- **Where:** The **Uploads** tab
+- **Tap:** **Scan my photos**
+- **You'll see:** the photo scanner.
 
-**Step 2.** Tap **Choose photos** and select as many as you like (at least 20 need a location).
+![Step 1](images/photos-1.png)
 
-![Tap **Choose photos** and select as many as you like (at least 20 need a location)](images/photos-2.png)
+### Step 2: **Choose photos**, then select many
 
-## Then upload it
+- **Where:** Scan my photos
+- **Tap:** **Choose photos**, then select many
+- **You'll see:** how many photos had a location (at least 20 are needed).
 
-Screenshots and photos sent through chat apps usually have no location and are skipped.
+![Step 2](images/photos-2.png)
 
-See [Uploading to CrossPaths](Upload.md).
+## Good to know
+
+- Screenshots and photos received in chat apps usually have no location and are skipped.
+
+## Upload it
+
+It uploads automatically. How: [Uploading to CrossPaths](Upload.md).
+
+## Official guides (with their own screenshots)
+
+

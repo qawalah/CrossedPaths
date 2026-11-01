@@ -6,9 +6,9 @@ Any app that exports GPX, KML/KMZ, GeoJSON or FIT works: OwnTracks, GPSLogger, D
 
 ## CSV files
 
-**Step 1.** The file needs a **latitude**, a **longitude** and a **time** column (any common column name works).
+- The file needs a **latitude**, a **longitude** and a **time** column (any common column name works).
 
-**Step 2.** Points without a time can't be compared, so planned routes are skipped.
+- Points without a time can't be compared, so planned routes are skipped.
 
 ## Then upload it
 

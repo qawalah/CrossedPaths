@@ -1,31 +1,54 @@
 # Garmin
 
-Garmin exports from the website.
+Do this on the Garmin website.
 
-> Pictures are simplified drawings of each screen with the button to press circled in red. Menu names change a little between app versions.
+> The pictures are simple drawings. The red circle and number show what to tap in each step. Menu names can differ slightly between app versions.
 
 ## Everything
 
-**Step 1.** Open your Garmin account → **Data Management**.
+### Step 1: **Data Management**
 
-![Open your Garmin account → **Data Management**](images/garmin-1.png)
+- **Where:** Your Garmin account page (account settings)
+- **Tap:** **Data Management**
+- **You'll see:** data options.
 
-**Step 2.** Choose **Export Your Data**.
+![Step 1](images/garmin-1.png)
 
-![Choose **Export Your Data**](images/garmin-2.png)
+### Step 2: **Export Your Data**
 
-**Step 3.** Press **Request Data Export**. Garmin emails you a `.zip`.
+- **Where:** Data Management
+- **Tap:** **Export Your Data**
+- **You'll see:** an export request page.
 
-![Press **Request Data Export**](images/garmin-3.png)
+![Step 2](images/garmin-2.png)
+
+### Step 3: **Request Data Export**
+
+- **Where:** Export Your Data
+- **Tap:** **Request Data Export**
+- **You'll see:** a message that Garmin will email you.
+
+![Step 3](images/garmin-3.png)
 
 ## One activity
 
-**Step 1.** On connect.garmin.com open the activity → ⚙️ → **Export Original** (or **Export to GPX**).
+### Step 1: ⚙️ → **Export Original** (or **Export to GPX**)
 
-![On connect](images/garmin-single-1.png)
+- **Where:** The activity on connect.garmin.com
+- **Tap:** ⚙️ → **Export Original** (or **Export to GPX**)
+- **You'll see:** a file downloaded at once.
 
-## Then upload it
+![Step 1](images/garmin-single-1.png)
 
-Upload the `.zip` (or `.fit` / `.gpx`) as it is.
+## Good to know
 
-See [Uploading to CrossPaths](Upload.md).
+- The full export email can take 1–2 days.
+
+## Upload it
+
+Upload the `.zip`, `.fit` or `.gpx` as it is. How: [Uploading to CrossPaths](Upload.md).
+
+## Official guides (with their own screenshots)
+
+- [gneta.app: export Garmin data step by step](https://www.gneta.app/blog/export-garmin-data-guide)
+- [Garmin forum: export all data](https://forums.garmin.com/apps-software/mobile-apps-web/f/garmin-connect-web/407936/export-data)

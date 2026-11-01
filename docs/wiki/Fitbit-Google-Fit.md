@@ -1,27 +1,41 @@
 # Fitbit and Google Fit
 
-Health Connect has no route export; export from the app that recorded the workout instead.
+Health Connect can't export routes. Export from the app that recorded the workout instead.
 
-> Pictures are simplified drawings of each screen with the button to press circled in red. Menu names change a little between app versions.
+> The pictures are simple drawings. The red circle and number show what to tap in each step. Menu names can differ slightly between app versions.
 
 ## Fitbit (one exercise at a time)
 
-**Step 1.** Open a GPS exercise → **⋯** → **Export as TCX file**.
+### Step 1: **⋯** → **Export as TCX file**
 
-![Open a GPS exercise → **⋯** → **Export as TCX file**](images/fitbit-1.png)
+- **Where:** A GPS exercise in the Fitbit app
+- **Tap:** **⋯** → **Export as TCX file**
+- **You'll see:** a `.tcx` file to save.
+
+![Step 1](images/fitbit-1.png)
 
 ## Google Fit
 
-**Step 1.** On takeout.google.com press **Deselect all**, then tick only **Fit** → **Next step**.
+### Step 1: **Deselect all**, tick **Fit**, then **Next step**
 
-![On takeout](images/google-fit-1.png)
+- **Where:** takeout.google.com
+- **Tap:** **Deselect all**, tick **Fit**, then **Next step**
+- **You'll see:** delivery options.
 
-**Step 2.** Keep *Export once* / *.zip* and press **Create export**. Google emails you a link.
+![Step 1](images/google-fit-1.png)
 
-![Keep *Export once* / *](images/google-fit-2.png)
+### Step 2: keep *Export once* and *.zip*, then **Create export**
 
-## Then upload it
+- **Where:** Delivery options
+- **Tap:** keep *Export once* and *.zip*, then **Create export**
+- **You'll see:** a message that Google will email you a link.
 
-Upload the `.tcx` file or the Takeout `.zip`.
+![Step 2](images/google-fit-2.png)
 
-See [Uploading to CrossPaths](Upload.md).
+## Upload it
+
+Upload the `.tcx` or the Takeout `.zip`. How: [Uploading to CrossPaths](Upload.md).
+
+## Official guides (with their own screenshots)
+
+- [Google Takeout](https://takeout.google.com)

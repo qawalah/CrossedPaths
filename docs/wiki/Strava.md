@@ -1,35 +1,63 @@
 # Strava
 
-Strava exports from the website (strava.com), not the app.
+Do this on the **strava.com website** (phone browser or computer). The app can't do it.
 
-> Pictures are simplified drawings of each screen with the button to press circled in red. Menu names change a little between app versions.
+> The pictures are simple drawings. The red circle and number show what to tap in each step. Menu names can differ slightly between app versions.
 
 ## Everything (archive)
 
-**Step 1.** On strava.com open **Settings** → **My Account**.
+### Step 1: **My Account** (left menu)
 
-![On strava](images/strava-1.png)
+- **Where:** strava.com, logged in → profile picture menu → **Settings**
+- **Tap:** **My Account** (left menu)
+- **You'll see:** your account page.
 
-**Step 2.** Under *Download or Delete Your Account* press **Get Started**.
+![Step 1](images/strava-1.png)
 
-![Under *Download or Delete Your Account* press **Get Started**](images/strava-2.png)
+### Step 2: **Get Started** under *Download or Delete Your Account*
 
-**Step 3.** Press **Request Your Archive**. Don't press anything in the delete section.
+- **Where:** My Account
+- **Tap:** **Get Started** under *Download or Delete Your Account*
+- **You'll see:** a page with *Download Request* and *Delete* sections.
 
-![Press **Request Your Archive**](images/strava-3.png)
+![Step 2](images/strava-2.png)
 
-**Step 4.** Strava emails you a link; download the `.zip`.
+### Step 3: **Request Your Archive**. Don't touch the delete section
 
-![Strava emails you a link; download the `](images/strava-4.png)
+- **Where:** Download or Delete Your Account
+- **Tap:** **Request Your Archive**. Don't touch the delete section
+- **You'll see:** a message saying an email is on its way.
+
+![Step 3](images/strava-3.png)
+
+### Step 4: **Download archive** in Strava's email
+
+- **Where:** Your email (usually within a few hours)
+- **Tap:** **Download archive** in Strava's email
+- **You'll see:** a `.zip` file in your downloads.
+
+![Step 4](images/strava-4.png)
 
 ## One activity
 
-**Step 1.** Open the activity → **⋯** → **Export GPX**.
+### Step 1: **⋯** → **Export GPX**
 
-![Open the activity → **⋯** → **Export GPX**](images/strava-single-1.png)
+- **Where:** The activity's page on strava.com
+- **Tap:** **⋯** → **Export GPX**
+- **You'll see:** a `.gpx` file downloaded at once.
 
-## Then upload it
+![Step 1](images/strava-single-1.png)
 
-Upload the `.zip` as it is. If it's over the size limit (photos make it big), unzip it and choose the files in the `activities` folder.
+## Good to know
 
-See [Uploading to CrossPaths](Upload.md).
+- The download link expires, so download it soon after the email arrives.
+- Photos and segments aren't needed and some aren't included. That's fine.
+
+## Upload it
+
+Upload the `.zip` as it is. If it's too big, unzip it and upload the files in the `activities` folder. How: [Uploading to CrossPaths](Upload.md).
+
+## Official guides (with their own screenshots)
+
+- [Strava: Exporting your data](https://support.strava.com/hc/en-us/articles/216918437-Exporting-your-Activity)
+- [takeoutday.org: Strava export guide](https://takeoutday.org/guides/how-to-export-strava-data)

@@ -2,24 +2,38 @@
 
 Each check-in counts as 30 minutes at that place, so matches are rougher than with GPS tracks.
 
-> Pictures are simplified drawings of each screen with the button to press circled in red. Menu names change a little between app versions.
+> The pictures are simple drawings. The red circle and number show what to tap in each step. Menu names can differ slightly between app versions.
 
 ## Phone
 
-**Step 1.** In **Swarm** open your profile → **⚙️ Settings**.
+### Step 1: **⚙️ Settings**
 
-![In **Swarm** open your profile → **⚙️ Settings**](images/swarm-1.png)
+- **Where:** Your profile in the **Swarm** app
+- **Tap:** **⚙️ Settings**
+- **You'll see:** the settings list.
 
-**Step 2.** Tap **Privacy Settings**.
+![Step 1](images/swarm-1.png)
 
-![Tap **Privacy Settings**](images/swarm-2.png)
+### Step 2: **Privacy Settings**
 
-**Step 3.** Tap **Initiate Data Download Request**. Foursquare emails you a link to a `.zip`.
+- **Where:** Settings
+- **Tap:** **Privacy Settings**
+- **You'll see:** privacy options.
 
-![Tap **Initiate Data Download Request**](images/swarm-3.png)
+![Step 2](images/swarm-2.png)
 
-## Then upload it
+### Step 3: **Initiate Data Download Request**
 
-Upload the `.zip` (or the `checkins*.json` files from it).
+- **Where:** Privacy Settings
+- **Tap:** **Initiate Data Download Request**
+- **You'll see:** a confirmation. Foursquare emails you a `.zip` link.
 
-See [Uploading to CrossPaths](Upload.md).
+![Step 3](images/swarm-3.png)
+
+## Upload it
+
+Upload the `.zip` (or the `checkins*.json` files from it). How: [Uploading to CrossPaths](Upload.md).
+
+## Official guides (with their own screenshots)
+
+- [Foursquare support](https://support.foursquare.com)
