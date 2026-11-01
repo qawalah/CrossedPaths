@@ -21,6 +21,8 @@ export const ICON = {
   prev: '<path d="M14.5 6l-6 6 6 6"/>',
   next: '<path d="M9.5 6l6 6-6 6"/>',
   close: '<path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>',
+  download: '<path d="M12 4.5V15M7.5 10.5 12 15l4.5-4.5"/><path d="M4.5 15v2.5a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V15"/>',
   // Actions
   play: '<path d="M8 5.6v12.8c0 .8.9 1.3 1.5.8l9.6-6.4c.6-.4.6-1.2 0-1.6L9.5 4.8C8.9 4.3 8 4.8 8 5.6z"/>',
   pause: '<path d="M9 5.5v13M15 5.5v13"/>',

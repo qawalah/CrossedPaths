@@ -7,6 +7,21 @@ migration), MINOR for new features, PATCH for bugfixes. Pre-1.0, expect MINOR bu
 To check what's running on your server, visit `/api/config` — it reports the running
 `version`. That's the number to compare against this file when deciding whether to update.
 
+## 0.13.0
+- **Combine sources into one timeline.** A timeline can now be built from several sources at
+  once (app files, a photo scan, and your other timelines) and you can add more sources later.
+  New: `POST /api/uploads/<id>/sources` (same fields as `POST /api/uploads`). Both take `file`
+  (any number) and `merge_ids` (your other timelines); `remove_merged=1` deletes those once they
+  are folded in. Duplicate points are dropped; trust and home/work areas are re-checked, keeping
+  areas you edited. Adding sources restarts the timeline's retention clock.
+- Each timeline lists its sources (`sources`: label, files, points, added_at). The `format`
+  field now reads like "Google Maps, GPX, Photos". Timelines from before this version show one source.
+- **Export:** `GET /api/uploads/<id>/export?format=gpx|geojson|csv` downloads your own timeline,
+  all sources combined. Only ever your own points.
+- Web: the Uploads tab builds a timeline from staged sources (Files / Photos / My timelines),
+  then offers to export a copy. Each timeline has *＋ Add source* and *Export a copy*.
+- Database: new nullable `uploads.sources` column, added automatically at start-up.
+
 ## 0.12.2 (Android 1.7.1)
 - **One icon style everywhere.** Emoji and text symbols used as icons (tab bar, Back, Play/Pause,
   Filter, Sort, Fit, Delete, warnings, Meet in person, Choose file, Scan photos…) are replaced by

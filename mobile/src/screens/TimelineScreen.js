@@ -7,6 +7,7 @@ import Pill from "../components/Pill";
 import { useToast } from "../components/Toast";
 import { confirm } from "../components/confirm";
 import { Api } from "../api";
+import { exportTimeline } from "../exportTimeline";
 import { useAuth } from "../auth";
 import { colors, dateStr, hoursLeft, keepPhrase, trustLabel } from "../theme";
 import Icon from "../components/Icon";
@@ -49,7 +50,7 @@ export default function TimelineScreen({ data, navigation }) {
         <View>
           <Text style={{ color: colors.text, fontSize: 24, fontWeight: "800" }}>Your timeline</Text>
           <Text style={{ color: colors.muted, marginTop: 6, marginBottom: 16, lineHeight: 20 }}>
-            Add your location history. It stays private and is{" "}
+            Build your timeline from one or more sources. It stays private and is{" "}
             {keepPhrase(user && user.upload_keep_hours != null ? user.upload_keep_hours : cfg.upload_ttl_hours)} (change this on the Account tab).
           </Text>
           <View style={{ flexDirection: "row", gap: 10, marginBottom: 6 }}>
@@ -57,15 +58,18 @@ export default function TimelineScreen({ data, navigation }) {
               icon="folder"
               title="Import a timeline"
               text="Google Maps, Strava, Apple Health, Samsung Health, Garmin, Swarm, GPX, CSV…"
-              onPress={() => navigation.navigate("Import")}
+              onPress={() => navigation.navigate("Build", { start: "files" })}
             />
             <AddOption
               icon="photos"
               title="Scan my photos"
               text="Build one from the place and time saved in your photos."
-              onPress={() => navigation.navigate("PhotoScan")}
+              onPress={() => navigation.navigate("Build", { start: "photos" })}
             />
           </View>
+          <Text style={{ color: colors.muted, fontSize: 12, marginBottom: 6 }}>
+            You can combine several sources into one timeline, and add more later.
+          </Text>
         </View>
       }
       ListEmptyComponent={
@@ -76,6 +80,8 @@ export default function TimelineScreen({ data, navigation }) {
           upload={item}
           onRemoveZone={removeZone}
           onDelete={deleteUpload}
+          onAdd={() => navigation.navigate("Build", { start: "files", targetId: item.id })}
+          onExport={() => exportTimeline(item, toast)}
           onView={() => navigation.navigate("MyTimeline", { uploadId: item.id, uploadLabel: `${dateStr(item.from)} → ${dateStr(item.to)}` })}
         />
       )}
@@ -104,7 +110,7 @@ function AddOption({ icon, title, text, onPress }) {
   );
 }
 
-function UploadCard({ upload, onRemoveZone, onDelete, onView }) {
+function UploadCard({ upload, onRemoveZone, onDelete, onView, onAdd, onExport }) {
   const t = upload.trust;
   return (
     <Card>
@@ -114,12 +120,21 @@ function UploadCard({ upload, onRemoveZone, onDelete, onView }) {
             {dateStr(upload.from)} → {dateStr(upload.to)}
           </Text>
           <Text style={{ color: colors.muted, fontSize: 12.5, marginTop: 3 }}>
-            {upload.points.toLocaleString()} points · {upload.format} · {hoursLeft(upload.expires_at)}
+            {upload.points.toLocaleString()} points · {hoursLeft(upload.expires_at)}
+          </Text>
+          <Text style={{ color: colors.accent2, fontSize: 12.5, marginTop: 4 }}>
+            {(upload.sources || [])
+              .map((s) => `${s.label}${s.files > 1 ? ` ×${s.files}` : ""} · ${Number(s.points || 0).toLocaleString()}`)
+              .join("   ·   ")}
           </Text>
         </View>
         <Pill label={trustLabel(t.level)} level={t.level} />
       </View>
-      <Button title="View on map" icon="map" variant="ghost" onPress={onView} style={{ marginTop: 10 }} />
+      <View style={{ flexDirection: "row", gap: 8, marginTop: 10 }}>
+        <Button title="Add source" icon="plus" onPress={onAdd} style={{ flex: 1 }} />
+        <Button title="Export" icon="download" variant="ghost" onPress={onExport} style={{ flex: 1 }} />
+      </View>
+      <Button title="View on map" icon="map" variant="ghost" onPress={onView} style={{ marginTop: 8 }} />
       {t.level !== "high" && t.reasons.length ? (
         <View style={{ marginTop: 8 }}>
           {t.reasons.map((r, i) => (

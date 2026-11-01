@@ -58,6 +58,10 @@ a{color:var(--accent2)}
 .addopt{display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:left;font:inherit;color:var(--text);cursor:pointer;transition:border-color .2s}
 .addopt .ico{color:var(--accent);line-height:0}.addopt:hover,.addopt.on{border-color:var(--accent)}.addopt.on{box-shadow:inset 0 0 0 1px var(--accent)}
 @media(max-width:380px){.addopts{grid-template-columns:1fr}}
+.staged{display:flex;flex-direction:column;gap:6px;margin:4px 0 6px}.stage{display:flex;align-items:center;gap:10px;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:8px 10px}.stage .ico{color:var(--accent);line-height:0}.stage b{font-size:14px}
+.staged-empty{padding:10px;border:1.5px dashed var(--line);border-radius:12px;text-align:center}
+.panes{margin-top:6px}.pick{display:flex;align-items:center;gap:10px;padding:8px 2px;cursor:pointer;margin:0;font-weight:400;color:var(--text)}.pick input{width:18px;height:18px;flex:none;accent-color:var(--accent)}
+.srcs{margin-top:6px;color:var(--accent2)}.saved{border-color:var(--accent)}
 .guide{margin:12px 0 14px}.guide ol{margin:6px 0 0 18px;padding:0;font-size:13.5px;line-height:1.5}.guide li{margin:4px 0}
 .spin{width:18px;height:18px;border:2.5px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;display:inline-block;vertical-align:-4px}
 .pulse-dot{width:9px;height:9px;border-radius:50%;background:var(--accent2);display:inline-block;animation:blink 1.2s ease-in-out infinite}
@@ -275,6 +279,8 @@ ICON = {
   prev: '<path d="M14.5 6l-6 6 6 6"/>',
   next: '<path d="M9.5 6l6 6-6 6"/>',
   close: '<path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>',
+  download: '<path d="M12 4.5V15M7.5 10.5 12 15l4.5-4.5"/><path d="M4.5 15v2.5a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V15"/>',
   // Actions
   play: '<path d="M8 5.6v12.8c0 .8.9 1.3 1.5.8l9.6-6.4c.6-.4.6-1.2 0-1.6L9.5 4.8C8.9 4.3 8 4.8 8 5.6z"/>',
   pause: '<path d="M9 5.5v13M15 5.5v13"/>',
@@ -404,27 +410,61 @@ const SOURCES = [
     "Points without a time can't be compared, so planned routes without times are skipped."] },
 ];
 const ACCEPT = ".json,.geojson,.gpx,.tcx,.fit,.kml,.kmz,.csv,.zip,.gz,application/json,application/zip,application/gpx+xml,text/csv";
+// A timeline is built from one or more sources: app files, a photo scan, other timelines you've
+// uploaded. state.build = { target: upload id or null, pane: "files"|"photos"|"mine", items: [...], removeMerged }
+const fmtN = n => Number(n || 0).toLocaleString();
+const srcLine = u => (u.sources || []).map(s => `${esc(s.label)}${s.files > 1 ? ` ×${s.files}` : ""} · ${fmtN(s.points)}`).join(" &nbsp;·&nbsp; ");
+function startBuild(pane, target = null) {
+  state.build = { target, pane, items: [], removeMerged: false };
+  state.saved = null;
+  renderTimeline();
+  setTimeout(() => { const b = $("#builder"); b && b.scrollIntoView({ block: "start", behavior: "smooth" }); }, 50);
+}
+function builderCard() {
+  const B = state.build, src = SOURCES.find(s => s.id === (state.addSrc || "google"));
+  const target = B.target && state.uploads.find(u => u.id === B.target);
+  const others = state.uploads.filter(u => u.id !== B.target);
+  const staged = new Set(B.items.filter(i => i.kind === "upload").map(i => i.id));
+  const merging = B.items.some(i => i.kind === "upload");
+  const icon = { files: "folder", photos: "photos", upload: "route" };
+  const pane = B.pane === "mine" && !others.length ? "files" : B.pane;
+  return `<div class="card" id="builder">
+    <div class="row between"><h3>${target ? "Add sources" : "New timeline"}</h3><button class="btn ghost sm" data-act="buildcancel">Cancel</button></div>
+    <p class="muted small" style="margin:2px 0 10px">${target ? `Adding to ${dateStr(target.from)} → ${dateStr(target.to)} (${fmtN(target.points)} points). ` : ""}Add as many sources as you like; they're combined into one timeline when you save.</p>
+    ${B.items.length ? `<div class="staged">${B.items.map((it, i) => `<div class="stage"><span class="ico">${ico(icon[it.kind], 22)}</span><div class="grow"><b>${esc(it.label)}</b><div class="muted small">${esc(it.detail)}</div></div><button class="btn ghost sm" data-act="unstage" data-i="${i}" aria-label="Remove">${ico("close", 15)}</button></div>`).join("")}</div>` : `<div class="muted small staged-empty">No sources yet. Add one below.</div>`}
+    <label>${B.items.length ? "Add another source" : "Add a source"}</label>
+    <div class="seg panes"><button data-act="pane" data-p="files" class="${pane === "files" ? "on" : ""}">${ico("folder", 16, "l")}Files</button><button data-act="pane" data-p="photos" class="${pane === "photos" ? "on" : ""}">${ico("photos", 16, "l")}Photos</button>${others.length ? `<button data-act="pane" data-p="mine" class="${pane === "mine" ? "on" : ""}">${ico("route", 16, "l")}Mine</button>` : ""}</div>
+    ${pane === "files" ? `
+      <div class="fchips" style="margin-top:12px">${SOURCES.map(s => `<button class="fchip${s.id === src.id ? " on" : ""}" data-act="addsrc" data-s="${s.id}">${esc(s.name)}</button>`).join("")}</div>
+      <div class="guide"><div class="muted small">${esc(src.name)} · ${esc(src.what)}</div><ol>${src.steps.map(x => `<li>${x}</li>`).join("")}</ol></div>
+      <label class="drop" id="drop" style="display:block;margin:0"><input id="file" type="file" accept="${ACCEPT}" multiple hidden>
+        <div style="color:var(--accent);line-height:0">${ico("folder", 30)}</div><div><b>Choose file(s)</b></div><div class="small">One file, several, or a .zip</div></label>` : ""}
+    ${pane === "photos" ? `
+      <p class="muted small" style="margin:12px 0">CrossPaths reads the GPS position and time saved inside each photo, right here in your browser. Only those points are uploaded, never the photos. Screenshots and photos sent through chat apps usually have no location.</p>
+      <label class="drop" id="pdrop" style="display:block;margin:0"><input id="pfile" type="file" accept="image/jpeg,image/heic,image/heif,image/*" multiple hidden>
+        <div style="color:var(--accent);line-height:0">${ico("photos", 30)}</div><div><b>Choose photos</b></div><div class="small">Select as many as you like</div></label>
+      <p class="muted small" style="margin:10px 0 0">On an Android phone the CrossPaths app can scan your whole library in one go. On iPhone, some browsers remove the location from photos you pick; if none is found, try a computer.</p>` : ""}
+    ${pane === "mine" ? `<div style="margin-top:12px">${others.map(u => `<label class="pick"><input type="checkbox" data-act="pickup" data-id="${u.id}" ${staged.has(u.id) ? "checked" : ""}><span class="grow"><b>${dateStr(u.from)} → ${dateStr(u.to)}</b><span class="muted small"> · ${fmtN(u.points)} points · ${esc(u.format)}</span></span></label>`).join("")}</div>` : ""}
+    ${merging ? `<label class="pick" style="margin-top:12px"><input type="checkbox" data-act="rmmerged" ${B.removeMerged ? "checked" : ""}><span class="grow small">Delete the timelines I combine once they're in this one</span></label>` : ""}
+    <button class="btn" style="width:100%;margin-top:14px" data-act="buildsave" ${B.items.length ? "" : "disabled"}>${target ? `Add ${B.items.length || ""} source${B.items.length === 1 ? "" : "s"} and save` : B.items.length > 1 ? `Combine ${B.items.length} sources and save` : "Save timeline"}</button>
+  </div>`;
+}
+function savedCard() {
+  const u = state.uploads.find(x => x.id === state.saved); if (!u) return "";
+  return `<div class="card saved"><div class="row between"><h3><span style="color:var(--good)">${ico("ok", 20, "l")}</span>Timeline saved</h3><button class="btn ghost sm" data-act="saveddone">Done</button></div>
+    <p class="muted small" style="margin:4px 0 10px">${fmtN(u.points)} points from ${(u.sources || []).length} source${(u.sources || []).length === 1 ? "" : "s"}. It's kept on your server as set in Settings. Want a copy on this device too?</p>
+    ${exportRow(u.id)}</div>`;
+}
+const exportRow = id => `<div class="row" style="gap:8px;flex-wrap:wrap"><span class="muted small">${ico("download", 15, "l")}Export:</span>${["gpx", "geojson", "csv"].map(k => `<button class="btn ghost sm" data-act="export" data-id="${id}" data-f="${k}">${k === "geojson" ? "GeoJSON" : k.toUpperCase()}</button>`).join("")}</div>`;
 function renderTimeline() {
-  const mode = state.addMode, src = SOURCES.find(s => s.id === (state.addSrc || "google"));
+  const B = state.build;
   $("#view").innerHTML = `
-  <div class="hero"><h1>Uploads</h1><p>Add your location history. It stays private and is ${keepPhrase()}. <a href="#" data-act="settings">Change</a></p></div>
-  <div class="addopts">
-    <button class="card addopt${mode === "import" ? " on" : ""}" data-act="addmode" data-m="import"><span class="ico">${ico("folder", 26)}</span><b>Import a timeline</b><span class="muted small">Google Maps, Strava, Apple Health, Samsung Health, Garmin, Swarm, GPX, CSV…</span></button>
-    <button class="card addopt${mode === "photos" ? " on" : ""}" data-act="addmode" data-m="photos"><span class="ico">${ico("photos", 26)}</span><b>Scan my photos</b><span class="muted small">Build one from the place and time saved in your photos.</span></button>
-  </div>
-  ${mode === "import" ? `<div class="card">
-    <label style="margin-top:0">Where is your history from?</label>
-    <div class="fchips">${SOURCES.map(s => `<button class="fchip${s.id === src.id ? " on" : ""}" data-act="addsrc" data-s="${s.id}">${esc(s.name)}</button>`).join("")}</div>
-    <div class="guide"><div class="muted small">${esc(src.name)} · ${esc(src.what)}</div><ol>${src.steps.map(x => `<li>${x}</li>`).join("")}</ol></div>
-    <label class="drop" id="drop" style="display:block;margin:0"><input id="file" type="file" accept="${ACCEPT}" multiple hidden>
-      <div style="color:var(--accent);line-height:0">${ico("folder", 30)}</div><div><b>Choose file(s)</b></div><div class="small">One file, several at once, or a .zip · up to ${esc(state.cfg.max_upload_mb || 80)} MB in total</div></label>
-  </div>` : ""}
-  ${mode === "photos" ? `<div class="card">
-    <p class="muted small" style="margin:0 0 12px">Choose photos and CrossPaths reads the GPS position and time saved inside each one, right here in your browser. Only those points are uploaded, never the photos. Screenshots and photos sent through chat apps usually have no location and are skipped.</p>
-    <label class="drop" id="pdrop" style="display:block;margin:0"><input id="pfile" type="file" accept="image/jpeg,image/heic,image/heif,image/*" multiple hidden>
-      <div style="color:var(--accent);line-height:0">${ico("photos", 30)}</div><div><b>Choose photos</b></div><div class="small">Select as many as you like. At least 20 need a location.</div></label>
-    <p class="muted small" style="margin:10px 0 0">On an Android phone the CrossPaths app can scan your whole library in one go. On iPhone, some browsers remove the location from photos you pick; if none is found, try a computer.</p>
-  </div>` : ""}
+  <div class="hero"><h1>Uploads</h1><p>Build your timeline from one or more sources. It stays private and is ${keepPhrase()}. <a href="#" data-act="settings">Change</a></p></div>
+  ${savedCard()}
+  ${B ? builderCard() : `<div class="addopts">
+    <button class="card addopt" data-act="build" data-p="files"><span class="ico">${ico("folder", 26)}</span><b>Import a timeline</b><span class="muted small">Google Maps, Strava, Apple Health, Samsung Health, Garmin, Swarm, GPX, CSV…</span></button>
+    <button class="card addopt" data-act="build" data-p="photos"><span class="ico">${ico("photos", 26)}</span><b>Scan my photos</b><span class="muted small">Build one from the place and time saved in your photos.</span></button>
+  </div><p class="muted small" style="margin:-2px 4px 6px">You can combine several sources into one timeline, and add more later.</p>`}
   <div id="ulist">${state.uploads.map(uploadCard).join("") || `<p class="muted" style="text-align:center;margin-top:24px">No timeline uploaded yet.</p>`}</div>`;
   const wire = (dropId, inputId, fn) => {
     const drop = $("#" + dropId), file = $("#" + inputId); if (!drop) return;
@@ -433,30 +473,60 @@ function renderTimeline() {
     ["dragleave", "drop"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove("over"); }));
     drop.addEventListener("drop", e => e.dataTransfer.files.length && fn([...e.dataTransfer.files]));
   };
-  wire("drop", "file", doUpload);
+  wire("drop", "file", stageFiles);
   wire("pdrop", "pfile", scanPhotos);
 }
 function uploadCard(u) {
   const t = u.trust, zs = u.zones || [];
   return `<div class="card"><div class="row between"><div class="grow"><h3>${dateStr(u.from)} → ${dateStr(u.to)}</h3>
-    <div class="muted small">${u.points.toLocaleString()} points · ${esc(u.format)} · ${hoursLeft(u.expires_at)}</div></div>${pill(t.level, trustLabel(t.level))}</div>
+    <div class="muted small">${fmtN(u.points)} points · ${hoursLeft(u.expires_at)}</div></div>${pill(t.level, trustLabel(t.level))}</div>
+    <div class="small srcs">${srcLine(u)}</div>
     ${t.level !== "high" && t.reasons.length ? `<ul class="muted small" style="margin:8px 0 0 18px;padding:0">${t.reasons.map(r => `<li>${esc(r)}</li>`).join("")}</ul>` : ""}
     <details><summary>Home &amp; work areas hidden from results (${zs.length})</summary>
       <p class="muted small">Any crossing inside these areas is never shown. Remove an area only if you want places there included.</p>
       ${zs.map((z, i) => `<div class="zone"><span>Area ${i + 1} · ${z.lat.toFixed(3)}, ${z.lon.toFixed(3)} · ${Math.round(z.radius_m)} m</span><button class="btn ghost sm" data-act="rmzone" data-id="${u.id}" data-i="${i}">Remove</button></div>`).join("") || `<div class="muted small">None detected.</div>`}</details>
-    <div class="row" style="margin-top:12px"><button class="btn bad sm" data-act="rmupload" data-id="${u.id}">Delete now</button></div></div>`;
+    <details><summary>Export a copy</summary><div style="margin-top:8px">${exportRow(u.id)}</div></details>
+    <div class="row" style="margin-top:12px;gap:8px"><button class="btn sm" data-act="addto" data-id="${u.id}">${ico("plus", 15, "l")}Add source</button><button class="btn bad sm" data-act="rmupload" data-id="${u.id}">Delete now</button></div></div>`;
 }
-const skippedNote = u => u.import && u.import.skipped ? ` · ${u.import.skipped} file${u.import.skipped === 1 ? "" : "s"} had no locations` : "";
-async function doUpload(files, dropId = "drop") {
-  const max = (state.cfg.max_upload_mb || 80) * 1048576, size = files.reduce((s, f) => s + f.size, 0);
-  if (size > max) return toast(`That's ${(size / 1048576).toFixed(0)} MB; the limit is ${state.cfg.max_upload_mb} MB. Choose fewer files or a shorter period.`, true);
-  $("#" + dropId).innerHTML = `<span class="spin"></span> &nbsp;Reading and checking ${files.length === 1 ? "your timeline" : files.length + " files"}…`;
-  const fd = new FormData(); files.forEach(f => fd.append("file", f, f.name));
-  await run(async () => {
-    const u = await api("/api/uploads", { method: "POST", form: fd });
-    toast("Timeline added · " + trustLabel(u.trust.level) + skippedNote(u)); state.addMode = null; await refreshAll();
-  });
+const sizeStr = b => b < 1048576 ? `${Math.max(1, Math.round(b / 1024))} KB` : `${(b / 1048576).toFixed(1)} MB`;
+const plural = (n, w) => `${n} ${w}${n === 1 ? "" : "s"}`;
+function stageFiles(files) {
+  const max = (state.cfg.max_upload_mb || 80) * 1048576;
+  const size = state.build.items.filter(i => i.kind === "files").reduce((s, i) => s + i.size, 0) + files.reduce((s, f) => s + f.size, 0);
+  if (size > max) return toast(`That's ${(size / 1048576).toFixed(0)} MB of files; the limit is ${state.cfg.max_upload_mb} MB per save. Choose fewer files, or save and add the rest after.`, true);
+  const name = (SOURCES.find(s => s.id === (state.addSrc || "google")) || {}).name || "Files";
+  state.build.items.push({ kind: "files", files, size: files.reduce((s, f) => s + f.size, 0), label: `${name}: ${plural(files.length, "file")}`,
+    detail: files.slice(0, 3).map(f => f.name).join(", ") + (files.length > 3 ? ` +${files.length - 3} more` : "") + " · " + sizeStr(files.reduce((s, f) => s + f.size, 0)) });
   renderTimeline();
+}
+async function saveBuild() {
+  const B = state.build, fd = new FormData();
+  B.items.forEach(it => {
+    if (it.kind === "files") it.files.forEach(f => fd.append("file", f, f.name));
+    if (it.kind === "photos") fd.append("file", new File([JSON.stringify({ photoPoints: it.points })], "photo-timeline.json", { type: "application/json" }));
+    if (it.kind === "upload") fd.append("merge_ids", it.id);
+  });
+  if (B.removeMerged) fd.append("remove_merged", "1");
+  const btn = $('[data-act="buildsave"]'); if (btn) { btn.disabled = true; btn.innerHTML = `<span class="spin"></span> &nbsp;Reading and combining…`; }
+  const ok = await run(async () => {
+    const u = await api(B.target ? `/api/uploads/${B.target}/sources` : "/api/uploads", { method: "POST", form: fd });
+    const skipped = u.import && u.import.skipped ? ` · ${plural(u.import.skipped, "file")} had no locations` : "";
+    toast((B.target ? `Added ${fmtN(u.import.added_points)} new points` : "Timeline saved") + " · " + trustLabel(u.trust.level) + skipped);
+    state.build = null; state.saved = u.id; await refreshAll(); return true;
+  });
+  if (!ok && btn) { btn.disabled = false; btn.textContent = "Try again"; }
+  renderTimeline();
+}
+async function exportUpload(id, kind) {
+  await run(async () => {
+    const r = await fetch(`/api/uploads/${id}/export?format=${kind}`, { headers: { Authorization: "Bearer " + state.token } });
+    if (!r.ok) { let j = null; try { j = await r.json(); } catch (e) { /* not json */ } throw new Error((j && j.error) || "Export failed (" + r.status + ")"); }
+    const name = ((r.headers.get("Content-Disposition") || "").match(/filename="([^"]+)"/) || [])[1] || `crosspaths-timeline.${kind}`;
+    const url = URL.createObjectURL(await r.blob()), a = document.createElement("a");
+    a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+    toast("Saved " + name);
+  });
 }
 
 /* ---- photo scan: GPS + time from each photo's EXIF, read in the browser ---- */
@@ -512,13 +582,14 @@ async function scanPhotos(files) {
     if (i % 25 === 0) drop.innerHTML = `<span class="spin"></span> &nbsp;Reading photo ${i + 1} of ${files.length} · ${pts.length} with a location`;
     try { const p = await photoPoint(files[i]); if (p) pts.push(p); } catch (e) { /* unreadable photo: skip */ }
   }
-  if (pts.length < 20) {
-    toast(pts.length ? `Only ${pts.length} of those photos have a location; at least 20 are needed. Choose more photos.` : "None of those photos have a location saved in them. Try photos straight from the camera, or the Android app.", true);
+  if (!pts.length) {
+    toast("None of those photos have a location saved in them. Try photos straight from the camera, or the Android app.", true);
     return renderTimeline();
   }
   pts.sort((a, b) => a.t - b.t);
-  const f = new File([JSON.stringify({ photoPoints: pts })], "photo-timeline.json", { type: "application/json" });
-  await doUpload([f], "pdrop");
+  state.build.items.push({ kind: "photos", points: pts, label: `Photos: ${plural(pts.length, "place")}`,
+    detail: `${plural(pts.length, "photo")} with a location, out of ${files.length}` + (pts.length < 20 ? " · combine with another source (at least 20 points are needed)" : "") });
+  renderTimeline();
 }
 
 /* ---------- people tab ---------- */
@@ -1623,8 +1694,22 @@ document.addEventListener("click", async e => {
       state.token = r.token; localStorage.setItem("cp_token", r.token); await boot();
     });
     case "tab": state.tab = a.dataset.t; renderTabs(); return render();
-    case "addmode": state.addMode = state.addMode === a.dataset.m ? null : a.dataset.m; return renderTimeline();
+    case "build": return startBuild(a.dataset.p);
+    case "addto": return startBuild("files", id);
+    case "buildcancel": state.build = null; return renderTimeline();
+    case "pane": state.build.pane = a.dataset.p; return renderTimeline();
     case "addsrc": state.addSrc = a.dataset.s; return renderTimeline();
+    case "unstage": state.build.items.splice(+a.dataset.i, 1); return renderTimeline();
+    case "pickup": {
+      const u = state.uploads.find(x => x.id === id), items = state.build.items, at = items.findIndex(i => i.kind === "upload" && i.id === id);
+      if (at >= 0) items.splice(at, 1);
+      else if (u) items.push({ kind: "upload", id, label: `Timeline ${dateStr(u.from)} → ${dateStr(u.to)}`, detail: `${fmtN(u.points)} points · ${u.format}` });
+      return renderTimeline();
+    }
+    case "rmmerged": state.build.removeMerged = a.checked; return;
+    case "buildsave": return saveBuild();
+    case "saveddone": state.saved = null; return renderTimeline();
+    case "export": return exportUpload(id, a.dataset.f);
     case "rmzone": return run(async () => {
       const u = state.uploads.find(x => x.id === id), zones = u.zones.filter((_, i) => i !== +a.dataset.i);
       await api(`/api/uploads/${id}/zones`, { method: "PUT", body: { zones } }); await refreshAll(); renderTimeline();
