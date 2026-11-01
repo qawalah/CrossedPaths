@@ -4,6 +4,7 @@ import Svg, { Line, Path, Rect, Text as SvgText } from "react-native-svg";
 import KindIcon from "./KindIcon";
 import { computeStats, fmtHours, hourLabel, WEEKDAYS, WEEKDAYS_LONG } from "../stats";
 import { colors, dateStr, fmtDay, fmtTime, KIND_COLOR, KIND_LABEL, UI_LOCALE, whereText } from "../theme";
+import Icon from "./Icon";
 
 // Validated on the dark panel (see the data-viz palette check): one hue for every magnitude
 // chart, a fixed categorical order for the three crossing types.
@@ -270,13 +271,14 @@ export default function StatsDashboard({ events, check, onEvent, onPlace, onCity
                 {extra ? ` · ${extra}` : ""}
               </Text>
             </View>
-            <Text style={{ color: colors.muted }}>›</Text>
+            <Icon name="next" size={16} color={colors.muted} />
           </Pressable>
         ))}
       </Card>
 
-      <Pressable onPress={onShowMap} style={{ backgroundColor: colors.accent, borderRadius: 12, paddingVertical: 13, alignItems: "center", marginTop: 6 }}>
-        <Text style={{ color: colors.onAccent, fontWeight: "700", fontSize: 15 }}>See all {st.count} on the map →</Text>
+      <Pressable onPress={onShowMap} style={{ backgroundColor: colors.accent, borderRadius: 12, paddingVertical: 13, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8, marginTop: 6 }}>
+        <Text style={{ color: colors.onAccent, fontWeight: "700", fontSize: 15 }}>See all {st.count} on the map</Text>
+        <Icon name="forward" size={18} color={colors.onAccent} />
       </Pressable>
     </ScrollView>
   );

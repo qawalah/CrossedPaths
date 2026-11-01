@@ -11,6 +11,7 @@ import { useAuth } from "../auth";
 import { Api } from "../api";
 import { boundsOf, positionAt, segmentsFeature, segmentsUntil } from "../geo";
 import { colors, fmtDay, fmtTime, MAP_STYLE_FALLBACK, tzOffsetMin } from "../theme";
+import Icon from "../components/Icon";
 
 const EMPTY_FC = { type: "FeatureCollection", features: [] };
 
@@ -195,7 +196,10 @@ export default function MyTimelineScreen({ route, navigation }) {
       <View style={{ flex: 1, backgroundColor: colors.bg, alignItems: "center", justifyContent: "center", padding: 24 }}>
         <Text style={{ color: colors.muted, textAlign: "center" }}>{loadErr}</Text>
         <Pressable onPress={() => navigation.goBack()} style={{ marginTop: 18, padding: 10 }}>
-          <Text style={{ color: colors.accent, fontWeight: "700" }}>← Back</Text>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+            <Icon name="back" size={18} color={colors.accent} />
+            <Text style={{ color: colors.accent, fontWeight: "700" }}>Back</Text>
+          </View>
         </Pressable>
       </View>
     );
@@ -211,7 +215,10 @@ export default function MyTimelineScreen({ route, navigation }) {
     return (
       <View style={{ flex: 1, backgroundColor: colors.bg, padding: 24, paddingTop: insets.top + 24 }}>
         <Pressable onPress={() => navigation.goBack()} style={{ marginBottom: 16 }}>
-          <Text style={{ color: colors.text, fontSize: 18 }}>← Back</Text>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+            <Icon name="back" size={20} />
+            <Text style={{ color: colors.text, fontSize: 16, fontWeight: "600" }}>Back</Text>
+          </View>
         </Pressable>
         <Text style={{ color: colors.muted, textAlign: "center", marginTop: 20 }}>This timeline has no points to show.</Text>
       </View>
@@ -222,7 +229,7 @@ export default function MyTimelineScreen({ route, navigation }) {
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <View style={{ flexDirection: "row", alignItems: "center", padding: 12, paddingTop: insets.top + 12, gap: 10 }}>
         <Pressable onPress={() => navigation.goBack()} style={{ padding: 6 }}>
-          <Text style={{ color: colors.text, fontSize: 18 }}>←</Text>
+          <Icon name="back" size={22} />
         </Pressable>
         <View style={{ flex: 1 }}>
           <Text style={{ color: colors.text, fontWeight: "800", fontSize: 16 }}>My timeline</Text>
@@ -292,8 +299,9 @@ export default function MyTimelineScreen({ route, navigation }) {
                     {dayPts.length ? `${dayLabel} · ${fmtTime(new Date((mePos ? mePos.t : tMin) * 1000))}` : dayLabel ? `${dayLabel} · no points recorded` : "Pick a day on the bar above"}
                   </Text>
                   {dayPts.length ? (
-                    <Pressable onPress={togglePlay}>
-                      <Text style={{ color: colors.accent, fontWeight: "700", fontSize: 12 }}>{playing ? "❚❚ Pause" : "▶ Play"}</Text>
+                    <Pressable onPress={togglePlay} hitSlop={10} style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+                      <Icon name={playing ? "pause" : "play"} size={14} color={colors.accent} strokeWidth={2.2} />
+                      <Text style={{ color: colors.accent, fontWeight: "700", fontSize: 12 }}>{playing ? "Pause" : "Play"}</Text>
                     </Pressable>
                   ) : null}
                 </View>
@@ -338,10 +346,11 @@ export default function MyTimelineScreen({ route, navigation }) {
               <Text style={{ color: colors.muted, fontSize: 11, marginTop: 4 }}>Place search uses OpenStreetMap and sends your search text there.</Text>
               <Pressable
                 onPress={() => setPickMode((v) => !v)}
-                style={{ marginTop: 10, padding: 10, borderRadius: 10, backgroundColor: pickMode ? colors.accent : colors.panel2, borderWidth: 1, borderColor: pickMode ? colors.accent : colors.line, alignItems: "center" }}
+                style={{ marginTop: 10, padding: 10, borderRadius: 10, backgroundColor: pickMode ? colors.accent : colors.panel2, borderWidth: 1, borderColor: pickMode ? colors.accent : colors.line, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6 }}
               >
+                <Icon name="pin" size={17} color={pickMode ? colors.onAccent : colors.text} />
                 <Text style={{ color: pickMode ? colors.onAccent : colors.text, fontWeight: "700", fontSize: 13 }}>
-                  {pickMode ? "Tap a point on the map above…" : "📍 Or tap a point on the map above"}
+                  {pickMode ? "Tap a point on the map above…" : "Or tap a point on the map above"}
                 </Text>
               </Pressable>
               <Text style={{ color: colors.text, marginTop: 12, fontSize: 13 }}>

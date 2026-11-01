@@ -3,11 +3,13 @@ import { ScrollView, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Button from "../components/Button";
 import Card from "../components/Card";
+import JourneyFlow from "../components/JourneyFlow";
 import Pill from "../components/Pill";
 import { useToast } from "../components/Toast";
 import { confirm } from "../components/confirm";
 import { Api } from "../api";
 import { colors } from "../theme";
+import Icon from "../components/Icon";
 
 export default function PeopleScreen({ navigation, data, uploads }) {
   const { connections, refresh } = data;
@@ -68,13 +70,17 @@ export default function PeopleScreen({ navigation, data, uploads }) {
       style={{ flex: 1, backgroundColor: colors.bg }}
       contentContainerStyle={{ padding: 16, paddingTop: insets.top + 16, paddingBottom: 100 }}
     >
+      <JourneyFlow data={data} navigation={navigation} />
       <Text style={{ color: colors.text, fontSize: 24, fontWeight: "800" }}>People</Text>
       <Text style={{ color: colors.muted, marginTop: 6, marginBottom: 16, lineHeight: 20 }}>
         Send a request to a username. They must accept before anything can be compared.
       </Text>
 
       <Card>
-        <Text style={{ color: colors.text, fontWeight: "800", fontSize: 16 }}>🤝 Meet in person</Text>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+          <Icon name="nearby" size={20} color={colors.accent} />
+          <Text style={{ color: colors.text, fontWeight: "800", fontSize: 16 }}>Meet in person</Text>
+        </View>
         <Text style={{ color: colors.muted, fontSize: 13, marginTop: 4, lineHeight: 18 }}>
           With someone right now? Scan each other's code or shake your phones together - you're connected and your paths are
           checked in one go.
