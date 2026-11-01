@@ -1380,14 +1380,25 @@ function roadsList() {
 async function roadsRefresh() {
   try { ROADS.data = await api("/api/admin/roads"); roadsList(); } catch (e) { stopRoadsPoll(); toast(e.message, true); }
 }
+// Geofabrik has no extract of its own for some countries; they sit inside a bigger region.
+// Search terms (country, big cities) that should find that region, and what to show under it.
+const ROADS_ALIASES = {
+  "gcc states": "saudi arabia ksa kuwait qatar bahrain oman united arab emirates uae emirates riyadh jeddah mecca makkah medina dammam dubai abu dhabi sharjah doha kuwait city manama muscat",
+  "israel and palestine": "israel palestine gaza west bank jerusalem tel aviv",
+};
+const ROADS_COVERS = {
+  "gcc states": "Covers Saudi Arabia, Kuwait, Qatar, Bahrain, Oman and the UAE",
+  "israel and palestine": "Covers Israel and the Palestinian territories",
+};
 function roadsResults() {
   const box = $("#rdres"), q = ($("#rdq") || {}).value || ""; if (!box) return;
   if (!q.trim()) { box.innerHTML = ""; return; }
   if (!ROADS.catalog) { box.innerHTML = `<p class="muted small"><span class="spin"></span> Loading the list…</p>`; return; }
   const ql = q.trim().toLowerCase(), have = new Set((ROADS.data ? ROADS.data.regions : []).map(r => r.region_id));
   const busy = ROADS.data && ROADS.data.regions.some(r => r.state === "downloading" || r.state === "building");
-  const hits = ROADS.catalog.filter(c => c.name.toLowerCase().includes(ql)).sort((a, b) => (b.name.toLowerCase().startsWith(ql)) - (a.name.toLowerCase().startsWith(ql))).slice(0, 25);
-  box.innerHTML = hits.length ? hits.map(c => `<div class="zone"><span>${esc(c.name)}${c.parent ? ` <span class="muted small">· ${esc(c.parent)}</span>` : ""}</span>
+  const hay = c => (c.name + " " + (ROADS_ALIASES[c.name.toLowerCase()] || "")).toLowerCase();
+  const hits = ROADS.catalog.filter(c => hay(c).includes(ql)).sort((a, b) => (b.name.toLowerCase().startsWith(ql)) - (a.name.toLowerCase().startsWith(ql))).slice(0, 25);
+  box.innerHTML = hits.length ? hits.map(c => `<div class="zone"><span>${esc(c.name)}${c.parent ? ` <span class="muted small">· ${esc(c.parent)}</span>` : ""}${ROADS_ALIASES[c.name.toLowerCase()] ? `<div class="muted small">${esc(ROADS_COVERS[c.name.toLowerCase()] || "")}</div>` : ""}</span>
       ${have.has(c.id) ? `<span class="muted small">Added</span>` : `<button class="btn ghost sm" data-rdadd="${esc(c.id)}" data-name="${esc(c.name)}" ${busy ? "disabled" : ""}>Add</button>`}</div>`).join("")
     : `<p class="muted small">Nothing matches “${esc(q)}”.</p>`;
 }
