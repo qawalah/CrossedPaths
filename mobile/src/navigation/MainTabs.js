@@ -5,6 +5,7 @@ import TabScene from "../components/TabScene";
 import { journey } from "../journey";
 import AccountScreen from "../screens/AccountScreen";
 import ChecksScreen from "../screens/ChecksScreen";
+import MyMapScreen from "../screens/MyMapScreen";
 import PeopleScreen from "../screens/PeopleScreen";
 import TimelineScreen from "../screens/TimelineScreen";
 
@@ -24,10 +25,11 @@ export default function MainTabs({ data }) {
           </TabScene>
         )}
       </Tab.Screen>
-      <Tab.Screen name="People">
+      {/* five tabs: Import · My Map · Checks (raised, in the middle) · People · Account */}
+      <Tab.Screen name="MyMap">
         {(props) => (
           <TabScene index={1}>
-            <PeopleScreen {...props} data={data} uploads={data.uploads} />
+            <MyMapScreen {...props} data={data} />
           </TabScene>
         )}
       </Tab.Screen>
@@ -38,9 +40,16 @@ export default function MainTabs({ data }) {
           </TabScene>
         )}
       </Tab.Screen>
-      <Tab.Screen name="Account">
+      <Tab.Screen name="People">
         {(props) => (
           <TabScene index={3}>
+            <PeopleScreen {...props} data={data} uploads={data.uploads} />
+          </TabScene>
+        )}
+      </Tab.Screen>
+      <Tab.Screen name="Account">
+        {(props) => (
+          <TabScene index={4}>
             <AccountScreen {...props} />
           </TabScene>
         )}
