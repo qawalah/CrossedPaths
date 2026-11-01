@@ -1,50 +1,47 @@
-# Fly.io config for the CrossPaths server. Deploy from this folder: `fly deploy`.
-# Setup steps are in DEPLOY-FLY.md.
+# fly.toml app configuration file generated for crossedpaths on 2026-11-01T15:00:44Z
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
 
-app = "crosspaths"            # must be unique on Fly; change it if taken
-primary_region = "fra"        # pick the region closest to your users (`fly platform regions`)
+app = 'crossedpaths'
+primary_region = 'fra'
 
 [build]
-  dockerfile = "Dockerfile"
+  dockerfile = 'Dockerfile'
 
 [env]
-  DATA_DIR = "/data"
-  ALLOW_REGISTRATION = "true"
-  MAP_STYLE_URL = "https://tiles.openfreemap.org/styles/liberty"
-  MAX_UPLOAD_MB = "80"
-  UPLOAD_TTL_HOURS = "24"
-  UPLOAD_KEEP_MAX_DAYS = "0"
-  RESULTS_TTL_DAYS = "14"
-  BLUR_M = "100"
-  PLACE_NAMES = "true"
-  STREET_SNAP = "true"
-  ROADS_MAX_DOWNLOAD_MB = "1500"
-  ADMIN_HANDLES = ""          # your username here to manage street maps in Settings
-  # SECRET_KEY, DATA_KEY and INVITE_CODE are secrets: set them with `fly secrets set`.
+  ADMIN_HANDLES = ''
+  ALLOW_REGISTRATION = 'true'
+  BLUR_M = '100'
+  DATA_DIR = '/data'
+  MAP_STYLE_URL = 'https://tiles.openfreemap.org/styles/liberty'
+  MAX_UPLOAD_MB = '80'
+  PLACE_NAMES = 'true'
+  RESULTS_TTL_DAYS = '14'
+  ROADS_MAX_DOWNLOAD_MB = '1500'
+  STREET_SNAP = 'true'
+  UPLOAD_KEEP_MAX_DAYS = '0'
+  UPLOAD_TTL_HOURS = '24'
 
-# SQLite + keys.json + uploads live here. Losing this volume signs everyone out
-# and makes stored uploads unreadable.
 [[mounts]]
-  source = "crosspaths_data"
-  destination = "/data"
-  initial_size = "3gb"        # street maps need room per country; grow with `fly volumes extend`
+  source = 'crosspaths_data'
+  destination = '/data'
+  initial_size = '3gb'
 
 [http_service]
   internal_port = 8787
   force_https = true
-  # Never stop the machine: matching jobs and the purge loop run in background threads.
-  auto_stop_machines = "off"
+  auto_stop_machines = 'off'
   auto_start_machines = true
   min_machines_running = 1
 
   [[http_service.checks]]
-    grace_period = "20s"
-    interval = "60s"
-    timeout = "5s"
-    method = "GET"
-    path = "/api/config"
+    interval = '1m0s'
+    timeout = '5s'
+    grace_period = '20s'
+    method = 'GET'
+    path = '/api/config'
 
-# One machine only: SQLite on a single volume can't be shared.
 [[vm]]
-  size = "shared-cpu-1x"
-  memory = "1gb"
+  size = 'shared-cpu-1x'
+  memory = '1gb'
