@@ -7,10 +7,11 @@ import threading
 import time
 from functools import wraps
 
-from flask import Flask, abort, g, jsonify, request, send_from_directory
+from flask import Flask, Response, abort, g, jsonify, request, send_from_directory
 
 from crosspaths.geo import haversine_m
-from crosspaths.importers import Limits, parse_files
+from crosspaths.exporters import FORMATS as EXPORT_FORMATS
+from crosspaths.importers import FRIENDLY, Limits, merge_points, parse_files, sources_of
 from crosspaths.privacy import detect_anchor_zones
 from crosspaths.spoofcheck import assess
 
@@ -226,51 +227,157 @@ def create_app(overrides=None, start_background=True):
                 "from": r["ts_min"], "to": r["ts_max"], "created_at": r["created_at"],
                 "expires_at": None if r["purge_after"] >= retention.FOREVER else r["purge_after"], "expired": r["purged_at"] is not None,
                 "trust": {"level": r["trust_level"], "score": r["trust_score"], "reasons": reasons},
-                "zones": json.loads(r["zones"] or "[]")}
+                "zones": json.loads(r["zones"] or "[]"), "sources": sources_list(r)}
 
-    @app.post("/api/uploads")
-    @auth
-    def upload():
+    def sources_list(r):
+        """What a timeline was built from. Uploads from before 0.13.0 didn't record it: one source."""
+        try:
+            got = json.loads(r["sources"]) if r["sources"] else None
+        except (TypeError, ValueError):
+            got = None
+        return got or [{"label": FRIENDLY.get(r["fmt"], r["fmt"]), "files": 1, "points": r["points_count"], "added_at": r["created_at"]}]
+
+    def combine_sources(lists):
+        """Same kind of source added twice (two Strava imports) shows once, with the totals."""
+        out = {}
+        for e in lists:
+            o = out.setdefault(e["label"], {"label": e["label"], "files": 0, "points": 0, "added_at": e.get("added_at")})
+            o["files"] += int(e.get("files") or 0)
+            o["points"] += int(e.get("points") or 0)
+            o["added_at"] = min(x for x in (o["added_at"], e.get("added_at")) if x is not None) if e.get("added_at") is not None else o["added_at"]
+        return sorted(out.values(), key=lambda e: -e["points"])
+
+    def gather_sources(skip_id=None):
+        """Points from this request: uploaded files (any format, photo scans included) plus other
+        timelines of yours named in merge_ids. Returns (points, sources, import report, merged rows)."""
         files = [f for f in request.files.getlist("file") if f]
-        if not files:
-            err("Attach your location file(s) as 'file'")
+        ids = []
+        for v in request.form.getlist("merge_ids"):
+            ids += [x for x in v.split(",") if x and x != skip_id and x not in ids]
+        if not files and not ids:
+            err("Choose at least one source: a file, a photo scan or one of your timelines")
         if len(files) > 2000:
             err("Too many files at once (limit 2000). Zip them, or upload them in a few goes.")
-        limit("upload", app.config["LIMIT_UPLOADS_PER_DAY"])
-        mb = app.config["MAX_UPLOAD_MB"] * 1024 * 1024
-        try:
-            # Zips are read one file at a time; cap what they may expand to on a small host.
-            track, imported = parse_files(((f.filename, f.read()) for f in files),
-                                        Limits(max_entry_bytes=2 * mb, max_total_bytes=8 * mb))
-        except ValueError:
-            err("Couldn't find any time-stamped locations in " + ("this file" if len(files) == 1 else "these files") +
-                ". Use a Google Maps Timeline export, or GPX, TCX, FIT, KML, GeoJSON or CSV files with times "
-                "(from Strava, Apple Health, Garmin, Samsung Health, Swarm and similar apps).")
-        if len(track) < 20:
-            err("That file contains too few location points to compare.")
-        pts = track.points
+        if len(ids) > 50:
+            err("Too many timelines at once (limit 50)")
+        now, pts, sources, imported, rows = time.time(), [], [], None, []
+        if files:
+            mb = app.config["MAX_UPLOAD_MB"] * 1024 * 1024
+            try:
+                # Zips are read one file at a time; cap what they may expand to on a small host.
+                track, imported = parse_files(((f.filename, f.read()) for f in files),
+                                              Limits(max_entry_bytes=2 * mb, max_total_bytes=8 * mb))
+            except ValueError:
+                err("Couldn't find any time-stamped locations in " + ("this file" if len(files) == 1 else "these files") +
+                    ". Use a Google Maps Timeline export, or GPX, TCX, FIT, KML, GeoJSON or CSV files with times "
+                    "(from Strava, Apple Health, Garmin, Samsung Health, Swarm and similar apps).")
+            pts += track.points
+            sources += sources_of(imported, now)
+        for i in ids:
+            r = own_upload(i)
+            if r["purged_at"] is not None:
+                err("One of those timelines has expired or was deleted. Choose it again from the list.", 410)
+            pts += load_points(app.config, i)
+            sources += sources_list(r)
+            rows.append(r)
+        return merge_points(pts), sources, imported, rows
+
+    def save_timeline(pts, sources, existing=None):
+        """Score, protect (home/work zones) and store a timeline; update `existing` in place if given."""
+        if len(pts) < 20:
+            err("That's too few location points to compare (at least 20 are needed).")
         report = assess(pts)
         score, level, reasons = report.score, report.level, list(report.reasons)
-
         sha = hashlib.sha256(json.dumps([[round(p.t), round(p.lat, 5), round(p.lon, 5)] for p in pts[:2000]]).encode()).hexdigest()
         db = get_db()
         if db.execute("SELECT 1 FROM uploads WHERE sha256=? AND user_id<>?", (sha, g.user["id"])).fetchone():
             score, level = min(score, 20), "low"
             reasons.append("Same timeline was uploaded by a different account")
-
-        zones = [{"lat": z.lat, "lon": z.lon, "radius_m": z.radius_m, "label": "auto"} for z in detect_anchor_zones(pts)]
-        uid = new_id()
-        save_points(app.config, uid, pts)
+        auto = [{"lat": z.lat, "lon": z.lon, "radius_m": z.radius_m, "label": "auto"} for z in detect_anchor_zones(pts)]
+        if existing is not None:
+            # Keep the person's own edits; only add home/work areas the new data reveals.
+            zones = json.loads(existing["zones"] or "[]")
+            zones += [z for z in auto if all(haversine_m(z["lat"], z["lon"], k["lat"], k["lon"]) > max(z["radius_m"], k["radius_m"]) for k in zones)]
+        else:
+            zones = auto
+        sources = combine_sources(sources)
+        fmt = ", ".join(e["label"] for e in sources)[:120]
         now = time.time()
-        db.execute("INSERT INTO uploads (id, user_id, fmt, points_count, ts_min, ts_max, trust_score, trust_level, trust_reasons, sha256, zones, created_at, purge_after) "
-                   "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
-                   (uid, g.user["id"], track.fmt, len(pts), pts[0].t, pts[-1].t, score, level, json.dumps(reasons), sha,
-                    json.dumps(zones), now, retention.purge_time(now, retention.keep_hours(app.config, g.user))))
-        audit(db, g.user["id"], "upload", uid, {"points": len(pts), "trust": level})
+        purge = retention.purge_time(now, retention.keep_hours(app.config, g.user))
+        uid = existing["id"] if existing is not None else new_id()
+        save_points(app.config, uid, pts)
+        if existing is not None:
+            db.execute("UPDATE uploads SET fmt=?, points_count=?, ts_min=?, ts_max=?, trust_score=?, trust_level=?, trust_reasons=?, "
+                       "sha256=?, zones=?, purge_after=?, sources=? WHERE id=?",
+                       (fmt, len(pts), pts[0].t, pts[-1].t, score, level, json.dumps(reasons), sha, json.dumps(zones), purge,
+                        json.dumps(sources), uid))
+        else:
+            db.execute("INSERT INTO uploads (id, user_id, fmt, points_count, ts_min, ts_max, trust_score, trust_level, trust_reasons, "
+                       "sha256, zones, created_at, purge_after, sources) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                       (uid, g.user["id"], fmt, len(pts), pts[0].t, pts[-1].t, score, level, json.dumps(reasons), sha,
+                        json.dumps(zones), now, purge, json.dumps(sources)))
+        return uid, level
+
+    def finish(uid, level, imported, merged, action):
+        db = get_db()
+        removed = []
+        if request.form.get("remove_merged") in ("1", "true") and merged:
+            for r in merged:            # the person chose to fold those timelines into this one
+                delete_points(app.config, r["id"])
+                db.execute("UPDATE uploads SET purged_at=? WHERE id=?", (time.time(), r["id"]))
+                removed.append(r["id"])
+        row = db.execute("SELECT * FROM uploads WHERE id=?", (uid,)).fetchone()
+        audit(db, g.user["id"], action, uid, {"points": row["points_count"], "trust": level, "merged": len(merged), "removed": len(removed)})
         db.commit()
-        out = upload_dict(db.execute("SELECT * FROM uploads WHERE id=?", (uid,)).fetchone())
-        out["import"] = {"formats": imported.formats, "skipped": len(imported.skipped), "skipped_names": imported.skipped[:5]}
-        return jsonify(out), 201
+        out = upload_dict(row)
+        out["import"] = {"formats": imported.formats if imported else {}, "skipped": len(imported.skipped) if imported else 0,
+                         "skipped_names": imported.skipped[:5] if imported else [], "removed": removed}
+        return out
+
+    @app.post("/api/uploads")
+    @auth
+    def upload():
+        """A new timeline from one or more sources: files, a photo scan, and/or your other timelines."""
+        request.files  # read the body first, so an oversized upload is "too large" (413), not a used-up try
+        limit("upload", app.config["LIMIT_UPLOADS_PER_DAY"])
+        pts, sources, imported, merged = gather_sources()
+        uid, level = save_timeline(pts, sources)
+        return jsonify(finish(uid, level, imported, merged, "upload")), 201
+
+    @app.post("/api/uploads/<upload_id>/sources")
+    @auth
+    def add_sources(upload_id):
+        """Add more sources to a timeline you already have. Its points are combined and re-checked."""
+        existing = own_upload(upload_id)
+        if existing["purged_at"] is not None:
+            err("That timeline has expired. Please build it again.", 410)
+        request.files
+        limit("upload", app.config["LIMIT_UPLOADS_PER_DAY"])
+        pts, sources, imported, merged = gather_sources(skip_id=upload_id)
+        before = len(load_points(app.config, upload_id))
+        all_pts = merge_points(load_points(app.config, upload_id) + pts)
+        uid, level = save_timeline(all_pts, sources_list(existing) + sources, existing)
+        out = finish(uid, level, imported, merged, "add_sources")
+        out["import"]["added_points"] = len(all_pts) - before
+        return jsonify(out)
+
+    @app.get("/api/uploads/<upload_id>/export")
+    @auth
+    def export_upload(upload_id):
+        """Download your own timeline (all its sources combined) as GPX, GeoJSON or CSV."""
+        u = own_upload(upload_id)
+        if u["purged_at"] is not None:
+            err("That upload has expired. Please upload your timeline again.", 410)
+        kind = (request.args.get("format") or "gpx").lower()
+        if kind not in EXPORT_FORMATS:
+            err("format must be gpx, geojson or csv")
+        write, mime = EXPORT_FORMATS[kind]
+        pts = load_points(app.config, upload_id)
+        day = time.strftime("%Y-%m-%d", time.gmtime(u["ts_min"] or 0))
+        audit(get_db(), g.user["id"], "export", upload_id, {"format": kind})
+        get_db().commit()
+        return Response(write(pts), mimetype=mime,
+                        headers={"Content-Disposition": f'attachment; filename="crosspaths-timeline-{day}.{kind}"'})
 
     @app.get("/api/uploads")
     @auth
