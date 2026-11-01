@@ -23,7 +23,7 @@ Server (from `server/`):
 
 ```bash
 pip install -r requirements.txt pytest
-python -m pytest -q                  # 55 tests, no network (PLACE_NAMES=False)
+python -m pytest -q                  # 65 tests, no network (PLACE_NAMES=False)
 DATA_DIR=./data python -c "from server.app import create_app; create_app().run(port=8787)"
 ```
 
@@ -65,6 +65,9 @@ read its log in the Actions tab and fix it.
 - Privacy: nothing is compared without both people's consent; the API never returns the other
   person's track; times rounded to 15 min, places blurred ~100 m; home/work zones excluded;
   uploads encrypted at rest and purged per the user's retention setting.
+- Street maps (journeys drawn along roads) route on the server with Valhalla from OpenStreetMap
+  data an admin downloads (`server/roads.py`, `crosspaths/snap.py`). Display only, never sent to
+  a public router, never used for matching.
 - Place names come from offline GeoNames on the server. Street names are fetched client-side,
   only on tap.
 - Maps are MapLibre + OpenFreeMap on both clients, not Google Maps. In GL JS, never pass

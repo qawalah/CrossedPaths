@@ -17,6 +17,11 @@ services:
       # Offline neighbourhood/city names for crossings. Downloads GeoNames place lists once
       # into ./data/places (world towns ~40 MB, plus one small file per country you cross in).
       PLACE_NAMES: ${PLACE_NAMES:-true}
+      # Usernames (comma-separated) who see the admin part of Settings (street maps).
+      ADMIN_HANDLES: ${ADMIN_HANDLES:-}
+      # Draw journeys along streets in countries an admin downloaded (into ./data/roads).
+      STREET_SNAP: ${STREET_SNAP:-true}
+      ROADS_MAX_DOWNLOAD_MB: ${ROADS_MAX_DOWNLOAD_MB:-1500}
     volumes:
       - ./data:/data
       # Code is bind-mounted read-only so most updates are copy-files-and-restart, no
@@ -25,7 +30,9 @@ services:
       - ./crosspaths:/app/crosspaths:ro
       - ./wsgi.py:/app/wsgi.py:ro
       - ./VERSION:/app/VERSION:ro
-    mem_limit: 900m
+    # Preparing a street map needs 1-4 GB for a while (more for big countries); the app itself
+    # stays well under 900 MB. Raise this if a map fails with "ran out of memory".
+    mem_limit: 1500m
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8787/api/config', timeout=3)"]
       interval: 60s

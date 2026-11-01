@@ -7,6 +7,24 @@ migration), MINOR for new features, PATCH for bugfixes. Pre-1.0, expect MINOR bu
 To check what's running on your server, visit `/api/config` — it reports the running
 `version`. That's the number to compare against this file when deciding whether to update.
 
+## 0.13.0
+- **Street maps: journeys follow the roads.** Sparse histories (Google Timeline above all) keep
+  a trip as a handful of points, so the map drew straight lines through buildings and water.
+  Now, in countries the admin has downloaded, those stretches are drawn along the streets, both
+  on the results replay and in My Timeline. Trains, flights and ferries keep straight lines
+  (Google's travel mode is now read and stored; without it, routes much longer than the straight
+  line are rejected). Matching is unchanged: this only affects how your own path is drawn.
+- **Admins.** New `ADMIN_HANDLES` setting (comma-separated usernames). Admins see *Settings →
+  Server (admin) → Street maps* on the web, where they pick countries or regions from
+  Geofabrik's list. The server downloads the OpenStreetMap extract, prepares routing data in the
+  background (progress shown) into `data/roads/`, and can update or remove it later. Routing runs
+  inside the server with Valhalla (`pyvalhalla`); nobody's path leaves it.
+- New settings: `STREET_SNAP` (default on), `ROADS_MAX_DOWNLOAD_MB` (default 1500),
+  `ROADS_CATALOG_URL`. `mem_limit` in `docker-compose.yml` goes from 900m to 1500m because
+  preparing a map needs more memory for a while.
+- **Rebuild needed:** `requirements.txt` changed (the image is about 260 MB larger).
+- Check results from before a map was added keep straight lines until the check is run again.
+
 ## 0.12.0
 - **Import from more apps.** Uploads now accept GPX, TCX, FIT, KML/KMZ, GeoJSON and CSV files
   as well as Google Maps Timeline JSON, so routes from Strava, Apple Health, Samsung Health,
