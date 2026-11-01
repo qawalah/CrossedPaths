@@ -7,6 +7,12 @@ migration), MINOR for new features, PATCH for bugfixes. Pre-1.0, expect MINOR bu
 To check what's running on your server, visit `/api/config` — it reports the running
 `version`. That's the number to compare against this file when deciding whether to update.
 
+## 0.17.1
+- **Street maps: search finds countries that Geofabrik bundles.** Saudi Arabia, Kuwait, Qatar,
+  Bahrain, Oman and the UAE are one download called "GCC States" (searching "Saudi" found
+  nothing), and Israel and Palestine are one region. The search now also matches those country
+  names and a few big cities, and says what each region covers.
+
 ## 0.17.0 (Android 1.12.0)
 - **Android: a tutorial on first start.** Five full-screen cards you swipe through: the animated
   crossing, then Import, Connect, Check together and See where you crossed, each with its own
