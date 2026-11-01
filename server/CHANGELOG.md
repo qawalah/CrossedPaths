@@ -7,6 +7,17 @@ migration), MINOR for new features, PATCH for bugfixes. Pre-1.0, expect MINOR bu
 To check what's running on your server, visit `/api/config` — it reports the running
 `version`. That's the number to compare against this file when deciding whether to update.
 
+## 0.13.0
+- **A guided path in the web client.** A four-step strip under the header (timeline → connect →
+  check → crossings) shows where you are and what to do next, with a button for that step. It
+  fills in as steps are done and disappears once you have a finished check.
+- **"Run a check" invitation.** When you have a timeline and a connection you haven't checked
+  with yet (or someone is waiting for your agreement), the Checks tab icon pulses and the Checks
+  page opens with a card to start the check in one tap.
+- **Motion.** Tabs switch with a sliding indicator and the page slides in from the side of the
+  tab you picked; the results page rises in and out, and its Summary / Map switch slides too.
+  All of it respects the system "reduce motion" setting.
+
 ## 0.12.0
 - **Import from more apps.** Uploads now accept GPX, TCX, FIT, KML/KMZ, GeoJSON and CSV files
   as well as Google Maps Timeline JSON, so routes from Strava, Apple Health, Samsung Health,

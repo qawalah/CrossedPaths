@@ -2,6 +2,9 @@ import React from "react";
 import { FlatList, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Button from "../components/Button";
+import CheckInvite from "../components/CheckInvite";
+import JourneyFlow from "../components/JourneyFlow";
+import { journey } from "../journey";
 import Card from "../components/Card";
 import Pill from "../components/Pill";
 import { useToast } from "../components/Toast";
@@ -13,6 +16,7 @@ export default function ChecksScreen({ navigation, data }) {
   const { checks, refresh } = data;
   const insets = useSafeAreaInsets();
   const toast = useToast();
+  const j = journey(data);
 
   async function remove(id) {
     if (!(await confirm("Delete this check?", "Its results are deleted for both of you."))) return;
@@ -32,10 +36,13 @@ export default function ChecksScreen({ navigation, data }) {
       keyExtractor={(c) => c.id}
       ListHeaderComponent={
         <View>
+          {/* the invitation card below already says what to do, so the strip keeps quiet */}
+          <JourneyFlow data={data} navigation={navigation} hideHint={j.invite && j.current === 2} />
           <Text style={{ color: colors.text, fontSize: 24, fontWeight: "800" }}>Checks</Text>
           <Text style={{ color: colors.muted, marginTop: 6, marginBottom: 10, lineHeight: 20 }}>
             Each check runs only after both of you agree.
           </Text>
+          <CheckInvite j={j} uploads={data.uploads} navigation={navigation} />
         </View>
       }
       ListEmptyComponent={

@@ -29,9 +29,21 @@ header.top{padding:14px 18px 6px;display:flex;align-items:center;justify-content
 .brand img{width:30px;height:30px;border-radius:8px;flex:none}
 #view{flex:1;overflow:auto;padding:8px 16px 96px;-webkit-overflow-scrolling:touch}
 nav.tabs{position:fixed;left:0;right:0;bottom:0;display:flex;background:var(--chrome);backdrop-filter:blur(12px);border-top:1px solid var(--line);padding-bottom:var(--sab);z-index:5}
-nav.tabs button{flex:1;background:none;border:0;padding:10px 4px 9px;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:2px;font-size:12px;position:relative}
-nav.tabs button svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-nav.tabs button.on{color:var(--accent)}
+nav.tabs .tabbtns{flex:1;display:flex;position:relative;z-index:1}
+nav.tabs button{flex:1;background:none;border:0;padding:10px 4px 9px;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:5px;font-size:12px;position:relative;cursor:pointer;transition:color .25s}
+nav.tabs button svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;display:block}
+nav.tabs button.on{color:var(--accent);font-weight:650}
+nav.tabs button:focus-visible{outline:2px solid var(--accent);outline-offset:-4px;border-radius:12px}
+nav.tabs button.pop svg{animation:tabpop .45s cubic-bezier(.16,1,.3,1)}
+/* the selected tab's pill slides from tab to tab (Material-style active indicator) */
+.tabind{position:absolute;top:5px;left:0;height:32px;width:calc(100% / var(--n,4));pointer-events:none;transform:translateX(calc(var(--i,0) * 100%));transition:transform .48s cubic-bezier(.16,1,.3,1)}
+.tabind::before{content:"";position:absolute;left:50%;top:0;width:60px;height:32px;margin-left:-30px;border-radius:16px;background:var(--hit);background:color-mix(in srgb,var(--accent) 17%,transparent)}
+.ti{position:relative;display:block;width:22px;height:22px}
+/* "a check is ready": the Checks icon breathes and sends out rings, like two paths meeting */
+nav.tabs button.inv{color:var(--accent)}
+nav.tabs button.inv svg{animation:breathe 2.4s ease-in-out infinite}
+nav.tabs button.inv .ti::before,nav.tabs button.inv .ti::after,.radar::before,.radar::after{content:"";position:absolute;inset:-3px;border-radius:50%;border:2px solid var(--accent);opacity:0;pointer-events:none;animation:invite 2.4s cubic-bezier(.16,1,.3,1) infinite}
+nav.tabs button.inv .ti::after,.radar::after{animation-delay:1.2s}
 nav.tabs .dot{position:absolute;top:6px;right:calc(50% - 20px);min-width:16px;height:16px;border-radius:8px;background:var(--bad);color:#fff;font-size:10px;display:flex;align-items:center;justify-content:center;padding:0 4px}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin:10px 0;animation:rise .35s ease both}
 .card h3{font-size:16px;margin-bottom:4px}
@@ -75,7 +87,7 @@ a{color:var(--accent2)}
 details summary{cursor:pointer;color:var(--accent2);font-size:13px;margin-top:8px}
 .zone{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-top:1px solid var(--line);font-size:13px}
 /* results */
-#results{position:fixed;inset:0;z-index:10;background:var(--bg);display:flex;flex-direction:column;padding-top:var(--sat);animation:fade .25s ease both}
+#results{position:fixed;inset:0;z-index:10;background:var(--bg);display:flex;flex-direction:column;padding-top:var(--sat);animation:pagein .42s cubic-bezier(.16,1,.3,1) both}
 #results .bar{display:flex;align-items:center;gap:10px;padding:10px 14px}
 #results .bar h2{font-size:16px}
 [hidden]{display:none!important}
@@ -133,8 +145,9 @@ details summary{cursor:pointer;color:var(--accent2);font-size:13px;margin-top:8p
 .fchip.on{background:var(--accent);border-color:var(--accent);color:var(--onaccent)}.fchip.on .muted{color:var(--onaccent)}
 .legend .lg{display:flex;gap:12px;padding:10px 0;border-top:1px solid var(--line)}
 /* results dashboard */
-.rtabs{display:flex;gap:4px;margin:0 14px 8px;background:var(--panel2);border-radius:12px;padding:3px}
-.rtabs button{flex:1;border:0;background:none;color:var(--muted);font-weight:650;padding:8px;border-radius:10px;cursor:pointer}.rtabs button.on{background:var(--panel);color:var(--text)}
+.rtabs{display:flex;gap:0;margin:0 14px 8px;background:var(--panel2);border-radius:12px;padding:3px;position:relative}
+.rtabs::before{content:"";position:absolute;top:3px;bottom:3px;left:3px;width:calc((100% - 6px) / 2);border-radius:10px;background:var(--panel);box-shadow:0 1px 3px var(--shadow);transform:translateX(calc(var(--i,0) * 100%));transition:transform .4s cubic-bezier(.16,1,.3,1)}
+.rtabs button{flex:1;border:0;background:none;color:var(--muted);font-weight:650;padding:8px;border-radius:10px;cursor:pointer;position:relative;transition:color .25s}.rtabs button.on{color:var(--text)}
 .stats{flex:1;overflow:auto;padding:4px 14px calc(18px + var(--sab));position:relative}
 .vhero{padding:10px 4px 14px}.hero-n{font-size:64px;font-weight:800;line-height:1;letter-spacing:-1px}.hero-l{font-size:16px;margin:6px 0 4px;color:var(--text)}
 .vempty{text-align:center;padding:40px 10px}
@@ -182,21 +195,61 @@ details summary{cursor:pointer;color:var(--accent2);font-size:13px;margin-top:8p
 .mk:after{content:"";position:absolute;left:6px;top:6px;width:10px;height:10px;border-radius:50%;background:var(--warn);border:2px solid #fff}
 .mk.sel:after{background:var(--accent)}
 .me{width:16px;height:16px;border-radius:50%;background:var(--accent2);border:3px solid #fff;box-shadow:0 0 0 6px rgba(96,165,250,.3)}
+/* the journey: timeline → connect → check → crossings */
+#flow{padding:2px 16px 4px}
+@media(min-width:900px){#flow{max-width:720px;margin:0 auto;width:100%}}
+.flow{position:relative;display:flex;padding-top:2px}
+.ftrack{position:absolute;left:12.5%;right:12.5%;top:15px;height:2px;background:var(--line);border-radius:2px;overflow:hidden}
+.ftrack i{position:absolute;inset:0;background:var(--accent);transform-origin:left;transform:scaleX(var(--p,0));transition:transform .7s cubic-bezier(.16,1,.3,1)}
+.fstep{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;background:none;border:0;padding:0 2px 4px;color:var(--muted);font-size:11.5px;font-weight:600;cursor:pointer;position:relative}
+.fstep:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:10px}
+.fnode{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--bg);border:2px solid var(--line);font-size:12.5px;font-weight:750;transition:background .3s,border-color .3s,color .3s,box-shadow .3s;font-variant-numeric:tabular-nums}
+.fnode svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round;display:none}
+.fnode svg path{stroke-dasharray:20;stroke-dashoffset:0}
+.fstep.done{color:var(--text)}
+.fstep.done .fnode{background:var(--accent);border-color:var(--accent);color:var(--onaccent);animation:nodepop .5s cubic-bezier(.16,1,.3,1) both;animation-delay:var(--d,0s)}
+.fstep.done .fnode svg{display:block}.fstep.done .fnode b{display:none}
+.fstep.done .fnode svg path{animation:draw .45s .12s cubic-bezier(.16,1,.3,1) both;animation-delay:calc(var(--d,0s) + .12s)}
+.fstep.cur{color:var(--text)}
+.fstep.cur .fnode{border-color:var(--accent);color:var(--accent);box-shadow:0 0 0 4px var(--hit);box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 18%,transparent)}
+.fhint{display:flex;align-items:center;gap:10px;margin:8px 0 2px;padding:9px 10px 9px 14px;border-radius:14px;background:var(--panel);border:1px solid var(--line)}
+.fhint .fmsg{flex:1;min-width:0;font-size:13px;line-height:1.35}
+.fhint .btn{flex:none}
+/* the "run a check" invitation on the Checks tab */
+.invite{display:flex;gap:14px;align-items:flex-start}
+.invite h3{font-size:17px}
+.radar{position:relative;flex:none;width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--onaccent);background:linear-gradient(135deg,var(--accent),var(--accent-g));box-shadow:0 6px 18px var(--shadow)}
+.radar::before,.radar::after{inset:0;border-width:2.5px}
+.radar svg{width:28px;height:28px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;animation:breathe 2.4s ease-in-out infinite}
+.radar svg circle{fill:currentColor;stroke:none}
+.radar.calm::before,.radar.calm::after,.radar.calm svg{animation:none}
+.invite .acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+@keyframes tabpop{0%{transform:scale(.82) translateY(2px)}60%{transform:scale(1.12)}100%{transform:none}}
+@keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+@keyframes invite{0%{transform:scale(.8);opacity:.75}100%{transform:scale(2.1);opacity:0}}
+@keyframes nodepop{0%{transform:scale(.6)}60%{transform:scale(1.15)}100%{transform:none}}
+@keyframes draw{from{stroke-dashoffset:20}to{stroke-dashoffset:0}}
 @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes pagein{from{opacity:0;transform:translateY(28px) scale(.985)}to{opacity:1;transform:none}}
 @keyframes fade{from{opacity:0}to{opacity:1}}
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes blink{50%{opacity:.25}}
 @keyframes ring{0%{transform:scale(.6);opacity:.6}100%{transform:scale(2.4);opacity:0}}
 @keyframes slideup{from{transform:translateY(100%)}to{transform:none}}
 @media(min-width:900px){#view,.auth{max-width:720px;margin:0 auto;width:100%}}
-@media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important;animation-delay:0s!important}}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important;animation-delay:0s!important}
+  /* keep the invitation readable without movement: one still ring */
+  nav.tabs button.inv svg,.radar svg{animation:none}
+  nav.tabs button.inv .ti::after,.radar::after{animation:none}
+  nav.tabs button.inv .ti::before,.radar::before{animation:none;opacity:.45;transform:scale(1.3)}}
 </style>
 </head>
 <body>
 <div id="app">
   <header class="top" id="header"><div class="brand"><img src="/static/icon-192.png" alt="">CrossPaths</div><div class="row" style="gap:8px"><button class="btn ghost sm iconbtn" id="settingsbtn" style="display:none" data-act="settings" aria-label="Settings" title="Settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button><button class="btn ghost sm" id="logout" style="display:none" data-act="logout">Sign out</button></div></header>
+  <div id="flow" hidden></div>
   <main id="view"></main>
-  <nav class="tabs" id="tabs" style="display:none"></nav>
+  <nav class="tabs" id="tabs" style="display:none"><span class="tabind"></span><div class="tabbtns"></div></nav>
 </div>
 <div id="overlays"></div>
 
@@ -296,7 +349,7 @@ async function boot() {
   if (pending) pairEnterSheet(pending, true);
 }
 function renderAuth() {
-  $("#header").style.display = "none"; $("#tabs").style.display = "none";
+  $("#header").style.display = "none"; $("#tabs").style.display = "none"; $("#flow").hidden = true;
   const reg = state.authMode === "register", c = state.cfg;
   $("#view").innerHTML = `<div class="auth">
     <div class="hero" style="padding-top:${Math.max(6, 22)}px"><h1 style="font-size:21px">Did our paths ever cross?</h1></div>
@@ -330,11 +383,105 @@ const ICONS = {
   people: '<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.5 3-5.5 6-5.5s6 2 6 5.5"/><path d="M16 5.5a3 3 0 010 5.5M18.5 20c0-2.2-1-3.8-2.6-4.7"/>',
   checks: '<circle cx="12" cy="12" r="8"/><path d="M8.5 12.5l2.4 2.4 4.6-5"/>'
 };
-function renderTabs() {
-  const n = needsMe(), tabs = [["uploads", "Uploads"], ["mytimeline", "My Timeline"], ["people", "People"], ["checks", "Checks"]];
-  $("#tabs").innerHTML = tabs.map(([k, l]) => `<button data-act="tab" data-t="${k}" class="${state.tab === k ? "on" : ""}"><svg viewBox="0 0 24 24">${ICONS[k]}</svg>${l}${k === "checks" && n ? `<span class="dot">${n}</span>` : ""}</button>`).join("");
+const TABS = [["uploads", "Uploads"], ["mytimeline", "My Timeline"], ["people", "People"], ["checks", "Checks"]];
+// pop: the tab that was just chosen bounces its icon once (not on every background refresh)
+function renderTabs(pop) {
+  const n = needsMe(), inv = journey().invite, nav = $("#tabs"), i = TABS.findIndex(([k]) => k === state.tab);
+  const html = TABS.map(([k, l]) => {
+    const cls = [state.tab === k ? "on" : "", k === "checks" && inv && state.tab !== k ? "inv" : "", pop && state.tab === k ? "pop" : ""].join(" ").trim();
+    const lbl = k === "checks" && inv ? `${l}, a check is ready to run` : l;
+    return `<button data-act="tab" data-t="${k}" class="${cls}" aria-label="${lbl}"${state.tab === k ? ` aria-current="page"` : ""}><span class="ti"><svg viewBox="0 0 24 24">${ICONS[k]}</svg></span>${l}${k === "checks" && n ? `<span class="dot">${n}</span>` : ""}</button>`;
+  }).join("");
+  const box = $(".tabbtns", nav);
+  if (box.dataset.k !== html) { box.innerHTML = html; box.dataset.k = html; }
+  const ind = $(".tabind", nav), was = ind.style.getPropertyValue("--i");
+  nav.style.setProperty("--n", TABS.length); ind.style.setProperty("--i", i);
+  // a little stretch while the pill travels, so it reads as moving rather than blinking
+  if (pop && was !== "" && +was !== i && ind.animate && !reduceMotion()) ind.animate([{ scale: "1 1" }, { scale: "1.35 .8" }, { scale: "1 1" }], { duration: 420, easing: "cubic-bezier(.16,1,.3,1)" });
+  renderFlow();
 }
-function render() { ({ uploads: renderTimeline, mytimeline: renderMyTimeline, people: renderPeople, checks: renderChecks })[state.tab](); }
+const reduceMotion = () => window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+// Switching tabs: the old page slips out toward where it came from, the new one slides in from
+// the side of the tab you picked (Material "shared axis"), so left/right always means something.
+let PAGE = 0;
+function switchTab(t) {
+  if (t === state.tab) { renderTabs(); return render(); }
+  const order = TABS.map(([k]) => k), dir = order.indexOf(t) > order.indexOf(state.tab) ? 1 : -1, v = $("#view"), seq = ++PAGE, calm = reduceMotion();
+  state.tab = t; renderTabs(true);
+  const enter = () => {
+    if (seq !== PAGE) return;
+    render(); v.scrollTop = 0;
+    if (v.animate) v.animate(calm ? [{ opacity: 0 }, { opacity: 1 }] : [{ opacity: 0, transform: `translateX(${dir * 36}px)` }, { opacity: 1, transform: "none" }], { duration: calm ? 160 : 360, easing: "cubic-bezier(.16,1,.3,1)" });
+  };
+  if (!v.animate) return enter();
+  v.getAnimations().forEach(a => a.cancel());
+  const out = v.animate([{ opacity: 1, transform: "none" }, { opacity: 0, transform: calm ? "none" : `translateX(${-dir * 18}px)` }], { duration: 100, easing: "cubic-bezier(.4,0,1,1)", fill: "forwards" });
+  out.onfinish = () => { enter(); out.cancel(); };
+}
+
+/* ---------- the journey: add a timeline → connect → check → see crossings ---------- */
+function journey() {
+  const ok = state.conns.filter(c => c.status === "accepted"), ch = state.checks;
+  const active = c => c.status === "awaiting_consent" || c.status === "running" || c.status === "done";
+  const done = ch.find(c => c.status === "done"), running = ch.find(c => c.status === "running");
+  const review = ch.find(c => c.status === "awaiting_consent" && !c.my_consent);
+  const waiting = ch.find(c => c.status === "awaiting_consent" && c.my_consent);
+  // connections with no check yet (or only declined / expired / failed ones): a check is waiting to happen
+  const fresh = ok.filter(c => !ch.some(k => k.other === c.other && active(k)));
+  const has = { upload: state.uploads.length > 0, connect: ok.length > 0, check: !!(running || done), results: !!done };
+  return { ok, fresh, review, waiting, running, done, has, invite: !!review || (has.upload && fresh.length > 0) };
+}
+const FLOW = [["upload", "Timeline", "uploads"], ["connect", "Connect", "people"], ["check", "Check", "checks"], ["results", "Crossings", "checks"]];
+const TICK = '<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+function flowHint(j, k) {
+  const inc = state.conns.find(c => c.direction === "incoming" && c.status === "pending");
+  const out = state.conns.find(c => c.direction === "outgoing" && c.status === "pending");
+  if (k === "upload") return ["Start by adding your location history. It stays private.", "Add timeline"];
+  if (k === "connect") return inc ? [`<b>@${esc(inc.other)}</b> wants to connect with you.`, "See request"]
+    : out ? [`Waiting for <b>@${esc(out.other)}</b> to accept. You can connect with others too.`, "People"]
+    : ["Connect with someone you might have crossed paths with.", "Find people"];
+  if (k === "check") return j.review ? [`<b>@${esc(j.review.other)}</b> asked to check paths. Nothing runs until you agree.`, "Review"]
+    : j.waiting && !j.fresh.length ? [`Waiting for <b>@${esc(j.waiting.other)}</b> to agree to the check.`, ""]
+    : ["You're ready. Run a check; it starts once you both agree.", "Run a check"];
+  return [`<span class="pulse-dot"></span>&nbsp; Finding where your paths crossed…`, ""];
+}
+function renderFlow() {
+  const el = $("#flow"); if (!el) return;
+  const j = journey(), cur = FLOW.findIndex(([k]) => !j.has[k]);
+  const show = !!state.user && cur >= 0 && state.tab !== "mytimeline";
+  el.hidden = !show; if (!show) return;
+  if (!el.firstChild) {
+    el.innerHTML = `<nav class="flow" aria-label="Your progress"><div class="ftrack"><i></i></div>${FLOW.map(([k, l], i) =>
+      `<button class="fstep" data-act="flowstep" data-k="${k}" style="--d:${i * 0.09}s"><span class="fnode">${TICK}<b>${i + 1}</b></span><span class="flbl">${l}</span></button>`).join("")}</nav>
+      <div class="fhint" aria-live="polite"><span class="fmsg"></span><button class="btn sm" data-act="flowgo"></button></div>`;
+  }
+  el.querySelectorAll(".fstep").forEach((b, i) => {
+    const k = FLOW[i][0], st = j.has[k] ? "done" : i === cur ? "cur" : "";
+    if (b.dataset.st !== st) { b.className = "fstep " + st; b.dataset.st = st; }
+    b.setAttribute("aria-label", `Step ${i + 1}, ${FLOW[i][1]}: ${j.has[k] ? "done" : i === cur ? "next" : "not yet"}`);
+    if (i === cur) b.setAttribute("aria-current", "step"); else b.removeAttribute("aria-current");
+  });
+  // the track fills up to the current step
+  $(".ftrack i", el).style.setProperty("--p", cur / (FLOW.length - 1));
+  const [msg, act] = flowHint(j, FLOW[cur][0]), m = $(".fmsg", el), go = $("[data-act=flowgo]", el);
+  if (m.dataset.k !== msg) {
+    m.innerHTML = msg; m.dataset.k = msg;
+    if (m.animate && !reduceMotion()) m.animate([{ opacity: 0, transform: "translateY(6px)" }, { opacity: 1, transform: "none" }], { duration: 320, easing: "cubic-bezier(.16,1,.3,1)" });
+  }
+  go.hidden = !act; go.textContent = act; go.dataset.k = FLOW[cur][0];
+  // on Checks the invitation card already carries this, so the hint steps aside
+  $(".fhint", el).hidden = state.tab === "checks" && FLOW[cur][0] === "check" && j.invite;
+}
+function flowGo(k) {
+  const j = journey();
+  if (k === "check") {
+    if (j.review) return reviewSheet(j.review);
+    if (j.fresh.length === 1 && state.uploads.length) return newCheckSheet(j.fresh[0].id, j.fresh[0].other);
+  }
+  if (k === "results" && j.done) return run(() => openResults(j.done.id));
+  switchTab((FLOW.find(([x]) => x === k) || FLOW[0])[2]);
+}
+function render() { renderFlow(); ({ uploads: renderTimeline, mytimeline: renderMyTimeline, people: renderPeople, checks: renderChecks })[state.tab](); }
 
 /* ---------- timeline tab ---------- */
 // Where people can get a location history from, and how to export it. Shown under "Import a file".
@@ -599,8 +746,21 @@ function pairEnterSheet(prefill, fromLink) {
 }
 
 /* ---------- checks tab ---------- */
+const CROSS = '<svg viewBox="0 0 24 24"><path d="M3 19C10 19 14 5 21 5"/><path d="M3 5c7 0 11 14 18 14"/><circle cx="12" cy="12" r="2.6"/></svg>';
+function checkInvite() {
+  const j = journey();
+  if (j.review) return `<div class="card invite"><span class="radar">${CROSS}</span><div class="grow"><h3>@${esc(j.review.other)} wants to check paths</h3>
+    <p class="muted small" style="margin:4px 0 0">Review it and agree, and the check runs straight away.</p>
+    <div class="acts"><button class="btn sm" data-act="review" data-id="${j.review.id}">Review</button></div></div></div>`;
+  if (!j.has.upload || !j.fresh.length) return "";
+  const who = j.fresh.slice(0, 3);
+  return `<div class="card invite"><span class="radar">${CROSS}</span><div class="grow"><h3>Run a check</h3>
+    <p class="muted small" style="margin:4px 0 0">Did your paths ever cross? ${j.fresh.length === 1 ? `Ask <b>@${esc(who[0].other)}</b>` : "Pick someone"}; it runs once you both agree.</p>
+    <div class="acts">${who.map(c => `<button class="btn sm" data-act="newcheck" data-id="${c.id}" data-o="${esc(c.other)}">Check with @${esc(c.other)}</button>`).join("")}
+    ${j.fresh.length > 3 ? `<button class="btn ghost sm" data-act="tab" data-t="people">More people</button>` : ""}</div></div></div>`;
+}
 function renderChecks() {
-  $("#view").innerHTML = `<div class="hero"><h1>Checks</h1><p>Each check runs only after both of you agree.</p></div>` +
+  $("#view").innerHTML = `<div class="hero"><h1>Checks</h1><p>Each check runs only after both of you agree.</p></div>` + checkInvite() +
     (state.checks.map(checkCard).join("") || `<p class="muted" style="text-align:center;margin-top:24px">No checks yet. Start one from People.</p>`);
 }
 function checkCard(c) {
@@ -641,7 +801,7 @@ function readDates() {
 const shareNote = `<p class="muted small">They will only see <b>when and roughly where</b> (about 100 m) your paths crossed — never your route or full timeline. Your home and work areas are excluded.</p>`;
 
 function newCheckSheet(connId, other) {
-  if (!state.uploads.length) { state.tab = "uploads"; renderTabs(); render(); return toast("Upload your timeline first", true); }
+  if (!state.uploads.length) { switchTab("uploads"); return toast("Upload your timeline first", true); }
   openSheet(`<h2>Check paths with @${esc(other)}</h2>${shareNote}
     <label>Your timeline</label><select id="c_up">${uploadOptions()}</select>
     <label>Closeness: <b id="rv">100</b> m</label><input type="range" id="c_r" min="50" max="300" step="10" value="100" oninput="$('#rv').textContent=this.value">
@@ -650,7 +810,7 @@ function newCheckSheet(connId, other) {
     <div class="row" style="margin-top:18px"><button class="btn grow" data-act="createcheck" data-id="${connId}">Send request &amp; agree</button></div>`);
 }
 function reviewSheet(c) {
-  if (!state.uploads.length) { closeSheet(); state.tab = "uploads"; renderTabs(); render(); return toast("Upload your timeline first, then come back", true); }
+  if (!state.uploads.length) { closeSheet(); switchTab("uploads"); return toast("Upload your timeline first, then come back", true); }
   openSheet(`<h2>@${esc(c.other)} wants to check paths</h2>${shareNote}
     <p class="muted small">Closeness ${c.radius_m} m · time tolerance ${c.window_min} min. Nothing runs until you agree.</p>
     <label>Your timeline</label><select id="c_up">${uploadOptions()}</select>${dateRow()}
@@ -716,6 +876,7 @@ async function openResults(id) {
   const [chk, tr] = await Promise.all([api("/api/checks/" + id), api(`/api/checks/${id}/my-track`)]);
   const ev = (chk.events || []).map((e, i) => ({ ...e, i, t0: Date.parse(e.start) / 1000, t1: Date.parse(e.end) / 1000 }));
   const warn = chk.their_trust === "low" ? `<div class="banner">⚠️ @${esc(chk.other)}'s timeline looks unusual (possible fake or edited location data). Treat these results with caution.</div>` : "";
+  document.querySelectorAll("#results.leaving").forEach(x => x.remove());
   const el = document.createElement("div"); el.id = "results";
   el.innerHTML = `<div class="bar"><button class="btn ghost sm" data-act="closeresults">←</button><div class="grow"><h2>Paths crossed with @${esc(chk.other)}</h2><div class="muted small" id="rsub"></div></div>
       <button class="btn ghost sm" id="legendbtn" title="What do the types mean?">?</button></div>
@@ -749,7 +910,15 @@ async function openResults(id) {
   wireStats();
   M.tab = "stats";   // the summary first; the map starts the first time it's shown
 }
-function closeResults() { if (M) { clearInterval(M.playTimer); M.map && M.map.remove(); M = null; } const r = $("#results"); if (r) r.remove(); window.scrollTo(0, 0); }
+function closeResults() {
+  const r = $("#results"), m = M; M = null;
+  const done = () => { if (m) { clearInterval(m.playTimer); m.map && m.map.remove(); } if (r) r.remove(); };
+  window.scrollTo(0, 0);
+  if (!r || !r.animate || reduceMotion()) return done();
+  // leave the way it came in, a little faster (openResults clears it if a new one opens meanwhile)
+  r.classList.add("leaving"); r.style.pointerEvents = "none";
+  r.animate([{ opacity: 1, transform: "none" }, { opacity: 0, transform: "translateY(20px) scale(.985)" }], { duration: 220, easing: "cubic-bezier(.4,0,1,1)", fill: "forwards" }).onfinish = done;
+}
 
 function legendSheet() {
   const c = M ? M.chk : { radius_m: 100, window_min: 15 };
@@ -915,10 +1084,13 @@ function wireStats() {
 function showTab(t) {
   if (!M) return;
   if (t === "stats") stopReplay();
-  M.tab = t;
+  const was = M.tab; M.tab = t;
   document.querySelectorAll(".rtabs button").forEach(b => b.classList.toggle("on", b.dataset.rt === t));
+  const rt = $(".rtabs"); if (rt) rt.style.setProperty("--i", t === "map" ? 1 : 0);
   $("#stats").hidden = t !== "stats";
   $("#mapzone").style.display = t === "map" ? "" : "none";
+  const pane = t === "map" ? $("#mapzone") : $("#stats");
+  if (was && was !== t && pane.animate) pane.animate(reduceMotion() ? [{ opacity: 0 }, { opacity: 1 }] : [{ opacity: 0, transform: `translateX(${t === "map" ? 28 : -28}px)` }, { opacity: 1, transform: "none" }], { duration: 340, easing: "cubic-bezier(.16,1,.3,1)" });
   if (t === "map") { setSnap(M.snap, true); if (!M.map) startMap(); else M.map.resize(); }
 }
 
@@ -1591,7 +1763,9 @@ document.addEventListener("click", async e => {
       const r = await api(reg ? "/api/register" : "/api/login", { method: "POST", body: { handle, password, invite: $("#a_inv") && $("#a_inv").value } });
       state.token = r.token; localStorage.setItem("cp_token", r.token); await boot();
     });
-    case "tab": state.tab = a.dataset.t; renderTabs(); return render();
+    case "tab": return switchTab(a.dataset.t);
+    case "flowstep": return flowGo(a.dataset.k);
+    case "flowgo": return flowGo(a.dataset.k);
     case "addmode": state.addMode = state.addMode === a.dataset.m ? null : a.dataset.m; return renderTimeline();
     case "addsrc": state.addSrc = a.dataset.s; return renderTimeline();
     case "rmzone": return run(async () => {
@@ -1613,7 +1787,7 @@ document.addEventListener("click", async e => {
     case "createcheck": return run(async () => {
       const body = { connection_id: id, upload_id: $("#c_up").value, radius_m: +$("#c_r").value, window_min: +$("#c_w").value, ...readDates() };
       await api("/api/checks", { method: "POST", body }); closeSheet(); toast("Request sent. It runs once they agree.");
-      await refreshAll(); state.tab = "checks"; renderTabs(); render();
+      await refreshAll(); switchTab("checks");
     });
     case "review": return reviewSheet(state.checks.find(c => c.id === id));
     case "consent": return run(async () => {
