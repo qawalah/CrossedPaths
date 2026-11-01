@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Button from "../components/Button";
 import Card from "../components/Card";
 import DateRangePicker from "../components/DateRangePicker";
+import Icon from "../components/Icon";
 import { useToast } from "../components/Toast";
 import { Api } from "../api";
 import { exportTimeline } from "../exportTimeline";
@@ -13,7 +14,7 @@ import { SOURCES } from "../importSources";
 import { scanPhotoLibrary } from "../photoScan";
 import { colors, dateStr, trustLabel } from "../theme";
 
-const ICON = { files: "📂", photos: "📷", upload: "🗂️" };
+const ICON = { files: "folder", photos: "photos", upload: "route" };
 const plural = (n, w) => `${n.toLocaleString()} ${w}${n === 1 ? "" : "s"}`;
 const sizeStr = (b) => (b < 1048576 ? `${Math.max(1, Math.round(b / 1024))} KB` : `${(b / 1048576).toFixed(1)} MB`);
 
@@ -160,12 +161,15 @@ export default function BuildTimelineModal({ navigation, route, cfg, uploads, on
     const n = (saved.sources || []).length;
     return wrap(
       <>
-        <Text style={{ color: colors.text, fontSize: 20, fontWeight: "800" }}>✅ Timeline saved</Text>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+          <Icon name="ok" size={24} color={colors.good} />
+          <Text style={{ color: colors.text, fontSize: 20, fontWeight: "800" }}>Timeline saved</Text>
+        </View>
         <Text style={{ color: colors.muted, marginTop: 8, lineHeight: 20 }}>
           {saved.points.toLocaleString()} points from {plural(n, "source")}: {(saved.sources || []).map((s) => s.label).join(", ")}. It's
           kept on your server as set on the Account tab. Want a copy on this phone too?
         </Text>
-        <Button title="💾 Export a copy" variant="ghost" onPress={() => exportTimeline(saved, toast)} style={{ marginTop: 18 }} />
+        <Button title="Export a copy" icon="download" variant="ghost" onPress={() => exportTimeline(saved, toast)} style={{ marginTop: 18 }} />
         <Button title="Done" onPress={() => navigation.goBack()} style={{ marginTop: 10 }} />
       </>
     );
@@ -195,7 +199,7 @@ export default function BuildTimelineModal({ navigation, route, cfg, uploads, on
                 padding: 10,
               }}
             >
-              <Text style={{ fontSize: 20 }}>{ICON[it.kind]}</Text>
+              <Icon name={ICON[it.kind]} size={22} color={colors.accent} />
               <View style={{ flex: 1 }}>
                 <Text style={{ color: colors.text, fontWeight: "700" }}>{it.label}</Text>
                 <Text style={{ color: colors.muted, fontSize: 12 }} numberOfLines={2}>
@@ -203,7 +207,7 @@ export default function BuildTimelineModal({ navigation, route, cfg, uploads, on
                 </Text>
               </View>
               <Pressable onPress={() => remove(i)} hitSlop={10}>
-                <Text style={{ color: colors.muted, fontSize: 18 }}>✕</Text>
+                <Icon name="close" size={18} color={colors.muted} />
               </Pressable>
             </View>
           ))
@@ -219,15 +223,25 @@ export default function BuildTimelineModal({ navigation, route, cfg, uploads, on
       </Text>
       <View style={{ flexDirection: "row", backgroundColor: colors.panel2, borderRadius: 12, padding: 3 }}>
         {[
-          ["files", "📂 Files"],
-          ["photos", "📷 Photos"],
-          ...(others.length ? [["mine", "🗂️ Mine"]] : []),
-        ].map(([k, l]) => (
+          ["files", "Files", "folder"],
+          ["photos", "Photos", "photos"],
+          ...(others.length ? [["mine", "Mine", "route"]] : []),
+        ].map(([k, l, ic]) => (
           <Pressable
             key={k}
             onPress={() => setPane(k)}
-            style={{ flex: 1, paddingVertical: 9, borderRadius: 10, alignItems: "center", backgroundColor: pane === k ? colors.panel : "transparent" }}
+            style={{
+              flex: 1,
+              paddingVertical: 9,
+              borderRadius: 10,
+              flexDirection: "row",
+              justifyContent: "center",
+              alignItems: "center",
+              gap: 6,
+              backgroundColor: pane === k ? colors.panel : "transparent",
+            }}
           >
+            <Icon name={ic} size={16} color={pane === k ? colors.text : colors.muted} />
             <Text style={{ color: pane === k ? colors.text : colors.muted, fontWeight: "700" }}>{l}</Text>
           </Pressable>
         ))}
@@ -253,7 +267,7 @@ export default function BuildTimelineModal({ navigation, route, cfg, uploads, on
               </View>
             ))}
           </Card>
-          <Button title="📂 Choose file(s)" variant="ghost" onPress={pickFiles} style={{ marginTop: 10 }} />
+          <Button title="Choose file(s)" icon="folder" variant="ghost" onPress={pickFiles} style={{ marginTop: 10 }} />
           <Text style={{ color: colors.muted, fontSize: 11.5, marginTop: 6, textAlign: "center" }}>
             GPX · TCX · FIT · KML · GeoJSON · CSV · JSON · ZIP
           </Text>
@@ -286,7 +300,8 @@ export default function BuildTimelineModal({ navigation, route, cfg, uploads, on
             </Card>
           ) : null}
           <Button
-            title={scanning ? "Scanning…" : "📷 Scan photo library"}
+            title={scanning ? "Scanning…" : "Scan photo library"}
+            icon="photos"
             variant="ghost"
             onPress={scan}
             loading={scanning}
@@ -313,7 +328,7 @@ export default function BuildTimelineModal({ navigation, route, cfg, uploads, on
                     justifyContent: "center",
                   }}
                 >
-                  {on ? <Text style={{ color: colors.onAccent, fontSize: 12, fontWeight: "900" }}>✓</Text> : null}
+                  {on ? <Icon name="check" size={14} color={colors.onAccent} strokeWidth={2.6} /> : null}
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={{ color: colors.text, fontWeight: "700" }}>
