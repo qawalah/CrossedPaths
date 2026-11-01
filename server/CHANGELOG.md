@@ -7,6 +7,17 @@ migration), MINOR for new features, PATCH for bugfixes. Pre-1.0, expect MINOR bu
 To check what's running on your server, visit `/api/config` — it reports the running
 `version`. That's the number to compare against this file when deciding whether to update.
 
+## 0.18.0
+- **Web: the date bar on My map.** The year / month / day buttons are replaced by the same bar as
+  the Android app: drag along it to move through the years, slide up to zoom into months and then
+  days (down to zoom out), or hold still, and let go to open the nearest day with data. Bars show
+  how many points each day has. A short how-to shows the first time, and from the ? button. The
+  zoom gesture and hold time are set on the Account tab.
+- **Web: a tutorial on first start.** Five full-screen cards (the animated crossing, then Import,
+  Connect, Check together and See where you crossed). Shown once per browser; *Account → Show the
+  tutorial again* replays it. The four-step strip under the header is gone, as on Android.
+- **Web: Account shows the server version**, so you can see what is running.
+
 ## 0.17.2
 - **Street maps: the region Geofabrik calls "Israel and Palestine" is shown as "Palestine"**
   (search still finds it by "Israel", Gaza, West Bank and the big cities).
