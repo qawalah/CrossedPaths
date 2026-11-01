@@ -30,6 +30,8 @@ except Exception:  # noqa: BLE001 - optional: snapping is simply off without it
     PYVALHALLA_BIN_DIR = None
 
 CATALOG_MAX_AGE_S = 7 * 86400
+# Display names that replace Geofabrik's own (region id -> name).
+NAME_OVERRIDES = {"israel-and-palestine": "Palestine"}
 CACHE_BYTES = 64 * 1024 * 1024   # Valhalla's in-memory tile cache: keep RAM low on a small host
 SEARCH_CUTOFF_M = 300            # don't snap to a road further than this from the recorded point
 TILE_DEG, TILE_COLS = 0.25, 1440  # Valhalla level-2 (local roads) tile grid
@@ -140,8 +142,8 @@ class RoadMaps:
                     raise
         data = json.loads(cache.read_text())
         props = [f.get("properties", {}) for f in data.get("features", [])]
-        names = {p.get("id"): p.get("name") for p in props}
-        out = [{"id": p["id"], "name": p.get("name") or p["id"], "parent": names.get(p.get("parent")) or "",
+        names = {p.get("id"): NAME_OVERRIDES.get(p.get("id"), p.get("name")) for p in props}
+        out = [{"id": p["id"], "name": NAME_OVERRIDES.get(p["id"]) or p.get("name") or p["id"], "parent": names.get(p.get("parent")) or "",
                 "url": (p.get("urls") or {}).get("pbf")}
                for p in props if p.get("id") and (p.get("urls") or {}).get("pbf")]
         return sorted(out, key=lambda x: x["name"].lower())

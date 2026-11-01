@@ -7,6 +7,10 @@ migration), MINOR for new features, PATCH for bugfixes. Pre-1.0, expect MINOR bu
 To check what's running on your server, visit `/api/config` — it reports the running
 `version`. That's the number to compare against this file when deciding whether to update.
 
+## 0.17.2
+- **Street maps: the region Geofabrik calls "Israel and Palestine" is shown as "Palestine"**
+  (search still finds it by "Israel", Gaza, West Bank and the big cities).
+
 ## 0.17.1
 - **Street maps: search finds countries that Geofabrik bundles.** Saudi Arabia, Kuwait, Qatar,
   Bahrain, Oman and the UAE are one download called "GCC States" (searching "Saudi" found

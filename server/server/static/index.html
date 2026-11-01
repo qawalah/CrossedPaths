@@ -1384,11 +1384,11 @@ async function roadsRefresh() {
 // Search terms (country, big cities) that should find that region, and what to show under it.
 const ROADS_ALIASES = {
   "gcc states": "saudi arabia ksa kuwait qatar bahrain oman united arab emirates uae emirates riyadh jeddah mecca makkah medina dammam dubai abu dhabi sharjah doha kuwait city manama muscat",
-  "israel and palestine": "israel palestine gaza west bank jerusalem tel aviv",
+  "palestine": "israel palestine gaza west bank jerusalem tel aviv haifa",
 };
 const ROADS_COVERS = {
   "gcc states": "Covers Saudi Arabia, Kuwait, Qatar, Bahrain, Oman and the UAE",
-  "israel and palestine": "Covers Israel and the Palestinian territories",
+  "palestine": "Covers all of Palestine",
 };
 function roadsResults() {
   const box = $("#rdres"), q = ($("#rdq") || {}).value || ""; if (!box) return;
