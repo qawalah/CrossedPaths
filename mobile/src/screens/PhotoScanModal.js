@@ -164,7 +164,8 @@ export default function PhotoScanModal({ navigation, cfg, onDone }) {
       ) : null}
 
       <Button
-        title={scanning ? "Scanning…" : uploading ? "Uploading…" : "📷 Scan photo library"}
+        title={scanning ? "Scanning…" : uploading ? "Uploading…" : "Scan photo library"}
+        icon="photos"
         onPress={scanAndUpload}
         loading={busy}
         disabled={busy}

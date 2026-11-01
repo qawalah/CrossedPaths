@@ -9,6 +9,7 @@ import { confirm } from "../components/confirm";
 import { Api } from "../api";
 import { useAuth } from "../auth";
 import { colors, dateStr, hoursLeft, keepPhrase, trustLabel } from "../theme";
+import Icon from "../components/Icon";
 
 export default function TimelineScreen({ data, navigation }) {
   const { uploads, refresh, cfg } = data;
@@ -53,13 +54,13 @@ export default function TimelineScreen({ data, navigation }) {
           </Text>
           <View style={{ flexDirection: "row", gap: 10, marginBottom: 6 }}>
             <AddOption
-              icon="📂"
+              icon="folder"
               title="Import a timeline"
               text="Google Maps, Strava, Apple Health, Samsung Health, Garmin, Swarm, GPX, CSV…"
               onPress={() => navigation.navigate("Import")}
             />
             <AddOption
-              icon="📷"
+              icon="photos"
               title="Scan my photos"
               text="Build one from the place and time saved in your photos."
               onPress={() => navigation.navigate("PhotoScan")}
@@ -96,7 +97,7 @@ function AddOption({ icon, title, text, onPress }) {
         transform: [{ scale: pressed ? 0.98 : 1 }],
       })}
     >
-      <Text style={{ fontSize: 24 }}>{icon}</Text>
+      <Icon name={icon} size={26} color={colors.accent} />
       <Text style={{ color: colors.text, fontWeight: "800", fontSize: 15, marginTop: 6 }}>{title}</Text>
       <Text style={{ color: colors.muted, fontSize: 12, marginTop: 4, lineHeight: 17 }}>{text}</Text>
     </Pressable>
@@ -118,7 +119,7 @@ function UploadCard({ upload, onRemoveZone, onDelete, onView }) {
         </View>
         <Pill label={trustLabel(t.level)} level={t.level} />
       </View>
-      <Button title="🗺️ View on map" variant="ghost" onPress={onView} style={{ marginTop: 10 }} />
+      <Button title="View on map" icon="map" variant="ghost" onPress={onView} style={{ marginTop: 10 }} />
       {t.level !== "high" && t.reasons.length ? (
         <View style={{ marginTop: 8 }}>
           {t.reasons.map((r, i) => (

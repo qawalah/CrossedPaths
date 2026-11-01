@@ -1,15 +1,15 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import React from "react";
-import { Text, View } from "react-native";
 import AccountScreen from "../screens/AccountScreen";
 import ChecksScreen from "../screens/ChecksScreen";
 import PeopleScreen from "../screens/PeopleScreen";
 import TimelineScreen from "../screens/TimelineScreen";
 import { colors } from "../theme";
+import Icon from "../components/Icon";
 
 const Tab = createBottomTabNavigator();
 
-const ICONS = { Timeline: "🗺️", People: "👥", Checks: "✅", Account: "⚙️" };
+const ICONS = { Timeline: "route", People: "people", Checks: "checks", Account: "account" };
 
 export default function MainTabs({ data }) {
   return (
@@ -19,7 +19,7 @@ export default function MainTabs({ data }) {
         tabBarActiveTintColor: colors.accent,
         tabBarInactiveTintColor: colors.muted,
         tabBarStyle: { backgroundColor: colors.panel, borderTopColor: colors.line },
-        tabBarIcon: () => <Text style={{ fontSize: 18 }}>{ICONS[route.name]}</Text>,
+        tabBarIcon: ({ color }) => <Icon name={ICONS[route.name]} size={23} color={color} />,
         tabBarBadge: route.name === "Checks" && data.pendingForMe ? data.pendingForMe : undefined,
       })}
     >

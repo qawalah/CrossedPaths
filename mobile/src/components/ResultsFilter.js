@@ -5,6 +5,7 @@ import ChipScroller from "./ChipScroller";
 import KindIcon from "./KindIcon";
 import Sheet from "./Sheet";
 import { cityOf, colors, KIND_COLOR, KIND_LABEL, kindHelp, placeOf } from "../theme";
+import Icon from "./Icon";
 
 export const DUR_STEPS = [0, 5, 15, 30, 60];
 export const SORTS = [
@@ -51,7 +52,7 @@ export function applyFilters(events, f, bounds) {
   return out;
 }
 
-function Chip({ on, label, onPress, icon, count }) {
+function Chip({ on, label, onPress, icon, count, removable }) {
   const fg = on ? colors.onAccent : colors.text;
   return (
     <Pressable
@@ -72,6 +73,7 @@ function Chip({ on, label, onPress, icon, count }) {
       <Text style={{ color: fg, fontWeight: "700", fontSize: 13 }} numberOfLines={1}>
         {label}
       </Text>
+      {removable ? <Icon name="close" size={14} color={fg} strokeWidth={2.2} /> : null}
       {count != null ? <Text style={{ color: on ? fg : colors.muted, fontSize: 12.5, opacity: on ? 0.8 : 1 }}>{count}</Text> : null}
     </Pressable>
   );
@@ -136,7 +138,7 @@ export function FilterSheet({ visible, onClose, events, f, setF, shown }) {
         <>
           <Label>Place</Label>
           <Row>
-            <Chip on icon="same_place" label={`${f.place}  ✕`} onPress={() => set({ place: null })} />
+            <Chip on removable icon="same_place" label={f.place} onPress={() => set({ place: null })} />
           </Row>
         </>
       ) : null}
