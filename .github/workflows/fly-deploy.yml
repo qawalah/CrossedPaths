@@ -1,0 +1,43 @@
+# Deploys the server to Fly.io (app in server/fly.toml) when server code changes on main.
+# Needs the repo secret FLY_API_TOKEN (a Fly deploy token). Without it the job skips with a warning.
+name: Fly deploy
+
+on:
+  push:
+    branches: [main]
+    paths: ["server/**", ".github/workflows/fly-deploy.yml"]
+  workflow_dispatch:   # "Run workflow" button in the Actions tab
+
+concurrency:
+  group: fly-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+    steps:
+      - name: No token
+        if: env.FLY_API_TOKEN == ''
+        run: echo "::warning::FLY_API_TOKEN secret is not set; skipping the Fly deploy."
+      - uses: actions/checkout@v4
+        if: env.FLY_API_TOKEN != ''
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+        if: env.FLY_API_TOKEN != ''
+      - name: Deploy
+        if: env.FLY_API_TOKEN != ''
+        working-directory: server
+        run: flyctl deploy --remote-only --config fly.toml
+      - name: Check the new version is live
+        if: env.FLY_API_TOKEN != ''
+        working-directory: server
+        run: |
+          want=$(cat VERSION)
+          for i in $(seq 1 18); do
+            got=$(curl -fsS https://crossedpaths.fly.dev/api/config | python3 -c 'import sys,json;print(json.load(sys.stdin)["version"])' || true)
+            echo "live: ${got:-none}, expected: $want"
+            [ "$got" = "$want" ] && exit 0
+            sleep 10
+          done
+          echo "::error::Fly is not serving version $want"; exit 1

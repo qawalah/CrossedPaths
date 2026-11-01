@@ -21,7 +21,20 @@ Pick the repo, then set:
 Leave Postgres, Redis and Tigris off. The app uses SQLite on the volume. The first deploy
 creates the `crosspaths_data` volume from `[[mounts]]` in `fly.toml`.
 
-Every push to `main` then redeploys. The volume is kept.
+The volume is kept between deploys.
+
+## Automatic deploys
+
+`.github/workflows/fly-deploy.yml` deploys on every push to `main` that changes `server/`, and
+checks that the new version is live. It needs a deploy token, set once:
+
+1. Fly dashboard → the app → **Tokens** → create a deploy token (or
+   `fly tokens create deploy -a crossedpaths`).
+2. GitHub → repo **Settings → Secrets and variables → Actions → New repository secret**, name
+   `FLY_API_TOKEN`, paste the token.
+
+To deploy by hand: GitHub **Actions → Fly deploy → Run workflow**, or **Deploy app** in the Fly
+dashboard.
 
 ## Secrets
 
