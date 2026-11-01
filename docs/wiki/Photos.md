@@ -30,6 +30,3 @@ Nothing to export. CrossPaths reads the place and time saved in your photos, on 
 
 It uploads automatically. How: [Uploading to CrossPaths](Upload.md).
 
-## Official guides (with their own screenshots)
-
-
