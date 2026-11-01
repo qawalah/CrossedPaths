@@ -23,6 +23,9 @@ Main features:
     in time) and a replay of **only your own** path around it;
   - filters (type, year, city, place, minimum length, text, visible map area) and sort (newest,
     oldest, longest).
+- **Street maps:** in countries an admin downloaded, sparse journeys (Google Timeline above
+  all) are drawn along roads instead of straight lines through buildings and water, on the
+  results replay and in My Timeline. Display only: matching is unchanged. See "Street maps" below.
 - **Place names offline** from GeoNames, in English and Arabic. Places far from any town are
   named like "91 km SE of Rumāḩ", and the coordinates are shown when no name is found. Street
   names come from OpenStreetMap, only when the user taps "Show street name".
@@ -53,7 +56,8 @@ Main features:
 - **Settings:**
   - theme: system, dark or light, plus five accent colours;
   - per-user upload retention: 24 h (default), 7 days, 30 days, or until deleted;
-  - two server addresses (main + backup) with automatic switching.
+  - two server addresses (main + backup) with automatic switching;
+  - web only, for usernames in `ADMIN_HANDLES`: *Server (admin) → Street maps*.
 - **Trust:** a heuristic check flags timelines that look fake or edited, shown as a warning on
   results.
 
@@ -84,7 +88,7 @@ Main features:
 planned), `buildNumber` 4. Waiting on the owner's Apple Developer enrollment; plan was EAS build
 and then TestFlight. `eas.json` exists, but there's no EAS `projectId` yet.
 
-**Server:** version in `server/VERSION`, currently **0.13.0**, reported at `GET /api/config`.
+**Server:** version in `server/VERSION`, currently **0.16.0**, reported at `GET /api/config`.
 Entry point `server/wsgi.py` → `server.app:create_app()`. Run by gunicorn: 1 worker, 8 threads,
 port 8787.
 
@@ -97,7 +101,7 @@ version is bumped on `main`, and published as `ghcr.io/qawalah/crosspaths:<versi
 label, so **deploying is: bump the version, push to `main`; Watchtower installs it**. Code is not
 bind-mounted any more; only `./data` is mounted. Never touch `./data`.
 
-Tests (56 passing), from `server/`:
+Tests (66 passing), from `server/`:
 ```bash
 pip install -r requirements.txt pytest
 python -m pytest -q
@@ -150,11 +154,16 @@ cd android
   retention setting by an hourly loop.
 - `places/`: GeoNames cache (`cities500.txt`, about 40 MB, plus small per-country files),
   downloaded on first use.
+- `roads/<region>/`: street maps an admin added: `tiles/` (Valhalla routing data), `meta.json`
+  (state, progress, errors), `coverage.json` (which 0.25° cells it covers); `roads/catalog.json`
+  caches Geofabrik's list for a week. Deleting a region folder just turns snapping off there.
 - Results, including each user's own track windows ±3 h around crossings, expire after
   `RESULTS_TTL_DAYS` (14).
 
 **External services:**
 - `download.geonames.org`: place names, from the server, once.
+- `download.geofabrik.de`: OpenStreetMap country extracts and their list, from the server, only
+  when an admin adds or updates a street map.
 - OpenFreeMap tiles (`MAP_STYLE_URL`, default `https://tiles.openfreemap.org/styles/liberty`):
   map backgrounds, from the clients.
 - `nominatim.openstreetmap.org`: street names, client-side, only on tap. The web needs
@@ -227,6 +236,27 @@ route files then. Separate workouts close together in place (within 200 m and 6 
 - Push a notification when a check finishes.
 - Real phone screenshots for the store.
 
+## Street maps
+
+- `crosspaths/snap.py` (pure, testable): for each pair of neighbouring points more than 150 m
+  and at most 30 min apart, ask a router for the street route and insert its points with times
+  spread by distance. Skipped: hops faster than 70 m/s, travel mode `skip` (train, plane, ferry,
+  boat, ski…), routes longer than 2× the straight line + 200 m (usually a train with no road
+  beside it), and anything where no road is within 300 m. Unknown mode: walking costing below
+  2.5 m/s, car above.
+- Travel mode comes from Google's activity type (`parser.travel_mode`), stored per point in the
+  upload file (`store.py`, `mode` column; older files read as unknown). Other importers don't set it.
+- `server/roads.py`: Geofabrik catalog, download (size cap `ROADS_MAX_DOWNLOAD_MB`, disk check),
+  `valhalla_build_tiles` run as a niced subprocess with `concurrency=1`, built into `tiles.new`
+  then swapped in (so an update keeps the old map working). One job at a time; a restart marks a
+  running job failed. Routing is in-process (`pyvalhalla`, 64 MB tile cache, one lock).
+- Used in `runner.track_windows` when a check finishes (budget 120 s per check) and in
+  `/api/uploads/<id>/day` (budget 6 s, LRU cache of 64 days). Old results aren't re-snapped.
+- Admin endpoints: `/api/admin/roads` (GET status, POST `{region}`), `/api/admin/roads/catalog`,
+  `DELETE /api/admin/roads/<id>`. Admin = `ADMIN_HANDLES`; `/api/me` returns `is_admin`.
+- Only the web client has the admin screen. The mobile app just shows the snapped tracks.
+- Tests use `tests/data/grid.osm.pbf` (a made-up 5×5 street grid) and build real routing data.
+
 ## Important decisions (don't undo these)
 
 **Privacy model**
@@ -246,6 +276,11 @@ route files then. Separate workouts close together in place (within 200 m and 6 
 - A KD-tree finds candidate pairs.
 - Segments faster than 70 m/s (flights) are never matched.
 - A moving crossing is located at its most-simultaneous pair; its kind uses time-weighted speed.
+
+**Street maps**
+- Routing runs **on the server, offline**, from downloaded OpenStreetMap data. Never send
+  people's paths to a public routing service.
+- Snapping is for drawing only; the matcher keeps using the recorded points.
 
 **Place names**
 - Names come from **offline GeoNames on the server**: no third-party reverse-geocoding of
