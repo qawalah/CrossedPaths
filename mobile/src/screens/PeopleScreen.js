@@ -3,6 +3,7 @@ import { ScrollView, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Button from "../components/Button";
 import Card from "../components/Card";
+import JourneyFlow from "../components/JourneyFlow";
 import Pill from "../components/Pill";
 import { useToast } from "../components/Toast";
 import { confirm } from "../components/confirm";
@@ -69,6 +70,7 @@ export default function PeopleScreen({ navigation, data, uploads }) {
       style={{ flex: 1, backgroundColor: colors.bg }}
       contentContainerStyle={{ padding: 16, paddingTop: insets.top + 16, paddingBottom: 100 }}
     >
+      <JourneyFlow data={data} navigation={navigation} />
       <Text style={{ color: colors.text, fontSize: 24, fontWeight: "800" }}>People</Text>
       <Text style={{ color: colors.muted, marginTop: 6, marginBottom: 16, lineHeight: 20 }}>
         Send a request to a username. They must accept before anything can be compared.

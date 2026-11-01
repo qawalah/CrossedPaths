@@ -84,28 +84,29 @@ export default function RootNavigator() {
         navState.current = s;
       }}
     >
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
+      {/* pages rise and fade in; sheets slide up from the bottom */}
+      <Stack.Navigator screenOptions={{ headerShown: false, animation: "fade_from_bottom" }}>
         {!user ? (
           <>
             <Stack.Screen name="Auth" component={AuthScreen} />
-            <Stack.Screen name="Settings" component={SettingsScreen} options={{ presentation: "modal", headerShown: true, title: "Server addresses" }} />
+            <Stack.Screen name="Settings" component={SettingsScreen} options={{ presentation: "modal", animation: "slide_from_bottom", headerShown: true, title: "Server addresses" }} />
           </>
         ) : (
           <>
             <Stack.Screen name="Main">{() => <MainTabs data={data} />}</Stack.Screen>
-            <Stack.Screen name="NewCheck" options={{ presentation: "modal" }}>
+            <Stack.Screen name="NewCheck" options={{ presentation: "modal", animation: "slide_from_bottom" }}>
               {(props) => <NewCheckModal {...props} uploads={data.uploads} onDone={data.refresh} />}
             </Stack.Screen>
-            <Stack.Screen name="ReviewCheck" options={{ presentation: "modal" }}>
+            <Stack.Screen name="ReviewCheck" options={{ presentation: "modal", animation: "slide_from_bottom" }}>
               {(props) => <ReviewCheckModal {...props} checks={data.checks} uploads={data.uploads} onDone={data.refresh} />}
             </Stack.Screen>
-            <Stack.Screen name="Results" component={ResultsScreen} options={{ animation: "fade" }} />
-            <Stack.Screen name="MyTimeline" component={MyTimelineScreen} options={{ animation: "fade" }} />
-            <Stack.Screen name="Settings" component={SettingsScreen} options={{ presentation: "modal", headerShown: true, title: "Server addresses" }} />
-            <Stack.Screen name="AddNearby" options={{ presentation: "modal" }}>
+            <Stack.Screen name="Results" component={ResultsScreen} />
+            <Stack.Screen name="MyTimeline" component={MyTimelineScreen} />
+            <Stack.Screen name="Settings" component={SettingsScreen} options={{ presentation: "modal", animation: "slide_from_bottom", headerShown: true, title: "Server addresses" }} />
+            <Stack.Screen name="AddNearby" options={{ presentation: "modal", animation: "slide_from_bottom" }}>
               {(props) => <AddNearbyScreen {...props} uploads={data.uploads} loaded={data.loaded} onDone={data.refresh} />}
             </Stack.Screen>
-            <Stack.Screen name="Build" options={{ presentation: "modal" }}>
+            <Stack.Screen name="Build" options={{ presentation: "modal", animation: "slide_from_bottom" }}>
               {(props) => <BuildTimelineModal {...props} cfg={data.cfg} uploads={data.uploads} onDone={data.refresh} />}
             </Stack.Screen>
           </>
