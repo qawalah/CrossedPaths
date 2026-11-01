@@ -7,7 +7,7 @@ migration), MINOR for new features, PATCH for bugfixes. Pre-1.0, expect MINOR bu
 To check what's running on your server, visit `/api/config` — it reports the running
 `version`. That's the number to compare against this file when deciding whether to update.
 
-## 0.15.0 (Android 1.10.0)
+## 0.15.0 (Android 1.11.0)
 - **Five tabs:** Import · My Map · Checks · People · Account, in the web client and the Android
   app. Checks is a raised round button in the middle. *Uploads* is now called *Import*.
 - **My Map** is its own tab: your timeline on the map by year, month and day (pick which
