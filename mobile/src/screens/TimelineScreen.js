@@ -50,7 +50,7 @@ export default function TimelineScreen({ data, navigation }) {
       ListHeaderComponent={
         <View>
           <JourneyFlow data={data} navigation={navigation} />
-          <Text style={{ color: colors.text, fontSize: 24, fontWeight: "800" }}>Your timeline</Text>
+          <Text style={{ color: colors.text, fontSize: 24, fontWeight: "800" }}>Import</Text>
           <Text style={{ color: colors.muted, marginTop: 6, marginBottom: 16, lineHeight: 20 }}>
             Build your timeline from one or more sources. It stays private and is{" "}
             {keepPhrase(user && user.upload_keep_hours != null ? user.upload_keep_hours : cfg.upload_ttl_hours)} (change this on the Account tab).

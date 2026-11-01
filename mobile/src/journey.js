@@ -1,7 +1,7 @@
 // The path through the app: add a timeline → connect → run a check → see the crossings.
 // Shared by the progress strip, the tab bar's "a check is ready" pulse and the Checks invitation.
 export const FLOW = [
-  ["upload", "Timeline", "Timeline"],
+  ["upload", "Import", "Timeline"],
   ["connect", "Connect", "People"],
   ["check", "Check", "Checks"],
   ["results", "Crossings", "Checks"],

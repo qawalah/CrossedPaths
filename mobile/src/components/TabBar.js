@@ -5,29 +5,39 @@ import { EASE_OUT, reduceMotion, tint } from "../motion";
 import PulseRings from "./PulseRings";
 import Icon from "./Icon";
 
-const ICONS = { Timeline: "route", People: "people", Checks: "checks", Account: "account" };
+const ICONS = { Timeline: "upload", MyMap: "map", Checks: "checks", People: "people", Account: "account" };
+const LABELS = { Timeline: "Import", MyMap: "My Map" };
+const MID = "Checks"; // the main action sits in the middle as a raised round button
 
 const PILL_W = 60;
 const PILL_H = 32;
+const MID_SIZE = 56;
 
 /**
  * The bottom tab bar: a pill slides (and briefly stretches) from tab to tab, the chosen icon pops,
- * and the Checks icon pulses while a check is ready to run.
+ * Checks is a raised button in the middle, and it pulses while a check is ready to run.
  */
 export default function TabBar({ state, navigation, insets, badges = {}, invite }) {
   const [w, setW] = useState(0);
   const n = state.routes.length;
+  const onMid = state.routes[state.index].name === MID;
   const pos = useRef(new Animated.Value(state.index)).current;
   const stretch = useRef(new Animated.Value(0)).current;
+  const pillOn = useRef(new Animated.Value(onMid ? 0 : 1)).current;
 
   useEffect(() => {
-    if (reduceMotion()) return pos.setValue(state.index);
+    const calm = reduceMotion();
+    // the raised button shows its own selection, so the pill fades out while Checks is open
+    Animated.timing(pillOn, { toValue: onMid ? 0 : 1, duration: calm ? 0 : 180, useNativeDriver: true }).start();
+    if (calm) return pos.setValue(state.index);
     Animated.parallel([
       Animated.spring(pos, { toValue: state.index, damping: 20, stiffness: 190, mass: 0.9, useNativeDriver: true }),
-      Animated.sequence([
-        Animated.timing(stretch, { toValue: 1, duration: 140, easing: EASE_OUT, useNativeDriver: true }),
-        Animated.timing(stretch, { toValue: 0, duration: 300, easing: EASE_OUT, useNativeDriver: true }),
-      ]),
+      onMid
+        ? Animated.delay(0)
+        : Animated.sequence([
+            Animated.timing(stretch, { toValue: 1, duration: 140, easing: EASE_OUT, useNativeDriver: true }),
+            Animated.timing(stretch, { toValue: 0, duration: 300, easing: EASE_OUT, useNativeDriver: true }),
+          ]),
     ]).start();
   }, [state.index]);
 
@@ -55,6 +65,7 @@ export default function TabBar({ state, navigation, insets, badges = {}, invite 
             height: PILL_H,
             borderRadius: PILL_H / 2,
             backgroundColor: tint(colors.accent, 0.17),
+            opacity: pillOn,
             transform: [
               { translateX: pos.interpolate({ inputRange: [0, n - 1], outputRange: [0, tabW * (n - 1)] }) },
               { scaleX: stretch.interpolate({ inputRange: [0, 1], outputRange: [1, 1.35] }) },
@@ -67,9 +78,10 @@ export default function TabBar({ state, navigation, insets, badges = {}, invite 
         <Tab
           key={route.key}
           name={route.name}
+          mid={route.name === MID}
           focused={state.index === i}
           badge={badges[route.name]}
-          invite={route.name === "Checks" && invite && state.index !== i}
+          invite={route.name === MID && invite && state.index !== i}
           onPress={() => {
             const e = navigation.emit({ type: "tabPress", target: route.key, canPreventDefault: true });
             if (state.index !== i && !e.defaultPrevented) navigation.navigate(route.name);
@@ -80,7 +92,7 @@ export default function TabBar({ state, navigation, insets, badges = {}, invite 
   );
 }
 
-function Tab({ name, focused, badge, invite, onPress }) {
+function Tab({ name, mid, focused, badge, invite, onPress }) {
   const pop = useRef(new Animated.Value(1)).current;
   const first = useRef(true);
   useEffect(() => {
@@ -90,28 +102,54 @@ function Tab({ name, focused, badge, invite, onPress }) {
     Animated.spring(pop, { toValue: 1, damping: 9, stiffness: 260, mass: 0.7, useNativeDriver: true }).start();
   }, [focused]);
 
+  const label = LABELS[name] || name;
   const color = focused || invite ? colors.accent : colors.muted;
+  const icon = mid ? (
+    <PulseRings size={MID_SIZE} color={colors.accent} ringWidth={2.5} active={invite}>
+      <View
+        style={{
+          width: MID_SIZE,
+          height: MID_SIZE,
+          borderRadius: MID_SIZE / 2,
+          backgroundColor: colors.accent,
+          alignItems: "center",
+          justifyContent: "center",
+          borderWidth: 5,
+          borderColor: colors.panel,
+          elevation: 6,
+          shadowColor: "#000",
+          shadowOpacity: 0.3,
+          shadowRadius: 8,
+          shadowOffset: { width: 0, height: 4 },
+        }}
+      >
+        <Icon name={ICONS[name]} size={26} color={colors.onAccent} strokeWidth={2} />
+      </View>
+    </PulseRings>
+  ) : (
+    <PulseRings size={26} color={colors.accent} active={invite}>
+      <Icon name={ICONS[name] || "account"} size={23} color={color} />
+    </PulseRings>
+  );
+
   return (
     <Pressable
       onPress={onPress}
       accessibilityRole="tab"
       accessibilityState={{ selected: focused }}
-      accessibilityLabel={invite ? `${name}, a check is ready to run` : badge ? `${name}, ${badge} waiting for you` : name}
-      style={{ flex: 1, alignItems: "center", gap: 4 }}
+      accessibilityLabel={invite ? `${label}, a check is ready to run` : badge ? `${label}, ${badge} waiting for you` : label}
+      style={({ pressed }) => ({ flex: 1, alignItems: "center", gap: 4, transform: [{ scale: mid && pressed ? 0.94 : 1 }] })}
     >
-      <View style={{ height: PILL_H, justifyContent: "center", alignItems: "center" }}>
-        <Animated.View style={{ transform: [{ scale: pop }] }}>
-          <PulseRings size={26} color={colors.accent} active={invite}>
-            <Icon name={ICONS[name] || "account"} size={23} color={color} />
-          </PulseRings>
-        </Animated.View>
+      {/* the raised button keeps the same footprint as the other icons, so the labels line up */}
+      <View style={{ height: PILL_H, justifyContent: mid ? "flex-end" : "center", alignItems: "center" }}>
+        <Animated.View style={{ transform: [{ scale: pop }], marginBottom: 0 }}>{icon}</Animated.View>
         {badge ? (
           <View
             style={{
               position: "absolute",
-              top: 1,
+              top: mid ? -22 : 1,
               left: "50%",
-              marginLeft: 6,
+              marginLeft: mid ? 14 : 6,
               minWidth: 17,
               height: 17,
               borderRadius: 9,
@@ -125,7 +163,7 @@ function Tab({ name, focused, badge, invite, onPress }) {
           </View>
         ) : null}
       </View>
-      <Text style={{ color, fontSize: 12, fontWeight: focused ? "700" : "500" }}>{name}</Text>
+      <Text style={{ color, fontSize: 12, fontWeight: focused ? "700" : "500" }}>{label}</Text>
     </Pressable>
   );
 }

@@ -7,6 +7,18 @@ migration), MINOR for new features, PATCH for bugfixes. Pre-1.0, expect MINOR bu
 To check what's running on your server, visit `/api/config` — it reports the running
 `version`. That's the number to compare against this file when deciding whether to update.
 
+## 0.15.0 (Android 1.10.0)
+- **Five tabs:** Import · My Map · Checks · People · Account, in the web client and the Android
+  app. Checks is a raised round button in the middle. *Uploads* is now called *Import*.
+- **My Map** is its own tab: your timeline on the map by year, month and day (pick which
+  timeline when you have several). On Android it used to open only from a timeline's card.
+- **Account tab** on the web: theme, accent colour, how long uploads are kept, and Sign out
+  (these used to be in the header).
+- **New Checks page.** It opens with a big animated version of the app icon: the blue and green
+  routes draw in and cross, then the pin drops onto the crossing. Below it is what to do next (run
+  a check, review a request, import, connect), and tapping the crossing does it. Previous checks
+  are listed underneath and open up for details, results and delete.
+
 ## 0.14.0 (Android 1.9.0)
 - **A guided path in the web client and the Android app.** A four-step strip under the header (timeline → connect →
   check → crossings) shows where you are and what to do next, with a button for that step. It

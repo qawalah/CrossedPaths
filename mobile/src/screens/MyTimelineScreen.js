@@ -35,7 +35,8 @@ function Chip({ label, selected, onPress }) {
 }
 
 export default function MyTimelineScreen({ route, navigation }) {
-  const { uploadId, uploadLabel } = route.params;
+  // inTab: shown as the My Map tab (no Back button, the tab bar is there instead)
+  const { uploadId, uploadLabel, inTab, noTopInset } = route.params;
   const insets = useSafeAreaInsets();
   const toast = useToast();
   const { cfg } = useAuth();
@@ -204,12 +205,12 @@ export default function MyTimelineScreen({ route, navigation }) {
     return (
       <View style={{ flex: 1, backgroundColor: colors.bg, alignItems: "center", justifyContent: "center", padding: 24 }}>
         <Text style={{ color: colors.muted, textAlign: "center" }}>{loadErr}</Text>
-        <Pressable onPress={() => navigation.goBack()} style={{ marginTop: 18, padding: 10 }}>
+        {inTab ? null : <Pressable onPress={() => navigation.goBack()} style={{ marginTop: 18, padding: 10 }}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
             <Icon name="back" size={18} color={colors.accent} />
             <Text style={{ color: colors.accent, fontWeight: "700" }}>Back</Text>
           </View>
-        </Pressable>
+        </Pressable>}
       </View>
     );
   }
@@ -223,12 +224,12 @@ export default function MyTimelineScreen({ route, navigation }) {
   if (!summary.years.length) {
     return (
       <View style={{ flex: 1, backgroundColor: colors.bg, padding: 24, paddingTop: insets.top + 24 }}>
-        <Pressable onPress={() => navigation.goBack()} style={{ marginBottom: 16 }}>
+        {inTab ? null : <Pressable onPress={() => navigation.goBack()} style={{ marginBottom: 16 }}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
             <Icon name="back" size={20} />
             <Text style={{ color: colors.text, fontSize: 16, fontWeight: "600" }}>Back</Text>
           </View>
-        </Pressable>
+        </Pressable>}
         <Text style={{ color: colors.muted, textAlign: "center", marginTop: 20 }}>This timeline has no points to show.</Text>
       </View>
     );
@@ -239,12 +240,14 @@ export default function MyTimelineScreen({ route, navigation }) {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
-      <View style={{ flexDirection: "row", alignItems: "center", padding: 12, paddingTop: insets.top + 12, gap: 10 }}>
-        <Pressable onPress={() => navigation.goBack()} style={{ padding: 6 }}>
-          <Icon name="back" size={22} />
-        </Pressable>
+      <View style={{ flexDirection: "row", alignItems: "center", padding: 12, paddingTop: (noTopInset ? 0 : insets.top) + 12, gap: 10 }}>
+        {inTab ? null : (
+          <Pressable onPress={() => navigation.goBack()} style={{ padding: 6 }}>
+            <Icon name="back" size={22} />
+          </Pressable>
+        )}
         <View style={{ flex: 1 }}>
-          <Text style={{ color: colors.text, fontWeight: "800", fontSize: 16 }}>My timeline</Text>
+          <Text style={{ color: colors.text, fontWeight: "800", fontSize: inTab ? 24 : 16 }}>{inTab ? "My map" : "My timeline"}</Text>
           {uploadLabel ? <Text style={{ color: colors.muted, fontSize: 12 }}>{uploadLabel}</Text> : null}
         </View>
       </View>

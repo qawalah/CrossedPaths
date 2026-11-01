@@ -42,8 +42,16 @@ nav.tabs button.pop svg{animation:tabpop .45s cubic-bezier(.16,1,.3,1)}
 /* "a check is ready": the Checks icon breathes and sends out rings, like two paths meeting */
 nav.tabs button.inv{color:var(--accent)}
 nav.tabs button.inv svg{animation:breathe 2.4s ease-in-out infinite}
-nav.tabs button.inv .ti::before,nav.tabs button.inv .ti::after,.radar::before,.radar::after{content:"";position:absolute;inset:-3px;border-radius:50%;border:2px solid var(--accent);opacity:0;pointer-events:none;animation:invite 2.4s cubic-bezier(.16,1,.3,1) infinite}
-nav.tabs button.inv .ti::after,.radar::after{animation-delay:1.2s}
+nav.tabs button.inv .ti::before,nav.tabs button.inv .ti::after{content:"";position:absolute;inset:-3px;border-radius:50%;border:2px solid var(--accent);opacity:0;pointer-events:none;animation:invite 2.4s cubic-bezier(.16,1,.3,1) infinite}
+nav.tabs button.inv .ti::after{animation-delay:1.2s}
+/* Checks sits in the middle as a raised round button */
+nav.tabs button.mid .ti{width:54px;height:54px;margin-top:-32px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--accent),var(--accent-g));color:var(--onaccent);box-shadow:0 6px 16px var(--shadow),0 0 0 5px var(--panel);transition:transform .2s}
+nav.tabs button.mid .ti svg{width:27px;height:27px}
+nav.tabs button.mid:active .ti{transform:scale(.94)}
+nav.tabs button.mid.inv svg{color:var(--onaccent)}
+nav.tabs button.mid .dot{top:-24px;right:calc(50% - 32px)}
+.tabind{transition:transform .48s cubic-bezier(.16,1,.3,1),opacity .2s}
+.tabind.off{opacity:0}
 nav.tabs .dot{position:absolute;top:6px;right:calc(50% - 20px);min-width:16px;height:16px;border-radius:8px;background:var(--bad);color:#fff;font-size:10px;display:flex;align-items:center;justify-content:center;padding:0 4px}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin:10px 0;animation:rise .35s ease both}
 .card h3{font-size:16px;margin-bottom:4px}
@@ -220,14 +228,50 @@ details summary{cursor:pointer;color:var(--accent2);font-size:13px;margin-top:8p
 .fhint .fmsg{flex:1;min-width:0;font-size:13px;line-height:1.35}
 .fhint .btn{flex:none}
 /* the "run a check" invitation on the Checks tab */
-.invite{display:flex;gap:14px;align-items:flex-start}
-.invite h3{font-size:17px}
-.radar{position:relative;flex:none;width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--onaccent);background:linear-gradient(135deg,var(--accent),var(--accent-g));box-shadow:0 6px 18px var(--shadow)}
-.radar::before,.radar::after{inset:0;border-width:2.5px}
-.radar svg{width:28px;height:28px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;animation:breathe 2.4s ease-in-out infinite}
-.radar svg circle{fill:currentColor;stroke:none}
-.radar.calm::before,.radar.calm::after,.radar.calm svg{animation:none}
-.invite .acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+/* Checks: the big crossing, then the previous checks */
+.xwrap{text-align:center;padding:4px 4px 6px}
+.xbtn{display:block;width:min(300px,82%);margin:0 auto;padding:0;border:0;background:none;cursor:pointer;border-radius:24px}
+.xbtn:focus-visible{outline:2px solid var(--accent);outline-offset:4px}
+.xhero{display:block;width:100%;height:auto;overflow:visible}
+.xhero .xl{fill:none;stroke-width:13;stroke-linecap:round;stroke-dasharray:1;stroke-dashoffset:0}
+.xhero .xhalo{fill:rgba(10,132,255,.16);stroke:rgba(10,132,255,.45);stroke-width:1.5;transform-box:fill-box;transform-origin:center}
+.xhero .xring{fill:none;stroke:var(--accent);stroke-width:2;opacity:0;transform-box:fill-box;transform-origin:center}
+.xhero .xpin path{fill:#fff;stroke:#1b2537}.xhero .xpin circle{fill:#fff;stroke:#1b2537}
+.xhero .xpin-i{transform-box:fill-box;transform-origin:50% 100%}
+.xhero .xshadow{fill:rgba(3,10,25,.35);transform-box:fill-box;transform-origin:center}
+.xhero.play .xb{animation:xdraw 1s cubic-bezier(.65,0,.35,1) both}
+.xhero.play .xg{animation:xdraw 1s .12s cubic-bezier(.65,0,.35,1) both}
+.xhero.play .xhalo{animation:xhalo .7s .85s cubic-bezier(.16,1,.3,1) both}
+.xhero.play .xpin-i{animation:xdrop .8s 1.1s cubic-bezier(.3,1.4,.5,1) both}
+.xhero.play .xshadow{animation:xshadow .8s 1.1s cubic-bezier(.16,1,.3,1) both}
+.xhero.inv .xring{animation:xring 2.6s 1.9s cubic-bezier(.16,1,.3,1) infinite}
+.xhero.inv .xring.r2{animation-delay:3.2s}
+.xhero:not(.play).inv .xring{animation-delay:0s}.xhero:not(.play).inv .xring.r2{animation-delay:1.3s}
+.xbtn:hover .xpin-i{transform:translateY(-3px);transition:transform .25s cubic-bezier(.16,1,.3,1)}
+.xtitle{font-size:24px;line-height:1.2;margin-top:2px;text-wrap:balance}
+.xsub{margin:6px auto 0;max-width:34ch;text-wrap:pretty}
+.xacts{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:14px}
+.xwrap.play .xtitle,.xwrap.play .xsub,.xwrap.play .xacts{animation:rise .5s cubic-bezier(.16,1,.3,1) both}
+.xwrap.play .xtitle{animation-delay:1.35s}.xwrap.play .xsub{animation-delay:1.45s}.xwrap.play .xacts{animation-delay:1.55s}
+.sec{font-size:14px;color:var(--muted);font-weight:700;margin:26px 4px 2px}
+.crow{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);margin:8px 0;overflow:hidden;transition:border-color .25s}
+.crow.open{border-color:var(--accent)}
+.chead{display:flex;align-items:center;gap:12px;width:100%;padding:12px 14px;background:none;border:0;color:var(--text);text-align:left;cursor:pointer}
+.chead:focus-visible{outline:2px solid var(--accent);outline-offset:-2px;border-radius:var(--r)}
+.chead .grow{display:flex;flex-direction:column;gap:1px}
+.cav{width:36px;height:36px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;background:var(--panel2);border:1px solid var(--line);color:var(--accent);font-weight:800;text-transform:uppercase}
+.chev{width:18px;height:18px;flex:none;fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:transform .35s cubic-bezier(.16,1,.3,1)}
+.crow.open .chev{transform:rotate(180deg)}
+.cbody{display:grid;grid-template-rows:0fr;transition:grid-template-rows .38s cubic-bezier(.16,1,.3,1)}
+.crow.open .cbody{grid-template-rows:1fr}
+.cbody>div{overflow:hidden;min-height:0}
+.cin{padding:0 14px 14px 62px;font-size:13px;color:var(--muted);line-height:1.6}
+.cin .row{flex-wrap:wrap;gap:8px;margin-top:10px}
+@keyframes xdraw{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}
+@keyframes xhalo{from{transform:scale(0);opacity:0}to{transform:none;opacity:1}}
+@keyframes xdrop{0%{transform:translateY(-90px);opacity:0}40%{opacity:1}70%{transform:translateY(0) scale(1.06,.9)}85%{transform:translateY(-7px)}100%{transform:none;opacity:1}}
+@keyframes xshadow{0%{transform:scale(.2);opacity:0}70%{transform:scale(1.15);opacity:1}100%{transform:none;opacity:1}}
+@keyframes xring{0%{transform:scale(1);opacity:.7}100%{transform:scale(2.6);opacity:0}}
 @keyframes tabpop{0%{transform:scale(.82) translateY(2px)}60%{transform:scale(1.12)}100%{transform:none}}
 @keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
 @keyframes invite{0%{transform:scale(.8);opacity:.75}100%{transform:scale(2.1);opacity:0}}
@@ -243,9 +287,10 @@ details summary{cursor:pointer;color:var(--accent2);font-size:13px;margin-top:8p
 @media(min-width:900px){#view,.auth{max-width:720px;margin:0 auto;width:100%}}
 @media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important;animation-delay:0s!important}
   /* keep the invitation readable without movement: one still ring */
-  nav.tabs button.inv svg,.radar svg{animation:none}
-  nav.tabs button.inv .ti::after,.radar::after{animation:none}
-  nav.tabs button.inv .ti::before,.radar::before{animation:none;opacity:.45;transform:scale(1.3)}}
+  nav.tabs button.inv svg{animation:none}
+  nav.tabs button.inv .ti::after,.xhero .xring.r2{animation:none}
+  nav.tabs button.inv .ti::before{animation:none;opacity:.45;transform:scale(1.3)}
+  .xhero.inv .xring{animation:none;opacity:.4;transform:scale(1.35)}}
 </style>
 </head>
 <body>
@@ -384,7 +429,7 @@ async function boot() {
   state.cfg = await fetch("/api/config").then(r => r.json()).catch(() => ({}));
   if (state.token) { try { state.user = await api("/api/me"); } catch (e) { state.token = null; } }
   if (!state.user) return renderAuth();
-  $("#header").style.display = ""; $("#logout").style.display = ""; $("#settingsbtn").style.display = ""; $("#tabs").style.display = "";
+  $("#header").style.display = ""; $("#tabs").style.display = "";
   await refreshAll(); renderTabs(); render();
   clearInterval(pollTimer); pollTimer = setInterval(() => { if (!document.hidden) refreshSoft(); }, 4000);
   let pending = null; try { pending = sessionStorage.getItem("cp_pair"); sessionStorage.removeItem("cp_pair"); } catch (e) { /* private mode */ }
@@ -419,13 +464,14 @@ async function refreshSoft() {
 const needsMe = () => state.checks.filter(c => c.status === "awaiting_consent" && !c.my_consent).length + state.conns.filter(c => c.direction === "incoming" && c.status === "pending").length;
 
 /* ---------- shell ---------- */
-const TAB_ICON = { uploads: "upload", mytimeline: "route", people: "people", checks: "checks" };
-const TABS = [["uploads", "Uploads"], ["mytimeline", "My Timeline"], ["people", "People"], ["checks", "Checks"]];
+const TAB_ICON = { uploads: "upload", mytimeline: "map", checks: "checks", people: "people", account: "account" };
+// five tabs, with Checks (the main action) raised in the middle
+const TABS = [["uploads", "Import"], ["mytimeline", "My Map"], ["checks", "Checks"], ["people", "People"], ["account", "Account"]];
 // pop: the tab that was just chosen bounces its icon once (not on every background refresh)
 function renderTabs(pop) {
   const n = needsMe(), inv = journey().invite, nav = $("#tabs"), i = TABS.findIndex(([k]) => k === state.tab);
   const html = TABS.map(([k, l]) => {
-    const cls = [state.tab === k ? "on" : "", k === "checks" && inv && state.tab !== k ? "inv" : "", pop && state.tab === k ? "pop" : ""].join(" ").trim();
+    const cls = [k === "checks" ? "mid" : "", state.tab === k ? "on" : "", k === "checks" && inv && state.tab !== k ? "inv" : "", pop && state.tab === k ? "pop" : ""].join(" ").trim();
     const lbl = k === "checks" && inv ? `${l}, a check is ready to run` : l;
     return `<button data-act="tab" data-t="${k}" class="${cls}" aria-label="${lbl}"${state.tab === k ? ` aria-current="page"` : ""}><span class="ti"><svg viewBox="0 0 24 24">${ICON[TAB_ICON[k]]}</svg></span>${l}${k === "checks" && n ? `<span class="dot">${n}</span>` : ""}</button>`;
   }).join("");
@@ -433,8 +479,9 @@ function renderTabs(pop) {
   if (box.dataset.k !== html) { box.innerHTML = html; box.dataset.k = html; }
   const ind = $(".tabind", nav), was = ind.style.getPropertyValue("--i");
   nav.style.setProperty("--n", TABS.length); ind.style.setProperty("--i", i);
+  ind.classList.toggle("off", state.tab === "checks");   // the raised button shows its own selection
   // a little stretch while the pill travels, so it reads as moving rather than blinking
-  if (pop && was !== "" && +was !== i && ind.animate && !reduceMotion()) ind.animate([{ scale: "1 1" }, { scale: "1.35 .8" }, { scale: "1 1" }], { duration: 420, easing: "cubic-bezier(.16,1,.3,1)" });
+  if (pop && was !== "" && +was !== i && state.tab !== "checks" && ind.animate && !reduceMotion()) ind.animate([{ scale: "1 1" }, { scale: "1.35 .8" }, { scale: "1 1" }], { duration: 420, easing: "cubic-bezier(.16,1,.3,1)" });
   renderFlow();
 }
 const reduceMotion = () => window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -444,7 +491,7 @@ let PAGE = 0;
 function switchTab(t) {
   if (t === state.tab) { renderTabs(); return render(); }
   const order = TABS.map(([k]) => k), dir = order.indexOf(t) > order.indexOf(state.tab) ? 1 : -1, v = $("#view"), seq = ++PAGE, calm = reduceMotion();
-  state.tab = t; renderTabs(true);
+  state.tab = t; if (t === "checks") HERO.play = true; renderTabs(true);
   const enter = () => {
     if (seq !== PAGE) return;
     render(); v.scrollTop = 0;
@@ -468,7 +515,7 @@ function journey() {
   const has = { upload: state.uploads.length > 0, connect: ok.length > 0, check: !!(running || done), results: !!done };
   return { ok, fresh, review, waiting, running, done, has, invite: !!review || (has.upload && fresh.length > 0) };
 }
-const FLOW = [["upload", "Timeline", "uploads"], ["connect", "Connect", "people"], ["check", "Check", "checks"], ["results", "Crossings", "checks"]];
+const FLOW = [["upload", "Import", "uploads"], ["connect", "Connect", "people"], ["check", "Check", "checks"], ["results", "Crossings", "checks"]];
 const TICK = `<svg viewBox="0 0 24 24">${ICON.check}</svg>`;
 function flowHint(j, k) {
   const inc = state.conns.find(c => c.direction === "incoming" && c.status === "pending");
@@ -507,7 +554,7 @@ function renderFlow() {
   }
   go.hidden = !act; go.textContent = act; go.dataset.k = FLOW[cur][0];
   // on Checks the invitation card already carries this, so the hint steps aside
-  $(".fhint", el).hidden = state.tab === "checks" && FLOW[cur][0] === "check" && j.invite;
+  $(".fhint", el).hidden = state.tab === "checks";   // the Checks page says it in its own words
 }
 function flowGo(k) {
   const j = journey();
@@ -518,7 +565,7 @@ function flowGo(k) {
   if (k === "results" && j.done) return run(() => openResults(j.done.id));
   switchTab((FLOW.find(([x]) => x === k) || FLOW[0])[2]);
 }
-function render() { renderFlow(); ({ uploads: renderTimeline, mytimeline: renderMyTimeline, people: renderPeople, checks: renderChecks })[state.tab](); }
+function render() { renderFlow(); ({ uploads: renderTimeline, mytimeline: renderMyTimeline, people: renderPeople, checks: renderChecks, account: renderAccount })[state.tab](); }
 
 /* ---------- timeline tab ---------- */
 // Where people can get a location history from, and how to export it. Shown under "Import a file".
@@ -606,7 +653,7 @@ const exportRow = id => `<div class="row" style="gap:8px;flex-wrap:wrap"><span c
 function renderTimeline() {
   const B = state.build;
   $("#view").innerHTML = `
-  <div class="hero"><h1>Uploads</h1><p>Build your timeline from one or more sources. It stays private and is ${keepPhrase()}. <a href="#" data-act="settings">Change</a></p></div>
+  <div class="hero"><h1>Import</h1><p>Build your timeline from one or more sources. It stays private and is ${keepPhrase()}. <a href="#" data-act="tab" data-t="account">Change</a></p></div>
   ${savedCard()}
   ${B ? builderCard() : `<div class="addopts">
     <button class="card addopt" data-act="build" data-p="files"><span class="ico">${ico("folder", 26)}</span><b>Import a timeline</b><span class="muted small">Google Maps, Strava, Apple Health, Samsung Health, Garmin, Swarm, GPX, CSV…</span></button>
@@ -848,36 +895,79 @@ function pairEnterSheet(prefill, fromLink) {
 }
 
 /* ---------- checks tab ---------- */
-const CROSS = `<svg viewBox="0 0 24 24">${ICON.crossing}</svg>`;
-function checkInvite() {
-  const j = journey();
-  if (j.review) return `<div class="card invite"><span class="radar">${CROSS}</span><div class="grow"><h3>@${esc(j.review.other)} wants to check paths</h3>
-    <p class="muted small" style="margin:4px 0 0">Review it and agree, and the check runs straight away.</p>
-    <div class="acts"><button class="btn sm" data-act="review" data-id="${j.review.id}">Review</button></div></div></div>`;
-  if (!j.has.upload || !j.fresh.length) return "";
-  const who = j.fresh.slice(0, 3);
-  return `<div class="card invite"><span class="radar">${CROSS}</span><div class="grow"><h3>Run a check</h3>
-    <p class="muted small" style="margin:4px 0 0">Did your paths ever cross? ${j.fresh.length === 1 ? `Ask <b>@${esc(who[0].other)}</b>` : "Pick someone"}; it runs once you both agree.</p>
-    <div class="acts">${who.map(c => `<button class="btn sm" data-act="newcheck" data-id="${c.id}" data-o="${esc(c.other)}">Check with @${esc(c.other)}</button>`).join("")}
-    ${j.fresh.length > 3 ? `<button class="btn ghost sm" data-act="tab" data-t="people">More people</button>` : ""}</div></div></div>`;
+/* ---------- checks tab: the big crossing + previous checks ---------- */
+// The app icon, animated: the two routes draw in from opposite sides and cross, the halo spreads,
+// then the pin drops onto the crossing. It plays when you open the tab, not on background refreshes.
+const HERO = { play: false }, OPEN_CHECKS = new Set();
+function heroSvg(play, inv) {
+  const g = (id, c) => `<linearGradient id="${id}" x1="0" x2="1"><stop offset="0" stop-color="${c}" stop-opacity="0"/><stop offset=".2" stop-color="${c}"/><stop offset=".8" stop-color="${c}"/><stop offset="1" stop-color="${c}" stop-opacity="0"/></linearGradient>`;
+  return `<svg class="xhero${play ? " play" : ""}${inv ? " inv" : ""}" viewBox="0 0 240 190" aria-hidden="true"><defs>${g("xgb", "#0a84ff")}${g("xgg", "#34c759")}</defs>
+    <circle class="xring" cx="120" cy="132" r="30"/><circle class="xring r2" cx="120" cy="132" r="30"/>
+    <circle class="xhalo" cx="120" cy="132" r="30"/>
+    <path class="xl xg" pathLength="1" stroke="url(#xgg)" d="M240 102C180 102 150 117 120 132S52 164 0 164"/>
+    <path class="xl xb" pathLength="1" stroke="url(#xgb)" d="M0 98C60 98 90 115 120 132S190 166 240 166"/>
+    <g class="xpin" transform="translate(120 132)"><ellipse class="xshadow" cx="0" cy="1" rx="13" ry="4"/>
+      <g class="xpin-i"><g transform="translate(-40.8 -72.1) scale(3.4)"><path stroke-width="1.75" stroke-linejoin="round" d="M12 2.8c-3.6 0-6.4 2.8-6.4 6.4 0 4.8 6.4 12 6.4 12s6.4-7.2 6.4-12c0-3.6-2.8-6.4-6.4-6.4z"/><circle cx="12" cy="9.2" r="2.4" stroke-width="1.75"/></g></g></g></svg>`;
+}
+// What the big crossing invites you to do right now: [title, text, buttons, what tapping the crossing does]
+function heroState(j) {
+  const b = (act, label, extra = "", ghost) => `<button class="btn${ghost ? " ghost" : ""}" data-act="${act}" ${extra}>${label}</button>`;
+  const inc = state.conns.find(c => c.direction === "incoming" && c.status === "pending");
+  if (j.review) { const x = `data-id="${j.review.id}"`; return [`@${esc(j.review.other)} wants to check paths`, "Agree, and the check runs straight away. They'll only see when and roughly where you crossed.", b("review", "Review", x), `data-act="review" ${x}`]; }
+  if (j.has.upload && j.fresh.length) {
+    const who = j.fresh.slice(0, 3), x = c => `data-id="${c.id}" data-o="${esc(c.other)}"`;
+    return ["Did your paths ever cross?", j.fresh.length === 1 ? `Tap to ask @${esc(who[0].other)}. The check runs once you both agree.` : "Pick someone. The check runs once you both agree.",
+      who.map(c => b("newcheck", `Check with @${esc(c.other)}`, x(c))).join("") + (j.fresh.length > 3 ? b("tab", "More people", 'data-t="people"', true) : ""), `data-act="newcheck" ${x(who[0])}`];
+  }
+  if (j.running) return ["Checking…", `<span class="pulse-dot"></span>&nbsp; Finding where your paths crossed with @${esc(j.running.other)}.`, "", `data-act="tab" data-t="checks"`];
+  if (!j.has.upload) return ["Import your timeline first", "Then connect with someone and see if your paths ever crossed.", b("tab", "Import", 'data-t="uploads"'), `data-act="tab" data-t="uploads"`];
+  if (!j.has.connect) return [inc ? `@${esc(inc.other)} wants to connect` : "Connect with someone", inc ? "Accept their request, then check where your paths crossed." : "Send a request by username or meet in person, then run a check together.", b("tab", inc ? "See request" : "Find people", 'data-t="people"'), `data-act="tab" data-t="people"`];
+  if (j.waiting) return [`Waiting for @${esc(j.waiting.other)}`, "The check runs as soon as they agree.", "", `data-act="tab" data-t="checks"`];
+  return ["Did our paths ever cross?", "You've checked with everyone you're connected to. Connect with someone new to check again.", b("tab", "Find people", 'data-t="people"', true), `data-act="tab" data-t="people"`];
 }
 function renderChecks() {
-  $("#view").innerHTML = `<div class="hero"><h1>Checks</h1><p>Each check runs only after both of you agree.</p></div>` + checkInvite() +
-    (state.checks.map(checkCard).join("") || `<p class="muted" style="text-align:center;margin-top:24px">No checks yet. Start one from People.</p>`);
+  const play = HERO.play && !reduceMotion(), j = journey(), [title, text, acts, tap] = heroState(j);
+  HERO.play = false;
+  $("#view").innerHTML = `<div class="xwrap${play ? " play" : ""}">
+      <button class="xbtn" ${tap} aria-label="${esc(title.replace(/<[^>]+>/g, ""))}">${heroSvg(play, j.invite)}</button>
+      <h1 class="xtitle">${title}</h1><p class="muted xsub">${text}</p>${acts ? `<div class="xacts">${acts}</div>` : ""}</div>
+    ${state.checks.length ? `<h2 class="sec">Previous checks</h2>${state.checks.map(checkRow).join("")}` : ""}`;
 }
-function checkCard(c) {
-  let action = "", sub = "";
-  if (c.status === "awaiting_consent") {
-    if (!c.my_consent) { action = `<button class="btn sm" data-act="review" data-id="${c.id}">Review</button>`; sub = `@${esc(c.other)} wants to check paths with you`; }
-    else sub = `Waiting for @${esc(c.other)} to agree · expires in ${Math.max(1, Math.round((c.expires_at * 1000 - Date.now()) / 864e5))} d`;
-  } else if (c.status === "running") sub = `<span class="pulse-dot"></span> Finding where your paths crossed…`;
-  else if (c.status === "done") { action = `<button class="btn sm" data-act="results" data-id="${c.id}">View</button>`; sub = c.events_count ? `${c.events_count} crossing${c.events_count > 1 ? "s" : ""} found` : "No crossings found"; }
-  else if (c.status === "failed") sub = esc(c.error || "Something went wrong. Upload again and retry.");
-  else if (c.status === "declined") sub = "Declined";
-  else sub = "Expired";
-  return `<div class="card"><div class="row between"><div class="grow"><b>@${esc(c.other)}</b><div class="muted small">${sub}</div>
-    <div class="muted small">${c.radius_m} m · ${c.window_min} min</div></div><div class="row">${pill(c.status, c.status.replace("_", " "))}${action}
-    <button class="btn ghost sm" data-act="rmcheck" data-id="${c.id}" title="Delete" aria-label="Delete">${ico("trash", 17)}</button></div></div></div>`;
+const CHEV_DOWN = '<svg class="chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>';
+function checkRow(c) {
+  const mine = c.status === "awaiting_consent" && !c.my_consent, n = c.events_count;
+  const short = { awaiting_consent: mine ? "Waiting for you to agree" : "Waiting for them to agree", running: "Checking…", done: n ? `${n} crossing${n > 1 ? "s" : ""}` : "No crossings found",
+    failed: "Didn't run", declined: "Declined" }[c.status] || "Expired";
+  let more = "";
+  if (c.status === "awaiting_consent") more = mine ? `@${esc(c.other)} wants to check paths with you.` : `Waiting for @${esc(c.other)} to agree. The request expires in ${Math.max(1, Math.round((c.expires_at * 1000 - Date.now()) / 864e5))} d.`;
+  else if (c.status === "running") more = `<span class="pulse-dot"></span>&nbsp; Finding where your paths crossed…`;
+  else if (c.status === "failed") more = esc(c.error || "Something went wrong. Import again and retry.");
+  const acts = (c.status === "done" ? `<button class="btn sm" data-act="results" data-id="${c.id}">View crossings</button>` : "")
+    + (mine ? `<button class="btn sm" data-act="review" data-id="${c.id}">Review</button>` : "")
+    + `<button class="btn ghost sm" data-act="rmcheck" data-id="${c.id}">${ico("trash", 15)} Delete</button>`;
+  const open = OPEN_CHECKS.has(c.id);
+  return `<div class="crow${open ? " open" : ""}" data-cid="${c.id}"><button class="chead" data-act="ctoggle" data-id="${c.id}" aria-expanded="${open}">
+      <span class="cav">${esc(c.other.slice(0, 1))}</span><span class="grow"><b>@${esc(c.other)}</b><span class="muted small">${short}</span></span>
+      ${pill(c.status, c.status.replace("_", " "))}${CHEV_DOWN}</button>
+    <div class="cbody"><div><div class="cin">${more ? `<div>${more}</div>` : ""}
+      <div>Within ${c.radius_m} m and ${c.window_min} min${c.created_at ? ` · started ${dateStr(c.created_at)}` : ""}</div>
+      ${c.status === "done" && c.results_expire ? `<div>Results kept until ${dateStr(c.results_expire)}</div>` : ""}
+      <div class="row">${acts}</div></div></div></div></div>`;
+}
+function toggleCheck(id) {
+  const row = document.querySelector(`.crow[data-cid="${id}"]`); if (!row) return;
+  const open = !row.classList.contains("open");
+  row.classList.toggle("open", open); $(".chead", row).setAttribute("aria-expanded", open);
+  if (open) OPEN_CHECKS.add(id); else OPEN_CHECKS.delete(id);
+}
+
+/* ---------- account tab ---------- */
+function renderAccount() {
+  const u = state.user || {};
+  $("#view").innerHTML = `<div class="hero"><h1>Account</h1><p>Signed in as <b>@${esc(u.handle || "")}</b></p></div>
+    <div class="card">${settingsBody()}</div>
+    <button class="btn ghost" style="width:100%;margin-top:6px" data-act="logout">Sign out</button>`;
+  wireSettings($("#view"));
 }
 
 /* ---------- sheets ---------- */
@@ -1216,22 +1306,26 @@ function wireHScroll(root) {
 }
 
 /* ---- settings: theme + how long uploads are kept ---- */
-function settingsSheet() {
+const keepNote = h => !h ? "Your timelines stay on this server, encrypted, until you delete them on the Import tab." : `Each timeline is deleted ${keepLabel(h)} after you upload it. Choosing a shorter time also deletes older ones straight away.`;
+function settingsBody() {
   const p = themePref(), u = state.user || {}, opts = state.cfg.upload_keep_options || [state.cfg.upload_ttl_hours || 24];
-  const keep = u.upload_keep_hours;
-  const note = h => !h ? "Your timelines stay on this server, encrypted, until you delete them on the Uploads tab." : `Each timeline is deleted ${keepLabel(h)} after you upload it. Choosing a shorter time also deletes older ones straight away.`;
-  openSheet(`<h2>Settings</h2>
-    <label>Theme</label><div class="seg" id="thmode" style="margin-top:0">${[["system", "System"], ["dark", "Dark"], ["light", "Light"]].map(([k, l]) => `<button data-mode="${k}" class="${p.mode === k ? "on" : ""}">${l}</button>`).join("")}</div>
+  const keep = u.upload_keep_hours, note = keepNote;
+  return `<label>Theme</label><div class="seg" id="thmode" style="margin-top:0">${[["system", "System"], ["dark", "Dark"], ["light", "Light"]].map(([k, l]) => `<button data-mode="${k}" class="${p.mode === k ? "on" : ""}">${l}</button>`).join("")}</div>
     <label>Accent colour</label><div class="swatches" id="thacc">${Object.entries(ACCENTS).map(([k, a]) => `<button class="sw2${p.accent === k ? " on" : ""}" data-acc="${k}" style="--c:${a.dark[0]};--c2:${a.light[0]}" aria-label="${a.name}" title="${a.name}"></button>`).join("")}</div>
     <label style="margin-top:18px">Keep my uploaded timelines</label>${hsRow(opts.map(h => `<button class="fchip${h === keep ? " on" : ""}" data-keep="${h}">${keepLabel(h)}</button>`).join(""), 'id="keepopts"')}
-    <p class="muted small" id="keepnote" style="margin:8px 0 0">${note(keep)}</p>
-    <div class="row" style="margin-top:18px"><button class="btn grow" id="setdone">Done</button></div>`);
-  const sh = $("#sheet");
-  wireHScroll(sh);
+    <p class="muted small" id="keepnote" style="margin:8px 0 0">${note(keep)}</p>`;
+}
+function settingsSheet() {
+  openSheet(`<h2>Settings</h2>${settingsBody()}<div class="row" style="margin-top:18px"><button class="btn grow" id="setdone">Done</button></div>`);
+  wireSettings($("#sheet"));
   $("#setdone").onclick = () => closeSheet();
-  $("#thmode").onclick = e => { const b = e.target.closest("[data-mode]"); if (!b) return; setTheme({ mode: b.dataset.mode }); $("#thmode").querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b)); };
-  $("#thacc").onclick = e => { const b = e.target.closest("[data-acc]"); if (!b) return; setTheme({ accent: b.dataset.acc }); $("#thacc").querySelectorAll(".sw2").forEach(x => x.classList.toggle("on", x === b)); };
-  $("#keepopts").onclick = async e => {
+}
+function wireSettings(sh) {
+  const note = keepNote, $$ = q => $(q, sh);
+  wireHScroll(sh);
+  $$("#thmode").onclick = e => { const b = e.target.closest("[data-mode]"); if (!b) return; setTheme({ mode: b.dataset.mode }); $$("#thmode").querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b)); };
+  $$("#thacc").onclick = e => { const b = e.target.closest("[data-acc]"); if (!b) return; setTheme({ accent: b.dataset.acc }); $$("#thacc").querySelectorAll(".sw2").forEach(x => x.classList.toggle("on", x === b)); };
+  $$("#keepopts").onclick = async e => {
     const b = e.target.closest("[data-keep]"); if (!b) return;
     const h = +b.dataset.keep;
     if (h === state.user.upload_keep_hours) return;
@@ -1239,8 +1333,8 @@ function settingsSheet() {
     if (doomed && !confirm(`This deletes ${doomed} uploaded timeline${doomed === 1 ? "" : "s"} older than ${keepLabel(h)} now. Continue?`)) return;
     try {
       state.user = await api("/api/me/settings", { method: "PUT", body: { upload_keep_hours: h } });
-      $("#keepopts").querySelectorAll(".fchip").forEach(x => x.classList.toggle("on", +x.dataset.keep === state.user.upload_keep_hours));
-      $("#keepnote").textContent = note(state.user.upload_keep_hours);
+      $$("#keepopts").querySelectorAll(".fchip").forEach(x => x.classList.toggle("on", +x.dataset.keep === state.user.upload_keep_hours));
+      $$("#keepnote").textContent = note(state.user.upload_keep_hours);
       state.uploads = await api("/api/uploads");
       if (state.tab === "uploads" && !$("#results")) render();
       toast(h ? `Uploads are now deleted after ${keepLabel(h)}` : "Uploads are now kept until you delete them");
@@ -1578,13 +1672,13 @@ function mtStatus(msg, spinning) {
 
 async function renderMyTimeline() {
   if (!state.uploads.length) {
-    $("#view").innerHTML = `<div class="hero"><h1>My timeline</h1></div><p class="muted" style="text-align:center;margin-top:24px">Upload your timeline first, on the Uploads tab.</p>`;
+    $("#view").innerHTML = `<div class="hero"><h1>My map</h1></div><p class="muted" style="text-align:center;margin-top:24px">Import a timeline first, on the Import tab.</p>`;
     return;
   }
   if (!MYT.uploadId || !state.uploads.some(u => u.id === MYT.uploadId)) MYT.uploadId = state.uploads[0].id;
   const upload = state.uploads.find(u => u.id === MYT.uploadId);
   $("#view").innerHTML = `
-    <div class="hero"><h1>My timeline</h1></div>
+    <div class="hero"><h1>My map</h1></div>
     ${state.uploads.length > 1 ? `<div class="mt-row" id="mt-uploadpick">${state.uploads.map(u => `<button class="mo-chip${u.id === MYT.uploadId ? " sel" : ""}" data-mtupload="${u.id}">${dateStr(u.from)} → ${dateStr(u.to)}</button>`).join("")}</div>` : ""}
     <div class="mt-status" id="mt-status">Loading your timeline…</div>
     <div id="mt-picker" style="display:none">
@@ -1858,7 +1952,8 @@ document.addEventListener("click", async e => {
   if (a.tagName === "A") e.preventDefault();
   switch (act) {
     case "logout": return logout();
-    case "settings": return settingsSheet();
+    case "settings": return switchTab("account");
+    case "ctoggle": return toggleCheck(id);
     case "mode": state.authMode = a.dataset.m; return renderAuth();
     case "auth": return run(async () => {
       const handle = $("#a_user").value, password = $("#a_pass").value, reg = state.authMode === "register";

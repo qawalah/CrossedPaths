@@ -83,7 +83,7 @@ export default function AddNearbyScreen({ route, navigation, uploads, loaded, on
             <UploadPicker uploads={uploads} value={uploadId} onChange={setUploadId} />
           ) : (
             <Text style={{ color: colors.warn, fontSize: 13, lineHeight: 18 }}>
-              You haven't uploaded a timeline, so you'll be connected but no check will run. Upload one on the Timeline tab first
+              You haven't uploaded a timeline, so you'll be connected but no check will run. Import one on the Import tab first
               to check straight away.
             </Text>
           )}

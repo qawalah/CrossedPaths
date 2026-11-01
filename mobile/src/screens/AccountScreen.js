@@ -136,7 +136,7 @@ export default function AccountScreen({ navigation }) {
         <Text style={{ color: colors.muted, fontSize: 12.5, marginTop: 10, lineHeight: 18 }}>
           {keep
             ? `Each timeline you upload is deleted ${keepLabel(keep)} after you upload it. Keep it longer to look at My timeline or run new checks without uploading again.`
-            : "Your timelines stay on the server, encrypted, until you delete them on the Timeline tab."}
+            : "Your timelines stay on the server, encrypted, until you delete them on the Import tab."}
         </Text>
       </Card>
 
