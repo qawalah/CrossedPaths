@@ -134,13 +134,28 @@ export default function BuildTimelineModal({ navigation, route, cfg, uploads, on
     }
   }
 
-  const wrap = (children) => (
-    <ScrollView
-      style={{ flex: 1, backgroundColor: colors.panel }}
-      contentContainerStyle={{ padding: 20, paddingTop: insets.top + 16, paddingBottom: 40 }}
-    >
-      {children}
-    </ScrollView>
+  // The buttons live in a footer that stays on screen; only the guides and the list scroll.
+  const wrap = (children, footer) => (
+    <View style={{ flex: 1, backgroundColor: colors.panel }}>
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 20, paddingTop: insets.top + 16, paddingBottom: 24 }} keyboardShouldPersistTaps="handled">
+        {children}
+      </ScrollView>
+      {footer ? (
+        <View
+          style={{
+            paddingHorizontal: 20,
+            paddingTop: 12,
+            paddingBottom: Math.max(insets.bottom, 12),
+            gap: 10,
+            borderTopWidth: 1,
+            borderTopColor: colors.line,
+            backgroundColor: colors.panel,
+          }}
+        >
+          {footer}
+        </View>
+      ) : null}
+    </View>
   );
 
   if (saved) {
@@ -275,15 +290,8 @@ export default function BuildTimelineModal({ navigation, route, cfg, uploads, on
               );
             })}
           </View>
-          <Button
-            title="Choose file(s)"
-            icon="folder"
-            variant={items.length ? "ghost" : "primary"}
-            onPress={pickFiles}
-            style={{ marginTop: 16 }}
-          />
-          <Text style={{ color: colors.muted, fontSize: 11.5, marginTop: 6, textAlign: "center" }}>
-            GPX · TCX · FIT · KML · GeoJSON · CSV · JSON · ZIP
+          <Text style={{ color: colors.muted, fontSize: 11.5, marginTop: 12, textAlign: "center" }}>
+            Accepted: GPX · TCX · FIT · KML · GeoJSON · CSV · JSON · ZIP
           </Text>
         </>
       ) : null}
@@ -309,14 +317,6 @@ export default function BuildTimelineModal({ navigation, route, cfg, uploads, on
               </View>
             </Card>
           ) : null}
-          <Button
-            title={scanning ? "Scanning…" : "Scan photo library"}
-            icon="photos"
-            variant={items.length ? "ghost" : "primary"}
-            onPress={scan}
-            loading={scanning}
-            style={{ marginTop: 14 }}
-          />
         </>
       ) : null}
 
@@ -363,21 +363,6 @@ export default function BuildTimelineModal({ navigation, route, cfg, uploads, on
 
       {items.length ? (
         <>
-          <Button
-            title={
-              busy
-                ? "Reading and combining…"
-                : target
-                ? `Add ${plural(items.length, "source")} and save`
-                : items.length > 1
-                ? `Combine ${items.length} sources and save`
-                : "Save timeline"
-            }
-            onPress={save}
-            loading={busy}
-            disabled={scanning}
-            style={{ marginTop: 18 }}
-          />
           <Text style={{ color: colors.muted, fontSize: 13, marginTop: 20, marginBottom: 4 }}>Add more to this timeline (optional)</Text>
           {more.map(([k, label, ic]) => (
             <Pressable key={k} onPress={() => switchTo(k)} style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingVertical: 8 }}>
@@ -390,6 +375,36 @@ export default function BuildTimelineModal({ navigation, route, cfg, uploads, on
       <Pressable onPress={() => navigation.goBack()} disabled={busy} style={{ marginTop: 14, alignItems: "center" }}>
         <Text style={{ color: colors.muted, fontSize: 13 }}>Cancel</Text>
       </Pressable>
+    </>,
+    items.length || pane === "files" || pane === "photos" ? (
+    <>
+      {items.length ? (
+        <Button
+          title={
+            busy
+              ? "Reading and combining…"
+              : target
+              ? `Add ${plural(items.length, "source")} and save`
+              : items.length > 1
+              ? `Combine ${items.length} sources and save`
+              : "Save timeline"
+          }
+          onPress={save}
+          loading={busy}
+          disabled={scanning}
+        />
+      ) : null}
+      {pane === "files" ? <Button title="Choose file(s)" icon="folder" variant={items.length ? "ghost" : "primary"} onPress={pickFiles} /> : null}
+      {pane === "photos" ? (
+        <Button
+          title={scanning ? "Scanning…" : "Scan photo library"}
+          icon="photos"
+          variant={items.length ? "ghost" : "primary"}
+          onPress={scan}
+          loading={scanning}
+        />
+      ) : null}
     </>
+    ) : null
   );
 }
