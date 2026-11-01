@@ -12,6 +12,7 @@ Pick the repo, then set:
 | Working directory | `server` |
 | Config path | `fly.toml` (inside `server/`) |
 | App name | `crosspaths`, or any free name (also update `app` in `fly.toml`) |
+| Volume | created on first deploy, 3 GB |
 | Region | the one closest to your users; keep `primary_region` in `fly.toml` the same |
 | Internal port | `8787` |
 | Machine | shared-cpu-1x, 1 GB RAM |
@@ -55,6 +56,10 @@ fly machine restart
   purge loop run in background threads.
 - 1 GB RAM covers the place-name list (`PLACE_NAMES=true`). Use `fly scale memory 2048` if large
   uploads run out of memory.
+- **Street maps** (journeys drawn along roads): put your username in `ADMIN_HANDLES` in
+  `fly.toml`, then add countries in *Settings → Server (admin) → Street maps*. Each country needs
+  disk (`fly volumes extend <id> --size 10`) and 1-4 GB RAM while it's prepared
+  (`fly scale memory 4096`, then back to 1024 when it's done). `STREET_SNAP = "false"` turns it off.
 - Fly keeps daily volume snapshots: `fly volumes snapshots list`.
 - Custom domain: `fly certs add crosspaths.example.com`, then set DNS as it says.
 - Apps: enter `https://<app>.fly.dev` (or your domain) as the server address.
