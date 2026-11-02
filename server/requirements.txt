@@ -6,3 +6,5 @@ Flask>=3.0
 gunicorn>=22.0
 PyJWT>=2.7
 cryptography>=42
+# street maps: in-process routing + tile builder (optional at runtime; wheels for x86_64 and arm64)
+pyvalhalla>=3.9,<4

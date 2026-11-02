@@ -12,13 +12,19 @@ import { useServerState } from "../useServer";
 import { useAuth } from "../auth";
 import { useTheme } from "../themeContext";
 import { changeLanguage } from "../changeLanguage";
-import { LANG_PREF, pl, t } from "../i18n";
+import { H, LANG_PREF, pl, t } from "../i18n";
 import { ACCENTS, colors, keepLabel, THEME_MODES } from "../theme";
+import Slider from "@react-native-community/slider";
+import { setScrubberPrefs, useScrubberPrefs, ZOOM_GESTURES } from "../scrubberPrefs";
+import { showWelcomeAgain } from "../welcome";
 
 export default function AccountScreen({ navigation }) {
   const insets = useSafeAreaInsets();
   const { user, setUser, cfg, logout } = useAuth();
   const { pref, setTheme } = useTheme();
+  const [scrub] = useScrubberPrefs();
+  const [holdMsDrag, setHoldMs] = useState(null);
+  const holdMs = Math.round(holdMsDrag ?? scrub.holdMs);
   const server = useServerState();
   const toast = useToast();
   const [saving, setSaving] = useState(false);
@@ -76,14 +82,15 @@ export default function AccountScreen({ navigation }) {
       <Card>
         <Text style={{ color: colors.muted, fontSize: 12.5 }}>{t("Signed in as")}</Text>
         <Text style={{ color: colors.text, fontWeight: "700", fontSize: 17, marginTop: 2 }}>
-          {user && user.handle ? `\u2066@${user.handle}\u2069` : "…"}
+          {user && user.handle ? H(user.handle) : "…"}
         </Text>
         {user && user.offline ? (
           <Text style={{ color: colors.warn, fontSize: 12.5, marginTop: 6 }}>
             {t("Can't reach the server right now. Everything will refresh once it's reachable.")}
           </Text>
         ) : null}
-        <Button title={t("Sign out")} variant="bad" onPress={confirmLogout} style={{ marginTop: 14 }} />
+        <Button title={t("Show the tutorial again")} icon="help" variant="ghost" onPress={showWelcomeAgain} style={{ marginTop: 14 }} />
+        <Button title={t("Sign out")} variant="bad" onPress={confirmLogout} style={{ marginTop: 10 }} />
       </Card>
 
       <Card>
@@ -134,6 +141,58 @@ export default function AccountScreen({ navigation }) {
       </Card>
 
       <Card>
+        <Text style={{ color: colors.text, fontWeight: "700", fontSize: 15 }}>{t("Timeline date bar")}</Text>
+        <Text style={{ color: colors.muted, fontSize: 12.5, marginTop: 4, lineHeight: 18 }}>
+          {t("How to zoom from years into months and days while dragging along the date bar in My timeline.")}
+        </Text>
+        <View style={{ flexDirection: "row", backgroundColor: colors.panel2, borderRadius: 12, padding: 3, marginTop: 12 }}>
+          {ZOOM_GESTURES.map(([k, label]) => (
+            <Pressable
+              key={k}
+              onPress={() => setScrubberPrefs({ gesture: k })}
+              style={{ flex: 1, paddingVertical: 9, borderRadius: 10, alignItems: "center", backgroundColor: scrub.gesture === k ? colors.panel : "transparent" }}
+            >
+              <Text style={{ color: scrub.gesture === k ? colors.text : colors.muted, fontWeight: "700", fontSize: 13 }}>{label}</Text>
+            </Pressable>
+          ))}
+        </View>
+        <Text style={{ color: colors.muted, fontSize: 12.5, marginTop: 8, lineHeight: 18 }}>
+          {scrub.gesture === "pull"
+            ? t("Slide your finger up to zoom in, down to zoom out.")
+            : scrub.gesture === "hold"
+              ? t("Keep your finger still for a moment to zoom in one step.")
+              : t("Slide up or hold still to zoom in; slide down to zoom out.")}
+        </Text>
+        {scrub.gesture !== "pull" ? (
+          <View style={{ marginTop: 12 }}>
+            <Text style={{ color: colors.text, fontSize: 13 }}>
+              {t("Hold for")} <Text style={{ fontWeight: "800" }}>{t("{n} ms", { n: holdMs })}</Text> {t("before zooming")}
+            </Text>
+            <Slider
+              minimumValue={250}
+              maximumValue={1200}
+              step={50}
+              value={scrub.holdMs}
+              onValueChange={setHoldMs}
+              onSlidingComplete={(v) => setScrubberPrefs({ holdMs: v })}
+              minimumTrackTintColor={colors.accent}
+              maximumTrackTintColor={colors.line}
+              thumbTintColor={colors.accent}
+            />
+          </View>
+        ) : null}
+        <Button
+          title={t("Show the tutorial again")}
+          variant="ghost"
+          onPress={() => {
+            setScrubberPrefs({ tutorialSeen: false });
+            toast(t("The tutorial will show next time you open My timeline"));
+          }}
+          style={{ marginTop: 12 }}
+        />
+      </Card>
+
+      <Card>
         <Text style={{ color: colors.text, fontWeight: "700", fontSize: 15 }}>{t("Keep my uploaded timelines")}</Text>
         <View style={{ marginTop: 12, opacity: saving ? 0.6 : 1 }}>
           <ChipScroller selected={keepOptions.indexOf(keep)}>
@@ -161,7 +220,7 @@ export default function AccountScreen({ navigation }) {
         <Text style={{ color: colors.muted, fontSize: 12.5, marginTop: 10, lineHeight: 18 }}>
           {keep
             ? t("Each timeline you upload is deleted {when} after you upload it. Keep it longer to look at My timeline or run new checks without uploading again.", { when: keepLabel(keep) })
-            : t("Your timelines stay on the server, encrypted, until you delete them on the Timeline tab.")}
+            : t("Your timelines stay on the server, encrypted, until you delete them on the Import tab.")}
         </Text>
       </Card>
 

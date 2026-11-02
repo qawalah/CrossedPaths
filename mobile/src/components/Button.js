@@ -2,8 +2,9 @@ import React from "react";
 import { ActivityIndicator, Pressable } from "react-native";
 import { Text } from "./AppText";
 import { colors } from "../theme";
+import Icon from "./Icon";
 
-export default function Button({ title, onPress, variant = "primary", disabled, loading, style }) {
+export default function Button({ title, icon, onPress, variant = "primary", disabled, loading, style }) {
   const base = {
     borderRadius: 12,
     paddingVertical: 12,
@@ -28,7 +29,10 @@ export default function Button({ title, onPress, variant = "primary", disabled, 
       {loading ? (
         <ActivityIndicator color={textColor} />
       ) : (
-        <Text style={{ color: textColor, fontWeight: "700", fontSize: 15 }}>{title}</Text>
+        <>
+          {icon ? <Icon name={icon} size={19} color={textColor} style={{ marginRight: 8 }} /> : null}
+          <Text style={{ color: textColor, fontWeight: "700", fontSize: 15 }}>{title}</Text>
+        </>
       )}
     </Pressable>
   );

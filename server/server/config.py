@@ -37,6 +37,13 @@ class Config:
     # Offline neighbourhood/city names for crossings, from GeoNames files downloaded once to
     # DATA_DIR/places (only static files are fetched; nothing about users leaves the server).
     PLACE_NAMES = _bool("PLACE_NAMES", True)
+    # Usernames (comma-separated) that may manage server-wide things in Settings, e.g. street maps.
+    ADMIN_HANDLES = {h.strip().lower().lstrip("@") for h in os.environ.get("ADMIN_HANDLES", "").split(",") if h.strip()}
+    # Street maps: journeys are drawn along roads in countries an admin downloaded (OpenStreetMap
+    # extracts from Geofabrik, turned into routing data on this server; see server/roads.py).
+    STREET_SNAP = _bool("STREET_SNAP", True)
+    ROADS_CATALOG_URL = os.environ.get("ROADS_CATALOG_URL", "https://download.geofabrik.de/index-v1-nogeom.json")
+    ROADS_MAX_DOWNLOAD_MB = int(os.environ.get("ROADS_MAX_DOWNLOAD_MB", "1500"))
 
     @classmethod
     def load_keys(cls):

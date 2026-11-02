@@ -6,6 +6,7 @@ import Button from "../components/Button";
 import { getServerState, probeServer, setServerAddresses } from "../api";
 import { t } from "../i18n";
 import { colors } from "../theme";
+import Icon from "../components/Icon";
 import { useAuth } from "../auth";
 import { useToast } from "../components/Toast";
 import { useServerState } from "../useServer";
@@ -158,9 +159,15 @@ function TestLine({ r }) {
   if (r.pending) return <Text style={{ color: colors.muted, fontSize: 12.5, marginTop: 6 }}>{t("Checking…")}</Text>;
   if (r.cfg)
     return (
-      <Text style={{ color: colors.good, fontSize: 12.5, marginTop: 6 }}>
-        {t("✓ Reachable · CrossPaths {v} · {ms} ms", { v: r.cfg.version, ms: r.ms })}
-      </Text>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 6 }}>
+        <Icon name="ok" size={15} color={colors.good} />
+        <Text style={{ color: colors.good, fontSize: 12.5, flexShrink: 1 }}>{t("Reachable · CrossPaths {v} · {ms} ms", { v: r.cfg.version, ms: r.ms })}</Text>
+      </View>
     );
-  return <Text style={{ color: colors.bad, fontSize: 12.5, marginTop: 6 }}>{t("✗ Not reachable from here ({error})", { error: r.error })}</Text>;
+  return (
+    <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 6 }}>
+      <Icon name="error" size={15} color={colors.bad} />
+      <Text style={{ color: colors.bad, fontSize: 12.5, flexShrink: 1 }}>{t("Not reachable from here ({error})", { error: r.error })}</Text>
+    </View>
+  );
 }

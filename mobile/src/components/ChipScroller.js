@@ -1,8 +1,9 @@
 import React, { useRef, useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
-import Svg, { Defs, LinearGradient, Path, Rect, Stop } from "react-native-svg";
+import Svg, { Defs, LinearGradient, Rect, Stop } from "react-native-svg";
 import { t } from "../i18n";
 import { colors } from "../theme";
+import Icon from "./Icon";
 
 /** One line of chips that scrolls sideways. When there's more off either edge, that edge fades
  *  out and shows an arrow button that scrolls the row along. `selected` (child index) starts in view. */
@@ -93,9 +94,7 @@ function Edge({ side, bg, onPress }) {
           shadowOffset: { width: 0, height: 1 },
         }}
       >
-        <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={colors.text} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
-          <Path d={left ? "M15 18l-6-6 6-6" : "M9 18l6-6-6-6"} />
-        </Svg>
+        <Icon name={left ? "prev" : "next"} size={16} strokeWidth={2.2} />
       </Pressable>
     </View>
   );

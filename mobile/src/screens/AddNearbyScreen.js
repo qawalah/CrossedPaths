@@ -11,8 +11,9 @@ import Card from "../components/Card";
 import UploadPicker from "../components/UploadPicker";
 import { useToast } from "../components/Toast";
 import { Api } from "../api";
-import { H, pl, serverMsg, t } from "../i18n";
 import { colors } from "../theme";
+import Icon from "../components/Icon";
+import { H, pl, serverMsg, t } from "../i18n";
 
 const MODES = [
   ["show", t("Show my code")],
@@ -82,7 +83,7 @@ export default function AddNearbyScreen({ route, navigation, uploads, loaded, on
             <UploadPicker uploads={uploads} value={uploadId} onChange={setUploadId} />
           ) : (
             <Text style={{ color: colors.warn, fontSize: 13, lineHeight: 18 }}>
-              {t("You haven't uploaded a timeline, so you'll be connected but no check will run. Upload one on the Timeline tab first to check straight away.")}
+              {t("You haven't uploaded a timeline, so you'll be connected but no check will run. Import one on the Import tab first to check straight away.")}
             </Text>
           )}
 
@@ -420,7 +421,7 @@ function ShakeToPair({ uploadId, onPaired }) {
 
   return (
     <View style={{ alignItems: "center", marginTop: 24 }}>
-      <Text style={{ fontSize: 64 }}>{state === "waiting" || state === "sending" ? "📳" : "🤝"}</Text>
+      <Icon name={state === "waiting" || state === "sending" ? "nearby" : "people"} size={64} color={colors.accent} strokeWidth={1.5} />
       <Text style={{ color: colors.text, fontSize: 16, fontWeight: "700", textAlign: "center", marginTop: 12, lineHeight: 22 }}>{status}</Text>
       {state === "waiting" || state === "sending" ? <ActivityIndicator color={colors.accent} style={{ marginTop: 12 }} /> : null}
       {fix ? (
@@ -456,7 +457,10 @@ function PairResult({ result, navigation, onAgain }) {
 
   return (
     <Card style={{ marginTop: 18 }}>
-      <Text style={{ color: colors.text, fontSize: 18, fontWeight: "800" }}>✅ {t("Connected with {who}", { who: H(result.other) })}</Text>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+        <Icon name="ok" size={22} color={colors.good} />
+        <Text style={{ color: colors.text, fontSize: 18, fontWeight: "800", flexShrink: 1 }}>{t("Connected with {who}", { who: H(result.other) })}</Text>
+      </View>
       {result.note ? <Text style={{ color: colors.muted, marginTop: 8, lineHeight: 20 }}>{serverMsg(result.note)}</Text> : null}
       {check ? (
         check.status === "running" ? (

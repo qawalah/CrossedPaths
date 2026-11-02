@@ -30,6 +30,8 @@ def init_db(data_dir):
             con.execute(f"ALTER TABLE crossing_events ADD COLUMN {col} TEXT")
     # user_version 1: crossings that got no name before "35 km NE of <town>" existed are
     # re-named the next time their result is opened.
+    if "sources" not in {r[1] for r in con.execute("PRAGMA table_info(uploads)")}:
+        con.execute("ALTER TABLE uploads ADD COLUMN sources TEXT")
     if "keep_hours" not in {r[1] for r in con.execute("PRAGMA table_info(users)")}:
         con.execute("ALTER TABLE users ADD COLUMN keep_hours REAL")
     if con.execute("PRAGMA user_version").fetchone()[0] < 1:

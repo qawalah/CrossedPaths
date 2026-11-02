@@ -78,6 +78,9 @@ const PL = {
     places: { one: "{n} place", other: "{n} places" },
     timelines: { one: "{n} timeline", other: "{n} timelines" },
     times: { one: "time your paths crossed with {who}", other: "times your paths crossed with {who}" },
+    sources: { one: "{n} source", other: "{n} sources" },
+    photos: { one: "{n} photo", other: "{n} photos" },
+    newpoints: { one: "{n} new point", other: "{n} new points" },
   },
   ar: {
     crossings: { zero: "{n} تقاطع", one: "تقاطع واحد", two: "تقاطعان", few: "{n} تقاطعات", many: "{n} تقاطعًا", other: "{n} تقاطع" },
@@ -87,6 +90,9 @@ const PL = {
     places: { zero: "{n} مكان", one: "مكان واحد", two: "مكانان", few: "{n} أماكن", many: "{n} مكانًا", other: "{n} مكان" },
     timelines: { zero: "{n} خط زمني", one: "خط زمني واحد", two: "خطان زمنيان", few: "{n} خطوط زمنية", many: "{n} خطًا زمنيًا", other: "{n} خط زمني" },
     times: { few: "مرات تقاطعت فيها مساراتكما مع {who}", other: "مرة تقاطعت فيها مساراتكما مع {who}" },
+    sources: { zero: "{n} مصدر", one: "مصدر واحد", two: "مصدران", few: "{n} مصادر", many: "{n} مصدرًا", other: "{n} مصدر" },
+    photos: { zero: "{n} صورة", one: "صورة واحدة", two: "صورتان", few: "{n} صور", many: "{n} صورة", other: "{n} صورة" },
+    newpoints: { zero: "{n} نقطة جديدة", one: "نقطة جديدة واحدة", two: "نقطتين جديدتين", few: "{n} نقاط جديدة", many: "{n} نقطة جديدة", other: "{n} نقطة جديدة" },
   },
 };
 // Hermes has no Intl.PluralRules, so the (small) CLDR rules for these two languages are written out.

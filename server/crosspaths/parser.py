@@ -30,6 +30,7 @@ class Point:
     lon: float
     acc: float | None = None  # metres, when the export carries it
     src: str = "record"      # record | path | visit | activity  (raw GPS-like vs. synthetic endpoints)
+    mode: str | None = None  # road | foot | bike | skip (train, plane, boat...), when the export says
 
 
 @dataclass
@@ -81,6 +82,39 @@ def _e7(d, la="latitudeE7", lo="longitudeE7"):
     return d[la] / 1e7, d[lo] / 1e7
 
 
+# Google's activity types -> how the trip may be drawn along streets (see snap.py).
+_MODES = {
+    "road": {"IN_PASSENGER_VEHICLE", "IN_VEHICLE", "IN_ROAD_VEHICLE", "DRIVING", "IN_CAR", "IN_BUS", "IN_TAXI", "MOTORCYCLING"},
+    "foot": {"WALKING", "RUNNING", "HIKING", "ON_FOOT"},
+    "bike": {"CYCLING", "ON_BICYCLE", "BIKING"},
+    "skip": {"FLYING", "IN_TRAIN", "IN_SUBWAY", "IN_TRAM", "IN_RAIL_VEHICLE", "IN_FERRY", "IN_BOAT", "SAILING",
+             "BOATING", "KAYAKING", "ROWING", "SURFING", "SKIING", "IN_GONDOLA_LIFT", "IN_CABLECAR", "IN_FUNICULAR"},
+}
+
+
+def travel_mode(activity_type) -> str | None:
+    """'IN_PASSENGER_VEHICLE' / 'in passenger vehicle' -> 'road'; unknown -> None."""
+    if not isinstance(activity_type, str):
+        return None
+    k = activity_type.strip().upper().replace(" ", "_")
+    return next((m for m, names in _MODES.items() if k in names), None)
+
+
+def _tag_modes(points, spans):
+    """Give path points the mode of the activity they fall in ((t0, t1, mode) spans)."""
+    spans = sorted(s for s in spans if s[2])
+    if not spans:
+        return
+    for p in points:
+        if p.mode is None and p.src in ("path", "activity"):
+            for t0, t1, m in spans:
+                if t0 <= p.t <= t1:
+                    p.mode = m
+                    break
+                if t0 > p.t:
+                    break
+
+
 # ---------- format 1: Records.json ----------
 
 def _parse_records(data) -> list[Point]:
@@ -121,27 +155,31 @@ def _parse_semantic_history(objs) -> list[Point]:
             d = a.get("duration", {})
             t0 = _ts(d.get("startTimestamp") or d.get("startTimestampMs"))
             t1 = _ts(d.get("endTimestamp") or d.get("endTimestampMs"))
+            mode = travel_mode(a.get("activityType"))
             raw = (a.get("simplifiedRawPath") or {}).get("points")
             if raw:
                 for p in raw:
                     t = _ts(p.get("timestamp") or p.get("timestampMs"))
                     ll = _e7(p, "latE7", "lngE7")
                     if t is not None and ll:
-                        out.append(Point(t, *ll, p.get("accuracyMeters"), "path"))
+                        out.append(Point(t, *ll, p.get("accuracyMeters"), "path", mode))
                 continue
             chain = [_e7(a.get("startLocation"))]
             chain += [_e7(w, "latE7", "lngE7") for w in (a.get("waypointPath") or {}).get("waypoints", [])]
             chain.append(_e7(a.get("endLocation")))
             chain = [c for c in chain if c]
             if len(chain) >= 2 and t0 is not None and t1 is not None:
-                out += _spread_times(chain, t0, t1)
+                pts = _spread_times(chain, t0, t1)
+                for q in pts:
+                    q.mode = mode
+                out += pts
     return out
 
 
 # ---------- format 3: on-device export ----------
 
 def _parse_segments(segs) -> list[Point]:
-    out = []
+    out, spans = [], []
     for s in segs:
         t0, t1 = _ts(s.get("startTime")), _ts(s.get("endTime"))
         for p in s.get("timelinePath") or []:
@@ -159,12 +197,15 @@ def _parse_segments(segs) -> list[Point]:
                 out += [Point(t0, *ll, None, "visit"), Point(t1, *ll, None, "visit")]
         a = s.get("activity")
         if a and t0 is not None and t1 is not None:
+            spans.append((t0, t1, travel_mode((a.get("topCandidate") or {}).get("type"))))
             st = _latlng((a.get("start") or {}).get("latLng"))
             en = _latlng((a.get("end") or {}).get("latLng"))
             if st:
                 out.append(Point(t0, *st, None, "activity"))
             if en:
                 out.append(Point(t1, *en, None, "activity"))
+    # The path points of a trip usually sit in their own segment, so match them up by time.
+    _tag_modes(out, spans)
     return out
 
 
