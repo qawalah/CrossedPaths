@@ -2,7 +2,7 @@
   "expo": {
     "name": "CrossPaths",
     "slug": "crosspaths",
-    "version": "1.12.1",
+    "version": "1.13.0",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
     "backgroundColor": "#0b1220",
@@ -43,7 +43,7 @@
         "NOTIFICATIONS"
       ],
       "usesCleartextTraffic": true,
-      "versionCode": 17
+      "versionCode": 18
     },
     "plugins": [
       "expo-secure-store",

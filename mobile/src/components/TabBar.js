@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Animated, Pressable, Text, View } from "react-native";
+import { Animated, Image, Pressable, Text, View } from "react-native";
 import { colors } from "../theme";
 import { EASE_OUT, reduceMotion, tint } from "../motion";
 import PulseRings from "./PulseRings";
@@ -12,6 +12,7 @@ const MID = "Checks"; // the main action sits in the middle as a raised round bu
 const PILL_W = 60;
 const PILL_H = 32;
 const MID_SIZE = 56;
+const LOGO = require("../../assets/tab-logo.png"); // the app icon (store-listing/icon-src), shown on the Checks button
 
 /**
  * The bottom tab bar: a pill slides (and briefly stretches) from tab to tab, the chosen icon pops,
@@ -111,11 +112,12 @@ function Tab({ name, mid, focused, badge, invite, onPress }) {
           width: MID_SIZE,
           height: MID_SIZE,
           borderRadius: MID_SIZE / 2,
-          backgroundColor: colors.accent,
+          backgroundColor: colors.panel,
           alignItems: "center",
           justifyContent: "center",
-          borderWidth: 5,
-          borderColor: colors.panel,
+          borderWidth: focused ? 3 : 2,
+          borderColor: focused ? colors.accent : colors.panel,
+          overflow: "hidden",
           elevation: 6,
           shadowColor: "#000",
           shadowOpacity: 0.3,
@@ -123,7 +125,7 @@ function Tab({ name, mid, focused, badge, invite, onPress }) {
           shadowOffset: { width: 0, height: 4 },
         }}
       >
-        <Icon name={ICONS[name]} size={26} color={colors.onAccent} strokeWidth={2} />
+        <Image source={LOGO} style={{ width: MID_SIZE + 4, height: MID_SIZE + 4 }} resizeMode="cover" />
       </View>
     </PulseRings>
   ) : (

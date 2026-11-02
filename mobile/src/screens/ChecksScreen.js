@@ -23,19 +23,18 @@ function heroState(j, data, navigation) {
     const review = go("ReviewCheck", { checkId: j.review.id });
     return { title: `@${j.review.other} wants to check paths`, text: "Agree, and the check runs straight away. They'll only see when and roughly where you crossed.", actions: [{ title: "Review", go: review }], tap: review };
   }
+  // The check button never names anyone: the person is picked on the next screen, from everyone
+  // you're connected to, whether or not you've checked with them before.
+  const run = go("NewCheck", {});
   if (j.has.upload && j.fresh.length) {
-    const who = j.fresh.slice(0, 3);
-    const ask = (c) => go("NewCheck", { connectionId: c.id, other: c.other });
-    const actions = who.map((c) => ({ title: `Check with @${c.other}`, go: ask(c) }));
-    if (j.fresh.length > 3) actions.push({ title: "More people", go: go("People"), ghost: true });
     return {
       title: "Did your paths ever cross?",
-      text: j.fresh.length === 1 ? `Tap to ask @${who[0].other}. The check runs once you both agree.` : "Pick someone. The check runs once you both agree.",
-      actions,
-      tap: ask(who[0]),
+      text: "Pick who to check with. The check runs once you both agree.",
+      actions: [{ title: "Run a check", go: run }],
+      tap: run,
     };
   }
-  if (j.running) return { title: "Checking…", text: `Finding where your paths crossed with @${j.running.other}.`, actions: [] };
+  if (j.running) return { title: "Checking…", text: `Finding where your paths crossed with @${j.running.other}.`, actions: [{ title: "Run another check", go: run, ghost: true }] };
   if (!j.has.upload) {
     const imp = go("Build", { start: "files" });
     return { title: "Import your timeline first", text: "Then connect with someone and see if your paths ever crossed.", actions: [{ title: "Import", go: imp }], tap: imp };
@@ -47,12 +46,16 @@ function heroState(j, data, navigation) {
       actions: [{ title: inc ? "See request" : "Find people", go: go("People") }],
       tap: go("People"),
     };
-  if (j.waiting) return { title: `Waiting for @${j.waiting.other}`, text: "The check runs as soon as they agree.", actions: [] };
+  if (j.waiting)
+    return { title: `Waiting for @${j.waiting.other}`, text: "The check runs as soon as they agree.", actions: [{ title: "Run another check", go: run, ghost: true }] };
   return {
     title: "Did our paths ever cross?",
-    text: "You've checked with everyone you're connected to. Connect with someone new to check again.",
-    actions: [{ title: "Find people", go: go("People"), ghost: true }],
-    tap: go("People"),
+    text: "Check again with anyone you're connected to, or connect with someone new.",
+    actions: [
+      { title: "Run a check", go: run },
+      { title: "Find people", go: go("People"), ghost: true },
+    ],
+    tap: run,
   };
 }
 
