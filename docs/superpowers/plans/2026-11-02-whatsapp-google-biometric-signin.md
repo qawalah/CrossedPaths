@@ -55,7 +55,7 @@
 - Test: `server/tests/test_signin.py` (create)
 
 **Interfaces:**
-- Produces: tables `auth_identities(provider TEXT, subject_hash TEXT, user_id TEXT REFERENCES users ON DELETE CASCADE, created_at REAL, PRIMARY KEY(provider, subject_hash))`; `otp_codes(phone_hash TEXT PRIMARY KEY, code_hash TEXT, expires_at REAL, tries INTEGER)`; `otp_sends(phone_hash TEXT, ip TEXT, at REAL)` with an index on `(phone_hash, at)` and `(ip, at)`. Config: `AUTH_PHONE` (bool, default False), `AUTH_GOOGLE` (bool, False), `PHONE_COUNTRIES` (comma list of dial prefixes, default `+966,+971,+965,+974,+973,+968,+962,+20`), `LIMIT_OTP_PER_PHONE_PER_HOUR=3`, `LIMIT_OTP_PER_IP_PER_HOUR=10`, `LIMIT_OTP_PER_DAY=500`, `OTP_TTL_MINUTES=10`, `WHATSAPP_TOKEN`, `WHATSAPP_PHONE_ID`, `WHATSAPP_TEMPLATE`, `GOOGLE_CLIENT_IDS` (comma list).
+- Produces: tables `auth_identities(provider TEXT, subject_hash TEXT, user_id TEXT REFERENCES users ON DELETE CASCADE, created_at REAL, PRIMARY KEY(provider, subject_hash))`; `otp_codes(phone_hash TEXT PRIMARY KEY, code_hash TEXT, expires_at REAL, tries INTEGER)`; `otp_sends(phone_hash TEXT, ip TEXT, at REAL)` with an index on `(phone_hash, at)` and `(ip, at)`. Config: `AUTH_PHONE` (bool, default False), `AUTH_GOOGLE` (bool, False), `PHONE_COUNTRIES` (optional comma list of dial prefixes, default empty = all countries), `LIMIT_OTP_PER_PHONE_PER_HOUR=3`, `LIMIT_OTP_PER_IP_PER_HOUR=20`, `LIMIT_OTP_PER_DAY=500`, `OTP_TTL_MINUTES=10`, `WHATSAPP_TOKEN`, `WHATSAPP_PHONE_ID`, `WHATSAPP_TEMPLATE`, `GOOGLE_CLIENT_IDS` (comma list).
 
 - [ ] **Step 1: Write failing test** `test_empty_pw_hash_never_verifies`: `assert verify_password("", "") is False` and `assert verify_password("anything", "") is False`; and `test_schema_has_identity_tables`: after `init_db(tmp)`, `auth_identities`, `otp_codes`, `otp_sends` exist in `sqlite_master`.
 - [ ] **Step 2: Run** `cd server && python -m pytest tests/test_signin.py -q`. Expected: FAIL.
@@ -199,8 +199,10 @@
 - Coverage: WhatsApp OTP (Tasks 2-4, 7), Google (5, 7), fingerprint (6), cost abuse limits (1-2), account linking (4-5), release (8).
 - Names used across tasks: `normalize_phone`, `phone_hash`, `issue_code`, `check_code`, `OtpLimit`, `DeliveryFailed`, `make_signup_token`, `verify_google`, `OTP_SENDER`, `GOOGLE_VERIFIER`, `cfg.auth.*` are defined where first produced.
 
-## Open decisions for you
+## Decisions (2026-11-02)
 
-1. **Delivery provider.** This plan sends through Meta's WhatsApp Cloud API directly (cheapest, but needs a Meta Business account and template approval, which can take days). The alternative is Twilio Verify's WhatsApp channel (faster to start, but a $0.05 fee per verification). I have not confirmed WhatsApp prices for Saudi Arabia; check Meta's rate card before launch.
-2. **SMS fallback.** Not included. People without WhatsApp can use Google or username + password. Say if you want it; it fits behind `OTP_SENDER`.
-3. **Make password optional?** Today a username and password is the only way in. This plan keeps it as a third option.
+1. **Delivery:** WhatsApp through Meta's Cloud API, sent by our server.
+2. **Countries:** any country. `PHONE_COUNTRIES` is an optional allow-list and empty by default, because the app will be global.
+3. **SMS fallback:** not built. The provider isn't chosen yet and is most likely Firebase phone auth. Firebase checks the SMS code on the device and gives the server an ID token, so it doesn't fit `OTP_SENDER`. It will be one extra route that ends in the same `phone` identity. See HANDOVER.md "Sign-in methods".
+4. **Password sign-in** stays as a third option.
+5. **Found while building:** `read_token` accepts any JWT signed with `SECRET_KEY`. Signup tokens are therefore signed with a derived key, so they can never act as session tokens (test `test_signup_token_is_not_a_session_token`).

@@ -7,6 +7,19 @@ migration), MINOR for new features, PATCH for bugfixes. Pre-1.0, expect MINOR bu
 To check what's running on your server, visit `/api/config` — it reports the running
 `version`. That's the number to compare against this file when deciding whether to update.
 
+## 0.13.0
+- **Sign in with a phone number or Google.** Both are off until configured (`AUTH_PHONE`,
+  `AUTH_GOOGLE`; see HANDOVER.md "Sign-in methods"). Phone sign-in sends a 6-digit code on
+  WhatsApp; any country is allowed unless `PHONE_COUNTRIES` is set. A new number or Google
+  account picks a username to finish signing up; a signed-in user can add either to their account.
+- Phone numbers and Google account IDs are stored only as keyed hashes. Codes are hashed, single
+  use, expire after `OTP_TTL_MINUTES` (10) and are burnt after 5 wrong tries. Sends are limited per
+  number, per IP and per day (`LIMIT_OTP_*`) to cap the messaging bill.
+- New routes: `POST /api/auth/phone/start`, `/api/auth/phone/verify`, `/api/auth/google`,
+  `/api/auth/complete`. `/api/config` now has `auth` (which methods are on) and `/api/me` has
+  `sign_in_methods`.
+- New dependencies: `requests`, `google-auth`.
+
 ## 0.12.0
 - **Import from more apps.** Uploads now accept GPX, TCX, FIT, KML/KMZ, GeoJSON and CSV files
   as well as Google Maps Timeline JSON, so routes from Strava, Apple Health, Samsung Health,
