@@ -1,6 +1,7 @@
 import * as DocumentPicker from "expo-document-picker";
 import React, { useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { Pressable, ScrollView, View } from "react-native";
+import { Text } from "../components/AppText";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Button from "../components/Button";
 import Card from "../components/Card";

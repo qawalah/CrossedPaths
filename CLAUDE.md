@@ -73,6 +73,8 @@ read its log in the Actions tab and fix it.
   timed-out POST is never resent.
 - Languages: English and Arabic (RTL) on both clients; English text is the translation key and every
   new string needs an Arabic entry (`tests/test_i18n.py` fails otherwise). Never name a variable `t` where `t()` is used.
+- Typeface: IBM Plex Sans Arabic, self-hosted (web) / bundled (Android). Mobile text uses `Text`/`TextInput`
+  from `src/components/AppText.js`, never react-native's directly.
 - Mobile theme: `colors` in `src/theme.js` is one mutable object. Don't capture colours in
   `StyleSheet.create`.
 - `mobile/plugins/withCrossPathsAndroid.js` and `expo.useLegacyPackaging` in

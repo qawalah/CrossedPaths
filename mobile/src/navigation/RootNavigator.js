@@ -15,6 +15,7 @@ import ImportModal from "../screens/ImportModal";
 import PhotoScanModal from "../screens/PhotoScanModal";
 import AddNearbyScreen, { codeFrom } from "../screens/AddNearbyScreen";
 import MainTabs from "./MainTabs";
+import { fontFor } from "../components/AppText";
 import { t } from "../i18n";
 import { colors } from "../theme";
 import { useTheme } from "../themeContext";
@@ -90,7 +91,7 @@ export default function RootNavigator() {
         {!user ? (
           <>
             <Stack.Screen name="Auth" component={AuthScreen} />
-            <Stack.Screen name="Settings" component={SettingsScreen} options={{ presentation: "modal", headerShown: true, title: t("Server addresses") }} />
+            <Stack.Screen name="Settings" component={SettingsScreen} options={{ presentation: "modal", headerShown: true, title: t("Server addresses"), headerTitleStyle: { fontFamily: fontFor(600) } }} />
           </>
         ) : (
           <>
@@ -103,7 +104,7 @@ export default function RootNavigator() {
             </Stack.Screen>
             <Stack.Screen name="Results" component={ResultsScreen} options={{ animation: "fade" }} />
             <Stack.Screen name="MyTimeline" component={MyTimelineScreen} options={{ animation: "fade" }} />
-            <Stack.Screen name="Settings" component={SettingsScreen} options={{ presentation: "modal", headerShown: true, title: t("Server addresses") }} />
+            <Stack.Screen name="Settings" component={SettingsScreen} options={{ presentation: "modal", headerShown: true, title: t("Server addresses"), headerTitleStyle: { fontFamily: fontFor(600) } }} />
             <Stack.Screen name="AddNearby" options={{ presentation: "modal" }}>
               {(props) => <AddNearbyScreen {...props} uploads={data.uploads} loaded={data.loaded} onDone={data.refresh} />}
             </Stack.Screen>

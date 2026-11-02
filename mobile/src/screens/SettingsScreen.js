@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { ScrollView, Switch, Text, TextInput, View } from "react-native";
+import { ScrollView, Switch, View } from "react-native";
+import { Text, TextInput } from "../components/AppText";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Button from "../components/Button";
 import { getServerState, probeServer, setServerAddresses } from "../api";

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { ScrollView, Text, View } from "react-native";
+import { ScrollView, View } from "react-native";
+import { Text } from "../components/AppText";
 import Slider from "@react-native-community/slider";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Button from "../components/Button";

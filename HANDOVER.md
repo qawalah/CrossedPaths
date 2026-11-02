@@ -289,6 +289,11 @@ route files then. Separate workouts close together in place (within 200 m and 6 
   `plugins/withCrossPathsAndroid.js`. `ChipScroller` forces `direction: "ltr"` because its scroll offsets and
   edge arrows are physical. Hermes has no `Intl.PluralRules`, so `pl()` writes the rules out.
   Don't name a local variable `t` where `t()` is called.
+- **Typeface:** IBM Plex Sans Arabic everywhere (it has matching Latin), weights 400/500/600/700 only.
+  Web: self-hosted woff2 in `server/server/static/fonts/` (Arabic + Latin subsets), never Google's CDN.
+  Mobile: TTFs in `mobile/assets/fonts/`, copied into `android/app/src/main/assets/fonts/` by the config
+  plugin; Android picks a bundled font by file name, so screens use `Text`/`TextInput` from
+  `src/components/AppText.js`, which turns `fontWeight` into the right file. Import those, not react-native's.
 
 **Builds and deployment**
 - **APK:** arm64-only, minified, legacy packaging (about 18 MB).

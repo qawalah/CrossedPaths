@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react";
-import { Pressable, ScrollView, Text, useWindowDimensions, View } from "react-native";
+import { Pressable, ScrollView, useWindowDimensions, View } from "react-native";
+import { fontFor, Text } from "./AppText";
 import Svg, { Line, Path, Rect, Text as SvgText } from "react-native-svg";
 import KindIcon from "./KindIcon";
 import { H, RTL, pl, t } from "../i18n";
@@ -42,6 +43,7 @@ function Columns({ series: given, width, height = 120, tickEvery = 1, tickLabel 
               x={i * slot + slot / 2 < 22 ? 0 : i * slot + slot / 2 > width - 22 ? width : i * slot + slot / 2}
               y={height - 5}
               fontSize={10}
+              fontFamily={fontFor(400)}
               fill={colors.muted}
               textAnchor={i * slot + slot / 2 < 22 ? "start" : i * slot + slot / 2 > width - 22 ? "end" : "middle"}
             >
@@ -54,7 +56,7 @@ function Columns({ series: given, width, height = 120, tickEvery = 1, tickLabel 
             x={shown * slot + slot / 2 < 16 ? 0 : shown * slot + slot / 2 > width - 16 ? width : shown * slot + slot / 2}
             y={top + plotH - (series[shown].value / max) * plotH - 5}
             fontSize={11}
-            fontWeight="700"
+            fontFamily={fontFor(700)}
             fill={colors.text}
             textAnchor={shown * slot + slot / 2 < 16 ? "start" : shown * slot + slot / 2 > width - 16 ? "end" : "middle"}
           >

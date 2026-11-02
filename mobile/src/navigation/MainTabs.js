@@ -1,6 +1,7 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import React from "react";
-import { Text, View } from "react-native";
+import { View } from "react-native";
+import { fontFor, Text } from "../components/AppText";
 import AccountScreen from "../screens/AccountScreen";
 import ChecksScreen from "../screens/ChecksScreen";
 import PeopleScreen from "../screens/PeopleScreen";
@@ -20,6 +21,7 @@ export default function MainTabs({ data }) {
         tabBarActiveTintColor: colors.accent,
         tabBarInactiveTintColor: colors.muted,
         tabBarStyle: { backgroundColor: colors.panel, borderTopColor: colors.line },
+        tabBarLabelStyle: { fontFamily: fontFor(500), fontWeight: "normal" },
         tabBarIcon: () => <Text style={{ fontSize: 18 }}>{ICONS[route.name]}</Text>,
         tabBarBadge: route.name === "Checks" && data.pendingForMe ? data.pendingForMe : undefined,
       })}

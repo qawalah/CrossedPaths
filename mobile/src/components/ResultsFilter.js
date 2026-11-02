@@ -1,5 +1,6 @@
 import React, { useMemo } from "react";
-import { Pressable, Switch, Text, TextInput, View } from "react-native";
+import { Pressable, Switch, View } from "react-native";
+import { Text, TextInput } from "./AppText";
 import Button from "./Button";
 import ChipScroller from "./ChipScroller";
 import KindIcon from "./KindIcon";

@@ -1,6 +1,8 @@
 // Android settings this app needs that `expo prebuild` doesn't apply on its own, so a clean
 // prebuild reproduces a working build instead of relying on hand edits to android/.
-const { withAndroidManifest, withAppBuildGradle, withGradleProperties, withSettingsGradle } = require("@expo/config-plugins");
+const fs = require("fs");
+const path = require("path");
+const { withAndroidManifest, withAppBuildGradle, withDangerousMod, withGradleProperties, withSettingsGradle } = require("@expo/config-plugins");
 
 module.exports = function withCrossPathsAndroid(config) {
   // Allow plain http:// server addresses (self-hosted or dev servers). Android blocks them by default.
@@ -50,5 +52,17 @@ module.exports = function withCrossPathsAndroid(config) {
     }
     return c;
   });
+  // The app's typeface (IBM Plex Sans Arabic, see src/components/AppText.js): Android loads bundled fonts
+  // from app/src/main/assets/fonts by file name.
+  config = withDangerousMod(config, [
+    "android",
+    (c) => {
+      const from = path.join(c.modRequest.projectRoot, "assets", "fonts");
+      const to = path.join(c.modRequest.platformProjectRoot, "app", "src", "main", "assets", "fonts");
+      fs.mkdirSync(to, { recursive: true });
+      for (const f of fs.readdirSync(from)) if (f.endsWith(".ttf")) fs.copyFileSync(path.join(from, f), path.join(to, f));
+      return c;
+    },
+  ]);
   return config;
 };

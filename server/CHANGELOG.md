@@ -14,6 +14,9 @@ To check what's running on your server, visit `/api/config` — it reports the r
   names but Gregorian dates and Western digits, so Hijri dates never appear. Fixed server messages
   (errors, trust warnings) are translated by the client; the API itself is unchanged and still
   returns English text. New tests keep the Arabic dictionary complete (`tests/test_i18n.py`).
+- **New typeface: IBM Plex Sans Arabic** for both languages (Arabic and Latin from one family), self-hosted
+  under `/static/fonts` (SIL OFL 1.1, licence alongside), so no font request leaves your server. The service
+  worker keeps the font files cached.
 
 ## 0.12.0
 - **Import from more apps.** Uploads now accept GPX, TCX, FIT, KML/KMZ, GeoJSON and CSV files

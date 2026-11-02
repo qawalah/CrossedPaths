@@ -1,5 +1,6 @@
 import React from "react";
-import { Pressable, ScrollView, Text } from "react-native";
+import { Pressable, ScrollView } from "react-native";
+import { Text } from "./AppText";
 import { RTL, t } from "../i18n";
 import { colors, dateStr, UI_LOCALE } from "../theme";
 

@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ActivityIndicator, Animated, PanResponder, Pressable, ScrollView, SectionList, Text, View } from "react-native";
+import { ActivityIndicator, Animated, PanResponder, Pressable, ScrollView, SectionList, View } from "react-native";
+import { Text } from "../components/AppText";
 import { MapView, Camera, ShapeSource, LineLayer, FillLayer, CircleLayer, HeatmapLayer } from "@maplibre/maplibre-react-native";
 import Slider from "@react-native-community/slider";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
