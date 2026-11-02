@@ -9,7 +9,7 @@ import Icon from "../components/Icon";
 import PulseRings from "../components/PulseRings";
 import { EASE_OUT, reduceMotion } from "../motion";
 import { colors } from "../theme";
-import { pl, RTL, t } from "../i18n";
+import { onLanguage, pl, RTL, t } from "../i18n";
 
 const AnimatedPath = Animated.createAnimatedComponent(Path);
 const BLUE = "#0a84ff";
@@ -17,7 +17,9 @@ const GREEN = "#34c759";
 const ART_H = 230;
 
 // The first-start tutorial: full-screen cards you swipe through, each with its own small animation.
-const PAGES = [
+let PAGES;
+onLanguage(() => {
+  PAGES = [
   {
     key: "hello",
     title: t("Did our paths ever cross?"),
@@ -48,6 +50,7 @@ const PAGES = [
     text: t("Every time you were within about 100 m in the same 15 minutes, on a map, with a summary of when and where."),
   },
 ];
+});
 
 export default function WelcomeScreen({ onDone: finish }) {
   const { width } = useWindowDimensions();

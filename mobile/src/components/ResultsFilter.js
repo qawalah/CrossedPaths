@@ -5,16 +5,19 @@ import Button from "./Button";
 import ChipScroller from "./ChipScroller";
 import KindIcon from "./KindIcon";
 import Sheet from "./Sheet";
-import { t } from "../i18n";
+import { onLanguage, t } from "../i18n";
 import { cityOf, colors, KIND_COLOR, KIND_LABEL, kindHelp, placeOf } from "../theme";
 import Icon from "./Icon";
 
 export const DUR_STEPS = [0, 5, 15, 30, 60];
-export const SORTS = [
+export let SORTS;
+onLanguage(() => {
+  SORTS = [
   ["new", t("Newest")],
   ["old", t("Oldest")],
   ["long", t("Longest")],
 ];
+});
 
 export function freshFilters() {
   return { kinds: Object.keys(KIND_LABEL), year: null, city: null, place: null, minDur: 0, q: "", inView: false, sort: "new" };

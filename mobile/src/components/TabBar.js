@@ -1,14 +1,17 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Animated, Image, Pressable, View } from "react-native";
 import { Text } from "./AppText";
-import { pl, RTL, t } from "../i18n";
+import { onLanguage, pl, RTL, t } from "../i18n";
 import { colors } from "../theme";
 import { EASE_OUT, reduceMotion, tint } from "../motion";
 import PulseRings from "./PulseRings";
 import Icon from "./Icon";
 
 const ICONS = { Timeline: "upload", MyMap: "map", Checks: "checks", People: "people", Account: "account" };
-const LABELS = { Timeline: t("Import"), MyMap: t("My Map"), Checks: t("Checks"), People: t("People"), Account: t("Account") };
+let LABELS;
+onLanguage(() => {
+  LABELS = { Timeline: t("Import"), MyMap: t("My Map"), Checks: t("Checks"), People: t("People"), Account: t("Account") };
+});
 const MID = "Checks"; // the main action sits in the middle as a raised round button
 
 const PILL_W = 60;

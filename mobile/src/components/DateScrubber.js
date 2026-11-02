@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { PanResponder, Pressable, Vibration, View } from "react-native";
 import Svg, { Circle, Rect, Text as SvgText } from "react-native-svg";
-import { pl, RTL, t } from "../i18n";
+import { onLanguage, pl, RTL, t } from "../i18n";
 import { colors, UI_LOCALE } from "../theme";
 import { Text, fontFor } from "./AppText";
 
@@ -10,10 +10,22 @@ import { Text, fontFor } from "./AppText";
 // or by holding still, depending on the `gesture` setting. Bars show how many points each day has.
 
 const DAY = 864e5;
-const MON = Array.from({ length: 12 }, (_, i) => new Date(2000, i, 1).toLocaleDateString(UI_LOCALE, { month: "short" }));
-const MONL = Array.from({ length: 12 }, (_, i) => new Date(2000, i, 1).toLocaleDateString(UI_LOCALE, { month: "long" }));
-const WD = Array.from({ length: 7 }, (_, i) => new Date(2000, 0, 2 + i).toLocaleDateString(UI_LOCALE, { weekday: "short" })); // 2 Jan 2000 was a Sunday
-export const SCRUB_LEVELS = [t("Years"), t("Months"), t("Days")];
+let MON;
+onLanguage(() => {
+  MON = Array.from({ length: 12 }, (_, i) => new Date(2000, i, 1).toLocaleDateString(UI_LOCALE, { month: "short" }));
+});
+let MONL;
+onLanguage(() => {
+  MONL = Array.from({ length: 12 }, (_, i) => new Date(2000, i, 1).toLocaleDateString(UI_LOCALE, { month: "long" }));
+});
+let WD;
+onLanguage(() => {
+  WD = Array.from({ length: 7 }, (_, i) => new Date(2000, 0, 2 + i).toLocaleDateString(UI_LOCALE, { weekday: "short" }));
+}); // 2 Jan 2000 was a Sunday
+export let SCRUB_LEVELS;
+onLanguage(() => {
+  SCRUB_LEVELS = [t("Years"), t("Months"), t("Days")];
+});
 
 // Calendar days as whole numbers (UTC is used only as a calendar, so no DST jumps).
 const dIdx = (y, m, d) => Math.round(Date.UTC(y, m - 1, d) / DAY); // m is 1-12

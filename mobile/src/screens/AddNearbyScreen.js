@@ -13,13 +13,16 @@ import { useToast } from "../components/Toast";
 import { Api } from "../api";
 import { colors } from "../theme";
 import Icon from "../components/Icon";
-import { H, pl, serverMsg, t } from "../i18n";
+import { H, onLanguage, pl, serverMsg, t } from "../i18n";
 
-const MODES = [
+let MODES;
+onLanguage(() => {
+  MODES = [
   ["show", t("Show my code")],
   ["scan", t("Scan")],
   ["shake", t("Shake")],
 ];
+});
 
 /** Pull the code out of whatever was scanned or typed: an invite URL (…/pair/CODE),
  * a crosspaths://pair/CODE link, or the bare code. */
