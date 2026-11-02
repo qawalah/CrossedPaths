@@ -1,8 +1,10 @@
 import React, { useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { Pressable, ScrollView, View } from "react-native";
+import { Text } from "../components/AppText";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Button from "../components/Button";
 import Icon from "../components/Icon";
+import { RTL, t } from "../i18n";
 import { colors, dateStr } from "../theme";
 import MyTimelineScreen from "./MyTimelineScreen";
 
@@ -16,21 +18,21 @@ export default function MyMapScreen({ data, navigation }) {
   if (!upload) {
     return (
       <View style={{ flex: 1, backgroundColor: colors.bg, padding: 24, paddingTop: insets.top + 16 }}>
-        <Text style={{ color: colors.text, fontSize: 24, fontWeight: "800" }}>My map</Text>
+        <Text style={{ color: colors.text, fontSize: 24, fontWeight: "800" }}>{t("My map")}</Text>
         {loaded ? (
           <View style={{ alignItems: "center", marginTop: 60, gap: 12 }}>
             <Icon name="map" size={44} color={colors.muted} strokeWidth={1.5} />
             <Text style={{ color: colors.muted, textAlign: "center", lineHeight: 20, maxWidth: 280 }}>
-              Import a timeline to browse where you've been, by year, month and day.
+              {t("Import a timeline to browse where you've been, by year, month and day.")}
             </Text>
-            <Button title="Import a timeline" onPress={() => navigation.navigate("Build", { start: "files" })} />
+            <Button title={t("Import a timeline")} onPress={() => navigation.navigate("Build", { start: "files" })} />
           </View>
         ) : null}
       </View>
     );
   }
 
-  const label = (u) => `${dateStr(u.from)} → ${dateStr(u.to)}`;
+  const label = (u) => `${dateStr(u.from)} ${RTL ? "←" : "→"} ${dateStr(u.to)}`;
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
       {uploads.length > 1 ? (

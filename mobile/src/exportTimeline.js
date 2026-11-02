@@ -1,5 +1,6 @@
 import * as FileSystem from "expo-file-system";
 import { Alert } from "react-native";
+import { t } from "./i18n";
 import { Api } from "./api";
 
 const MIME = { gpx: "application/gpx+xml", geojson: "application/geo+json", csv: "text/csv" };
@@ -16,14 +17,14 @@ export function exportTimeline(upload, toast) {
       const name = `crosspaths-timeline-${day}`;
       const uri = await SAF.createFileAsync(perm.directoryUri, name, MIME[format]);
       await FileSystem.writeAsStringAsync(uri, text, { encoding: FileSystem.EncodingType.UTF8 });
-      toast(`Saved ${name}.${format}`);
+      toast(t("Saved {name}", { name: `${name}.${format}` }));
     } catch (e) {
-      toast(e.message || "Couldn't save the file", true);
+      toast(e.message || t("Couldn't save the file"), true);
     }
   };
   Alert.alert(
-    "Export a copy",
-    "Save your timeline (all its sources combined) as a file. GPX opens in most map and fitness apps.",
+    t("Export a copy"),
+    t("Save your timeline (all its sources combined) as a file. GPX opens in most map and fitness apps."),
     [
       { text: "GPX", onPress: () => go("gpx") },
       { text: "GeoJSON", onPress: () => go("geojson") },

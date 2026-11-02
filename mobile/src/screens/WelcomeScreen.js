@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Animated, Easing, Pressable, Text, View, useWindowDimensions } from "react-native";
+import { Animated, Easing, Pressable, View, useWindowDimensions } from "react-native";
+import { Text } from "../components/AppText";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Circle, Path, Rect } from "react-native-svg";
 import Button from "../components/Button";
@@ -8,6 +9,7 @@ import Icon from "../components/Icon";
 import PulseRings from "../components/PulseRings";
 import { EASE_OUT, reduceMotion } from "../motion";
 import { colors } from "../theme";
+import { pl, RTL, t } from "../i18n";
 
 const AnimatedPath = Animated.createAnimatedComponent(Path);
 const BLUE = "#0a84ff";
@@ -18,32 +20,32 @@ const ART_H = 230;
 const PAGES = [
   {
     key: "hello",
-    title: "Did our paths ever cross?",
-    text: "Compare location histories with someone and find every time you were in the same place at the same time.",
+    title: t("Did our paths ever cross?"),
+    text: t("Compare location histories with someone and find every time you were in the same place at the same time."),
   },
   {
     key: "import",
     step: 1,
-    title: "Import your timeline",
-    text: "Bring your location history from Google Maps, Strava, Garmin, Apple Health and more, or build one from the places in your photos.",
+    title: t("Import your timeline"),
+    text: t("Bring your location history from Google Maps, Strava, Garmin, Apple Health and more, or build one from the places in your photos."),
   },
   {
     key: "connect",
     step: 2,
-    title: "Connect with someone",
-    text: "Send a request by username, or meet in person and scan each other's code.",
+    title: t("Connect with someone"),
+    text: t("Send a request by username, or meet in person and scan each other's code."),
   },
   {
     key: "check",
     step: 3,
-    title: "Check together",
-    text: "A check runs only when you both agree. They only ever see when and roughly where you crossed, never your route.",
+    title: t("Check together"),
+    text: t("A check runs only when you both agree. They only ever see when and roughly where you crossed, never your route."),
   },
   {
     key: "results",
     step: 4,
-    title: "See where you crossed",
-    text: "Every time you were within about 100 m in the same 15 minutes, on a map, with a summary of when and where.",
+    title: t("See where you crossed"),
+    text: t("Every time you were within about 100 m in the same 15 minutes, on a map, with a summary of when and where."),
   },
 ];
 
@@ -80,7 +82,7 @@ export default function WelcomeScreen({ onDone: finish }) {
       <View style={{ flexDirection: "row", justifyContent: "flex-end", paddingHorizontal: 16, height: 44, alignItems: "center" }}>
         {!last ? (
           <Pressable onPress={onDone} hitSlop={12} accessibilityRole="button">
-            <Text style={{ color: colors.muted, fontWeight: "700", fontSize: 15 }}>Skip</Text>
+            <Text style={{ color: colors.muted, fontWeight: "700", fontSize: 15 }}>{t("Skip")}</Text>
           </Pressable>
         ) : null}
       </View>
@@ -92,7 +94,7 @@ export default function WelcomeScreen({ onDone: finish }) {
         showsHorizontalScrollIndicator={false}
         scrollEventThrottle={16}
         onScroll={onScroll}
-        style={{ flex: 1 }}
+        style={{ flex: 1, direction: "ltr" }} // paging offsets are measured from the left, in Arabic too
         onLayout={(e) => setPageH(e.nativeEvent.layout.height)}
       >
         {PAGES.map((p, i) => {
@@ -103,14 +105,14 @@ export default function WelcomeScreen({ onDone: finish }) {
           const fade = scrollX.interpolate({ inputRange: range, outputRange: [0, 1, 0], extrapolate: "clamp" });
           const scale = scrollX.interpolate({ inputRange: range, outputRange: [0.85, 1, 0.85], extrapolate: "clamp" });
           return (
-            <View key={p.key} style={{ width, height: pageH || undefined, justifyContent: "center", paddingHorizontal: 28 }}>
+            <View key={p.key} style={{ width, height: pageH || undefined, justifyContent: "center", paddingHorizontal: 28, direction: RTL ? "rtl" : "ltr" }}>
               <Animated.View style={{ height: ART_H + 20, alignItems: "center", justifyContent: "center", opacity: fade, transform: [{ translateX: artX }, { scale }] }}>
                 <Art kind={p.key} active={page === i} width={Math.min(width - 56, 320)} />
               </Animated.View>
               <Animated.View style={{ marginTop: 26, opacity: fade, transform: [{ translateX: textX }] }}>
                 {p.step ? (
                   <Text style={{ color: colors.accent, fontWeight: "800", fontSize: 13, textAlign: "center", marginBottom: 8 }}>
-                    Step {p.step} of 4
+                    {t("Step {n} of {total}", { n: p.step, total: 4 })}
                   </Text>
                 ) : null}
                 <Text style={{ color: colors.text, fontSize: 28, fontWeight: "800", textAlign: "center", lineHeight: 34 }}>{p.title}</Text>
@@ -122,7 +124,7 @@ export default function WelcomeScreen({ onDone: finish }) {
       </Animated.ScrollView>
 
       <View style={{ paddingHorizontal: 24, gap: 18 }}>
-        <View style={{ flexDirection: "row", justifyContent: "center", gap: 6 }} accessibilityLabel={`Page ${page + 1} of ${PAGES.length}`}>
+        <View style={{ flexDirection: "row", justifyContent: "center", gap: 6 }} accessibilityLabel={t("Page {n} of {total}", { n: page + 1, total: PAGES.length })}>
           {PAGES.map((p, i) => {
             const range = [(i - 1) * width, i * width, (i + 1) * width];
             return (
@@ -142,7 +144,7 @@ export default function WelcomeScreen({ onDone: finish }) {
             );
           })}
         </View>
-        <Button title={last ? "Get started" : "Next"} onPress={() => (last ? onDone() : goTo(page + 1))} />
+        <Button title={last ? t("Get started") : t("Next")} onPress={() => (last ? onDone() : goTo(page + 1))} />
       </View>
     </Animated.View>
   );
@@ -269,7 +271,7 @@ function ConnectArt({ active }) {
       </Animated.View>
       <Animated.View style={[{ position: "absolute", bottom: 6 }, pop(badge, 0.6)]}>
         <View style={{ paddingHorizontal: 12, paddingVertical: 5, borderRadius: 99, backgroundColor: colors.panel, borderWidth: 1, borderColor: colors.line }}>
-          <Text style={{ color: colors.text, fontWeight: "700", fontSize: 13 }}>Connected</Text>
+          <Text style={{ color: colors.text, fontWeight: "700", fontSize: 13 }}>{t("Connected")}</Text>
         </View>
       </Animated.View>
     </View>
@@ -284,8 +286,8 @@ function CheckArt({ active }) {
   const [pulse, setPulse] = useState(false);
   useEffect(() => {
     if (!active) return setPulse(false);
-    const t = setTimeout(() => setPulse(true), 1400);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => setPulse(true), 1400);
+    return () => clearTimeout(timer);
   }, [active]);
   const tick = (v) => (
     <Animated.View
@@ -370,7 +372,7 @@ function ResultsArt({ active }) {
       >
         <View style={{ flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 14, paddingVertical: 7, borderRadius: 99, backgroundColor: colors.accent }}>
           <Icon name="crossing" size={16} color={colors.onAccent} strokeWidth={2.2} />
-          <Text style={{ color: colors.onAccent, fontWeight: "800" }}>3 crossings</Text>
+          <Text style={{ color: colors.onAccent, fontWeight: "800" }}>{pl("crossings", 3)}</Text>
         </View>
       </Animated.View>
     </View>

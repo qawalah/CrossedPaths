@@ -1,7 +1,8 @@
 import * as DocumentPicker from "expo-document-picker";
 import * as FileSystem from "expo-file-system";
 import React, { useState } from "react";
-import { LayoutAnimation, Linking, Platform, Pressable, ScrollView, Switch, Text, UIManager, View } from "react-native";
+import { LayoutAnimation, Linking, Platform, Pressable, ScrollView, Switch, UIManager, View } from "react-native";
+import { Text } from "../components/AppText";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Button from "../components/Button";
 import Card from "../components/Card";
@@ -12,13 +13,13 @@ import { Api } from "../api";
 import { exportTimeline } from "../exportTimeline";
 import { SOURCES, guideUrl } from "../importSources";
 import { scanPhotoLibrary } from "../photoScan";
-import { colors, dateStr, trustLabel } from "../theme";
+import { pl, RTL, t } from "../i18n";
+import { colors, dateStr, trustLabel, UI_LOCALE } from "../theme";
 
 const ICON = { files: "folder", photos: "photos", upload: "route" };
 
 if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) UIManager.setLayoutAnimationEnabledExperimental(true);
-const plural = (n, w) => `${n.toLocaleString()} ${w}${n === 1 ? "" : "s"}`;
-const sizeStr = (b) => (b < 1048576 ? `${Math.max(1, Math.round(b / 1024))} KB` : `${(b / 1048576).toFixed(1)} MB`);
+const sizeStr = (b) => (b < 1048576 ? t("{n} KB", { n: Math.max(1, Math.round(b / 1024)) }) : t("{n} MB", { n: (b / 1048576).toFixed(1) }));
 
 // "**bold**" -> nested bold Text
 function Rich({ text }) {
@@ -65,15 +66,15 @@ export default function BuildTimelineModal({ navigation, route, cfg, uploads, on
     const size = files.reduce((s, f) => s + f.size, 0);
     const already = items.filter((i) => i.kind === "files").reduce((s, i) => s + i.size, 0);
     if (cfg.max_upload_mb && size + already > cfg.max_upload_mb * 1048576) {
-      toast(`That's more than ${cfg.max_upload_mb} MB of files for one save. Pick fewer files, or save and add the rest after.`, true);
+      toast(t("That's more than {mb} MB of files for one save. Pick fewer files, or save and add the rest after.", { mb: cfg.max_upload_mb }), true);
       return;
     }
     add({
       kind: "files",
       files,
       size,
-      label: `${source ? source.name + ": " : ""}${plural(files.length, "file")}`,
-      detail: files.slice(0, 3).map((f) => f.name).join(", ") + (files.length > 3 ? ` +${files.length - 3} more` : "") + ` · ${sizeStr(size)}`,
+      label: `${source ? source.name + ": " : ""}${pl("files", files.length)}`,
+      detail: files.slice(0, 3).map((f) => f.name).join(", ") + (files.length > 3 ? " " + t("+{n} more", { n: files.length - 3 }) : "") + ` · ${sizeStr(size)}`,
     });
   }
 
@@ -83,19 +84,19 @@ export default function BuildTimelineModal({ navigation, route, cfg, uploads, on
     try {
       const { points, scanned } = await scanPhotoLibrary({ from: dateFrom, to: dateTo, onProgress: setProgress });
       if (!points.length) {
-        toast("None of those photos carry GPS data. Many apps strip location on save/share — try photos straight from the camera.", true);
+        toast(t("None of those photos carry GPS data. Many apps strip location on save/share — try photos straight from the camera."), true);
         return;
       }
       add({
         kind: "photos",
         points,
-        label: `Photos: ${plural(points.length, "place")}`,
+        label: `${t("Photos")}: ${pl("places", points.length)}`,
         detail:
-          `${plural(points.length, "photo")} with a location, out of ${scanned.toLocaleString()}` +
-          (points.length < 20 ? " · combine with another source (at least 20 points are needed)" : ""),
+          t("{photos} with a location, out of {total}", { photos: pl("photos", points.length), total: scanned.toLocaleString(UI_LOCALE) }) +
+          (points.length < 20 ? t(" · combine with another source (at least 20 points are needed)") : ""),
       });
     } catch (e) {
-      toast(e.message || "Couldn't scan your photo library", true);
+      toast(e.message || t("Couldn't scan your photo library"), true);
     } finally {
       setScanning(false);
       setProgress(null);
@@ -105,7 +106,7 @@ export default function BuildTimelineModal({ navigation, route, cfg, uploads, on
   function toggleUpload(u) {
     const at = items.findIndex((i) => i.kind === "upload" && i.id === u.id);
     if (at >= 0) remove(at);
-    else add({ kind: "upload", id: u.id, label: `Timeline ${dateStr(u.from)} → ${dateStr(u.to)}`, detail: `${u.points.toLocaleString()} points · ${u.format}` });
+    else add({ kind: "upload", id: u.id, label: t("Timeline {range}", { range: `${dateStr(u.from)} ${RTL ? "←" : "→"} ${dateStr(u.to)}` }), detail: `${pl("points", u.points)} · ${u.format}` });
   }
 
   async function save() {
@@ -123,8 +124,8 @@ export default function BuildTimelineModal({ navigation, route, cfg, uploads, on
         mergeIds: items.filter((i) => i.kind === "upload").map((i) => i.id),
         removeMerged: merging && removeMerged,
       });
-      const skipped = u.import && u.import.skipped ? ` · ${plural(u.import.skipped, "file")} had no locations` : "";
-      toast((params.targetId ? `Added ${(u.import.added_points || 0).toLocaleString()} new points` : "Timeline saved") + " · " + trustLabel(u.trust.level) + skipped);
+      const skipped = u.import && u.import.skipped ? t(" · {files} had no locations", { files: pl("files", u.import.skipped) }) : "";
+      toast((params.targetId ? t("Added {points}", { points: pl("newpoints", u.import.added_points || 0) }) : t("Timeline saved")) + " · " + trustLabel(u.trust.level) + skipped);
       await onDone();
       setSaved(u);
     } catch (e) {
@@ -164,14 +165,17 @@ export default function BuildTimelineModal({ navigation, route, cfg, uploads, on
       <>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
           <Icon name="ok" size={24} color={colors.good} />
-          <Text style={{ color: colors.text, fontSize: 20, fontWeight: "800" }}>Timeline saved</Text>
+          <Text style={{ color: colors.text, fontSize: 20, fontWeight: "800" }}>{t("Timeline saved")}</Text>
         </View>
         <Text style={{ color: colors.muted, marginTop: 8, lineHeight: 20 }}>
-          {saved.points.toLocaleString()} points from {plural(n, "source")}: {(saved.sources || []).map((s) => s.label).join(", ")}. It's
-          kept on your server as set on the Account tab. Want a copy on this phone too?
+          {t("{points} from {sources}: {names}. It's kept on your server as set on the Account tab. Want a copy on this phone too?", {
+            points: pl("points", saved.points),
+            sources: pl("sources", n),
+            names: (saved.sources || []).map((s) => s.label).join(RTL ? "، " : ", "),
+          })}
         </Text>
-        <Button title="Export a copy" icon="download" variant="ghost" onPress={() => exportTimeline(saved, toast)} style={{ marginTop: 18 }} />
-        <Button title="Done" onPress={() => navigation.goBack()} style={{ marginTop: 10 }} />
+        <Button title={t("Export a copy")} icon="download" variant="ghost" onPress={() => exportTimeline(saved, toast)} style={{ marginTop: 18 }} />
+        <Button title={t("Done")} onPress={() => navigation.goBack()} style={{ marginTop: 10 }} />
       </>
     );
   }
@@ -185,21 +189,20 @@ export default function BuildTimelineModal({ navigation, route, cfg, uploads, on
     setPane(k);
   };
   const TITLE = {
-    files: target ? "Add a file" : "Import a timeline file",
-    photos: target ? "Add photos" : "Scan my photos",
-    mine: "Combine my timelines",
+    files: target ? t("Add a file") : t("Import a timeline file"),
+    photos: target ? t("Add photos") : t("Scan my photos"),
+    mine: t("Combine my timelines"),
   };
   const INTRO = {
-    files: "Export your location history from the app that recorded it, then choose the file here.",
-    photos:
-      "CrossPaths reads the GPS location and date saved in your photos, right here on your phone. Only those points are uploaded, never the photos. Photos with no location (screenshots, downloads) are skipped.",
-    mine: "Pick other timelines of yours to fold into this one.",
+    files: t("Export your location history from the app that recorded it, then choose the file here."),
+    photos: t("CrossPaths reads the GPS location and date saved in your photos, right here on your phone. Only those points are uploaded, never the photos. Photos with no location (screenshots, downloads) are skipped."),
+    mine: t("Pick other timelines of yours to fold into this one."),
   };
   // after something is added, the other ways to add more
   const more = [
-    pane !== "files" && ["files", "Add a file", "folder"],
-    pane !== "photos" && ["photos", "Add photos", "photos"],
-    pane !== "mine" && others.length && ["mine", "Combine with my other timelines", "route"],
+    pane !== "files" && ["files", t("Add a file"), "folder"],
+    pane !== "photos" && ["photos", t("Add photos"), "photos"],
+    pane !== "mine" && others.length && ["mine", t("Combine with my other timelines"), "route"],
   ].filter(Boolean);
 
   return wrap(
@@ -207,14 +210,14 @@ export default function BuildTimelineModal({ navigation, route, cfg, uploads, on
       <Text style={{ color: colors.text, fontSize: 22, fontWeight: "800" }}>{TITLE[pane]}</Text>
       {target ? (
         <Text style={{ color: colors.muted, marginTop: 6, fontSize: 13 }}>
-          Adding to {dateStr(target.from)} → {dateStr(target.to)} ({target.points.toLocaleString()} points)
+          {t("Adding to {range} ({points}). ", { range: `${dateStr(target.from)} ${RTL ? "←" : "→"} ${dateStr(target.to)}`, points: pl("points", target.points) }).trim()}
         </Text>
       ) : null}
       <Text style={{ color: colors.muted, marginTop: 8, lineHeight: 20 }}>{INTRO[pane]}</Text>
 
       {items.length ? (
         <>
-          <Text style={{ color: colors.muted, fontSize: 13, fontWeight: "700", marginTop: 18, marginBottom: 8 }}>Ready to save</Text>
+          <Text style={{ color: colors.muted, fontSize: 13, fontWeight: "700", marginTop: 18, marginBottom: 8 }}>{t("Ready to save")}</Text>
           <View style={{ gap: 8 }}>
             {items.map((it, i) => (
               <View
@@ -237,7 +240,7 @@ export default function BuildTimelineModal({ navigation, route, cfg, uploads, on
                     {it.detail}
                   </Text>
                 </View>
-                <Pressable onPress={() => remove(i)} hitSlop={10} accessibilityLabel={`Remove ${it.label}`}>
+                <Pressable onPress={() => remove(i)} hitSlop={10} accessibilityLabel={t("Remove {name}", { name: it.label })}>
                   <Icon name="close" size={18} color={colors.muted} />
                 </Pressable>
               </View>
@@ -248,9 +251,9 @@ export default function BuildTimelineModal({ navigation, route, cfg, uploads, on
 
       {pane === "files" ? (
         <>
-          <Text style={{ color: colors.text, fontSize: 16, fontWeight: "800", marginTop: 22 }}>How to export your timeline</Text>
+          <Text style={{ color: colors.text, fontSize: 16, fontWeight: "800", marginTop: 22 }}>{t("How to export your timeline")}</Text>
           <Text style={{ color: colors.muted, fontSize: 13, marginTop: 4, marginBottom: 10, lineHeight: 18 }}>
-            Guides for each app. Pick the one that recorded your location to see the steps.
+            {t("Guides for each app. Pick the one that recorded your location to see the steps.")}
           </Text>
           <View style={{ borderWidth: 1, borderColor: colors.line, borderRadius: 14, overflow: "hidden" }}>
             {SOURCES.map((s, i) => {
@@ -261,7 +264,7 @@ export default function BuildTimelineModal({ navigation, route, cfg, uploads, on
                     onPress={() => openGuide(s.id)}
                     accessibilityRole="button"
                     accessibilityState={{ expanded: open }}
-                    accessibilityLabel={`How to export from ${s.name}`}
+                    accessibilityLabel={t("How to export from {app}", { app: s.name })}
                     style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 12, paddingHorizontal: 14, opacity: pressed ? 0.7 : 1 })}
                   >
                     <View style={{ flex: 1 }}>
@@ -282,7 +285,7 @@ export default function BuildTimelineModal({ navigation, route, cfg, uploads, on
                       ))}
                       <Pressable onPress={() => Linking.openURL(guideUrl(s.id)).catch(() => {})} style={{ marginTop: 12, flexDirection: "row", alignItems: "center", gap: 6 }}>
                         <Icon name="help" size={16} color={colors.accent2} />
-                        <Text style={{ color: colors.accent2, fontWeight: "700", fontSize: 13 }}>Full guide with pictures</Text>
+                        <Text style={{ color: colors.accent2, fontWeight: "700", fontSize: 13 }}>{t("Full guide with pictures")}</Text>
                       </Pressable>
                     </View>
                   ) : null}
@@ -291,19 +294,19 @@ export default function BuildTimelineModal({ navigation, route, cfg, uploads, on
             })}
           </View>
           <Text style={{ color: colors.muted, fontSize: 11.5, marginTop: 12, textAlign: "center" }}>
-            Accepted: GPX · TCX · FIT · KML · GeoJSON · CSV · JSON · ZIP
+            {t("Accepted: GPX · TCX · FIT · KML · GeoJSON · CSV · JSON · ZIP")}
           </Text>
         </>
       ) : null}
 
       {pane === "photos" ? (
         <>
-          <Text style={{ color: colors.muted, fontSize: 13, marginTop: 18, marginBottom: 6 }}>Limit to a date range (optional)</Text>
+          <Text style={{ color: colors.muted, fontSize: 13, marginTop: 18, marginBottom: 6 }}>{t("Limit to a date range (optional)")}</Text>
           <DateRangePicker from={dateFrom} to={dateTo} onChangeFrom={setDateFrom} onChangeTo={setDateTo} />
           {progress ? (
             <Card style={{ marginTop: 12 }}>
               <Text style={{ color: colors.muted, fontSize: 12.5 }}>
-                {progress.total ? `${progress.scanned} / ${progress.total} photos checked` : "Starting…"} · {progress.found} with location
+                {progress.total ? t("{a} / {b} photos checked", { a: progress.scanned, b: progress.total }) : t("Starting…")} · {t("{n} with location", { n: progress.found })}
               </Text>
               <View style={{ height: 6, borderRadius: 3, backgroundColor: colors.line, marginTop: 8, overflow: "hidden" }}>
                 <View
@@ -342,10 +345,10 @@ export default function BuildTimelineModal({ navigation, route, cfg, uploads, on
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={{ color: colors.text, fontWeight: "700" }}>
-                    {dateStr(u.from)} → {dateStr(u.to)}
+                    {dateStr(u.from)} {RTL ? "←" : "→"} {dateStr(u.to)}
                   </Text>
                   <Text style={{ color: colors.muted, fontSize: 12 }}>
-                    {u.points.toLocaleString()} points · {u.format}
+                    {pl("points", u.points)} · {u.format}
                   </Text>
                 </View>
               </Pressable>
@@ -356,14 +359,14 @@ export default function BuildTimelineModal({ navigation, route, cfg, uploads, on
 
       {merging ? (
         <View style={{ flexDirection: "row", alignItems: "center", gap: 10, marginTop: 14 }}>
-          <Text style={{ color: colors.text, flex: 1, fontSize: 13 }}>Delete the timelines I combine once they're in this one</Text>
+          <Text style={{ color: colors.text, flex: 1, fontSize: 13 }}>{t("Delete the timelines I combine once they're in this one")}</Text>
           <Switch value={removeMerged} onValueChange={setRemoveMerged} trackColor={{ true: colors.accent }} />
         </View>
       ) : null}
 
       {items.length ? (
         <>
-          <Text style={{ color: colors.muted, fontSize: 13, marginTop: 20, marginBottom: 4 }}>Add more to this timeline (optional)</Text>
+          <Text style={{ color: colors.muted, fontSize: 13, marginTop: 20, marginBottom: 4 }}>{t("Add more to this timeline (optional)")}</Text>
           {more.map(([k, label, ic]) => (
             <Pressable key={k} onPress={() => switchTo(k)} style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingVertical: 8 }}>
               <Icon name={ic} size={18} color={colors.accent2} />
@@ -373,7 +376,7 @@ export default function BuildTimelineModal({ navigation, route, cfg, uploads, on
         </>
       ) : null}
       <Pressable onPress={() => navigation.goBack()} disabled={busy} style={{ marginTop: 14, alignItems: "center" }}>
-        <Text style={{ color: colors.muted, fontSize: 13 }}>Cancel</Text>
+        <Text style={{ color: colors.muted, fontSize: 13 }}>{t("Cancel")}</Text>
       </Pressable>
     </>,
     items.length || pane === "files" || pane === "photos" ? (
@@ -382,22 +385,22 @@ export default function BuildTimelineModal({ navigation, route, cfg, uploads, on
         <Button
           title={
             busy
-              ? "Reading and combining…"
+              ? t("Reading and combining…")
               : target
-              ? `Add ${plural(items.length, "source")} and save`
+              ? t("Add {sources} and save", { sources: pl("sources", items.length) })
               : items.length > 1
-              ? `Combine ${items.length} sources and save`
-              : "Save timeline"
+              ? t("Combine {sources} and save", { sources: pl("sources", items.length) })
+              : t("Save timeline")
           }
           onPress={save}
           loading={busy}
           disabled={scanning}
         />
       ) : null}
-      {pane === "files" ? <Button title="Choose file(s)" icon="folder" variant={items.length ? "ghost" : "primary"} onPress={pickFiles} /> : null}
+      {pane === "files" ? <Button title={t("Choose file(s)")} icon="folder" variant={items.length ? "ghost" : "primary"} onPress={pickFiles} /> : null}
       {pane === "photos" ? (
         <Button
-          title={scanning ? "Scanning…" : "Scan photo library"}
+          title={scanning ? t("Scanning…") : t("Scan photo library")}
           icon="photos"
           variant={items.length ? "ghost" : "primary"}
           onPress={scan}

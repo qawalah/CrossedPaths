@@ -7,6 +7,18 @@ migration), MINOR for new features, PATCH for bugfixes. Pre-1.0, expect MINOR bu
 To check what's running on your server, visit `/api/config` — it reports the running
 `version`. That's the number to compare against this file when deciding whether to update.
 
+## 0.19.0
+- **Arabic.** The web client (and the Android app, 1.14.0) is available in Arabic with a mirrored
+  right-to-left layout. Choose English, Arabic or "System" under Account → Language (or the link
+  on the sign-in screen); "System" follows the browser or phone. Dates use Arabic month and day
+  names but Gregorian dates and Western digits, so Hijri dates never appear. Fixed server
+  messages (errors, trust warnings) are translated by the clients; the API still returns English.
+  Time axes (the My map date bar, the welcome pages) stay left-to-right. Tests keep both Arabic
+  dictionaries complete (`tests/test_i18n.py`).
+- **New typeface: IBM Plex Sans Arabic** for both languages, self-hosted under `/static/fonts`
+  (SIL OFL 1.1, licence alongside), so no font request leaves your server. The service worker
+  keeps the font files cached.
+
 ## 0.18.0
 - **Web: the date bar on My map.** The year / month / day buttons are replaced by the same bar as
   the Android app: drag along it to move through the years, slide up to zoom into months and then

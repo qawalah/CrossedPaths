@@ -75,7 +75,7 @@ Main features:
 - `applicationId` / namespace: `com.example.crosspaths`. **This must change before Play**: Play
   rejects `com.example.*`. The suggested name is `com.abu.crosspaths`. Changing it makes it a new
   app for anyone with the sideloaded version, so they'll need to install it fresh.
-- `versionCode` **11**, `versionName` **1.8.0** (in `mobile/app.json` and
+- `versionCode` **19**, `versionName` **1.14.0** (in `mobile/app.json` and
   `mobile/android/app/build.gradle`). `package.json` still says 1.0.0; ignore it.
 - **Signing:** there's no own key yet. Release builds are signed with React Native's stock
   **debug keystore** (`android/app/debug.keystore`, alias `androiddebugkey`; deliberately not in
@@ -88,7 +88,7 @@ Main features:
 planned), `buildNumber` 4. Waiting on the owner's Apple Developer enrollment; plan was EAS build
 and then TestFlight. `eas.json` exists, but there's no EAS `projectId` yet.
 
-**Server:** version in `server/VERSION`, currently **0.16.0**, reported at `GET /api/config`.
+**Server:** version in `server/VERSION`, currently **0.19.0**, reported at `GET /api/config`.
 Entry point `server/wsgi.py` → `server.app:create_app()`. Run by gunicorn: 1 worker, 8 threads,
 port 8787.
 
@@ -307,9 +307,23 @@ route files then. Separate workouts close together in place (within 200 m and 6 
 - **Theme:** `colors` in `src/theme.js` is one mutable object. A theme change rewrites it and
   the `NavigationContainer` remounts, keyed on the theme with its nav state preserved. Don't
   capture colours in `StyleSheet.create`.
-- **Dates:** the interface is English and dates use an English locale even on Arabic phones,
-  to avoid Hijri dates mixed into English. Place names still follow the device language
-  (Arabic names from GeoNames).
+- **Language:** English and Arabic (RTL) on both clients, chosen under Account → Language
+  (default "System"). The English UI uses an English locale even on Arabic phones (no Hijri dates
+  mixed into English); the Arabic UI uses `ar-u-ca-gregory-nu-latn` (Arabic month/day names,
+  Gregorian, Western digits). Place names follow the UI language (Arabic names from GeoNames).
+  English text is the translation key. Web: `AR_STR` in `index.html`, `t()`/`pl()`/`serverMsg()`.
+  Mobile: `src/i18n.js` with the dictionary in `src/i18n.ar.js`. `server/tests/test_i18n.py` fails
+  if a string or fixed server message has no Arabic entry. Never name a local variable `t` where
+  `t()` is called. Android applies RTL only at launch, so a language change saves the choice,
+  calls `I18nManager.forceRTL`/`allowRTL` and asks to reopen the app (`src/changeLanguage.js`);
+  `android:supportsRtl="true"` is in the manifest and the config plugin. Time axes (date bar, welcome
+  pager, chip rows) are forced `direction: ltr`; back/next icons mirror (`components/Icon.js`).
+  Hermes has no `Intl.PluralRules`, so `pl()` writes the rules out.
+- **Typeface:** IBM Plex Sans Arabic everywhere (it has matching Latin), weights 400–700 only.
+  Web: self-hosted woff2 in `server/server/static/fonts/`, never Google's CDN. Mobile: TTFs in
+  `mobile/assets/fonts/`, copied into `android/app/src/main/assets/fonts/` by the config plugin;
+  Android picks a bundled font by file name, so screens use `Text`/`TextInput` from
+  `src/components/AppText.js`, which maps `fontWeight` to the right file.
 
 **Builds and deployment**
 - **APK:** arm64-only, minified, legacy packaging (about 18 MB).
