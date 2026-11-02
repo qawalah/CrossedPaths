@@ -271,9 +271,13 @@ route files then. Separate workouts close together in place (within 200 m and 6 
 - **Theme:** `colors` in `src/theme.js` is one mutable object. A theme change rewrites it and
   the `NavigationContainer` remounts, keyed on the theme with its nav state preserved. Don't
   capture colours in `StyleSheet.create`.
-- **Dates:** the interface is English and dates use an English locale even on Arabic phones,
-  to avoid Hijri dates mixed into English. Place names still follow the device language
-  (Arabic names from GeoNames).
+- **Language:** English and Arabic (RTL), chosen under Settings → Language, default "System".
+  Dates use an English locale in the English UI even on Arabic phones (no Hijri dates mixed into
+  English); the Arabic UI uses `ar-u-ca-gregory-nu-latn` (Arabic month/day names, Gregorian,
+  Western digits). Place names follow the UI language (Arabic names from GeoNames).
+  Web: English text is the key, `AR_STR` in `index.html` holds the Arabic; `tests/test_i18n.py`
+  fails if a string or fixed server message has no Arabic entry. Don't use `t` as a local variable
+  name in the web client: it is the translate function.
 
 **Builds and deployment**
 - **APK:** arm64-only, minified, legacy packaging (about 18 MB).

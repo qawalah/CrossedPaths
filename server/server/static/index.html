@@ -32,7 +32,7 @@ nav.tabs{position:fixed;left:0;right:0;bottom:0;display:flex;background:var(--ch
 nav.tabs button{flex:1;background:none;border:0;padding:10px 4px 9px;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:2px;font-size:12px;position:relative}
 nav.tabs button svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 nav.tabs button.on{color:var(--accent)}
-nav.tabs .dot{position:absolute;top:6px;right:calc(50% - 20px);min-width:16px;height:16px;border-radius:8px;background:var(--bad);color:#fff;font-size:10px;display:flex;align-items:center;justify-content:center;padding:0 4px}
+nav.tabs .dot{position:absolute;top:6px;inset-inline-end:calc(50% - 20px);min-width:16px;height:16px;border-radius:8px;background:var(--bad);color:#fff;font-size:10px;display:flex;align-items:center;justify-content:center;padding:0 4px}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin:10px 0;animation:rise .35s ease both}
 .card h3{font-size:16px;margin-bottom:4px}
 .muted{color:var(--muted)}.small{font-size:12.5px}
@@ -55,10 +55,10 @@ a{color:var(--accent2)}
 .drop{border:1.5px dashed var(--line);border-radius:14px;padding:20px;text-align:center;color:var(--muted);cursor:pointer;transition:border-color .2s,background .2s}
 .drop:hover,.drop.over{border-color:var(--accent);background:rgba(45,212,191,.06)}
 .addopts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}.addopts .card{margin:0}
-.addopt{display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:left;font:inherit;color:var(--text);cursor:pointer;transition:border-color .2s}
+.addopt{display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:start;font:inherit;color:var(--text);cursor:pointer;transition:border-color .2s}
 .addopt .ico{font-size:24px}.addopt:hover,.addopt.on{border-color:var(--accent)}.addopt.on{box-shadow:inset 0 0 0 1px var(--accent)}
 @media(max-width:380px){.addopts{grid-template-columns:1fr}}
-.guide{margin:12px 0 14px}.guide ol{margin:6px 0 0 18px;padding:0;font-size:13.5px;line-height:1.5}.guide li{margin:4px 0}
+.guide{margin:12px 0 14px}.guide ol{margin:6px 0 0;padding:0;padding-inline-start:18px;font-size:13.5px;line-height:1.5}.guide li{margin:4px 0}
 .spin{width:18px;height:18px;border:2.5px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;display:inline-block;vertical-align:-4px}
 .pulse-dot{width:9px;height:9px;border-radius:50%;background:var(--accent2);display:inline-block;animation:blink 1.2s ease-in-out infinite}
 .toast{position:fixed;left:16px;right:16px;bottom:calc(84px + var(--sab));background:var(--toast);border:1px solid var(--line);padding:12px 14px;border-radius:12px;z-index:50;animation:rise .25s ease both;box-shadow:0 8px 30px var(--shadow)}
@@ -82,7 +82,7 @@ details summary{cursor:pointer;color:var(--accent2);font-size:13px;margin-top:8p
 #mapzone{position:relative;flex:1;min-height:0;overflow:hidden}
 #mapwrap{position:absolute;inset:0}
 #map{position:absolute;inset:0}
-.mapbtn{position:absolute;top:10px;right:10px;width:40px;height:40px;border-radius:12px;background:var(--chrome);border:1px solid var(--line);color:var(--text);font-size:18px;font-weight:700;cursor:pointer;z-index:1}
+.mapbtn{position:absolute;top:10px;inset-inline-end:10px;width:40px;height:40px;border-radius:12px;background:var(--chrome);border:1px solid var(--line);color:var(--text);font-size:18px;font-weight:700;cursor:pointer;z-index:1}
 .zoomhint{position:absolute;top:14px;left:50%;transform:translateX(-50%);background:var(--chip);color:var(--text);font-size:12.5px;padding:6px 12px;border-radius:99px;pointer-events:none;z-index:1;white-space:nowrap;transition:opacity .25s}
 .zoomhint.off{opacity:0}
 #mapmsg{position:absolute;inset:0;display:none;align-items:center;justify-content:center;text-align:center;padding:30px;color:var(--muted);background:var(--panel)}
@@ -92,16 +92,16 @@ details summary{cursor:pointer;color:var(--accent2);font-size:13px;margin-top:8p
 #panel.dragging #sheethead{cursor:grabbing}
 .sgrip{display:block;width:100%;padding:8px 0 6px;background:none;border:0;cursor:pointer}.sgrip span{display:block;width:40px;height:5px;border-radius:3px;background:var(--line);margin:0 auto}
 #sheethead .fbar{border-bottom:0;padding:2px 14px 10px}
-.dethead{padding:0 14px 10px}.dethead .back{background:none;border:0;color:var(--accent2);font-weight:700;font-size:14px;padding:4px 8px 4px 0;cursor:pointer}
+.dethead{padding:0 14px 10px}.dethead .back{background:none;border:0;color:var(--accent2);font-weight:700;font-size:14px;padding:4px 0;padding-inline-end:8px;cursor:pointer}
 .dethead h3{font-size:16px;margin:0}
 #detail{overflow:auto;flex:1;padding:14px 16px calc(18px + var(--sab))}
 #detail .place{font-size:15px;font-weight:600}
 .pathbox{margin-top:14px;padding:12px;border-radius:14px;background:var(--panel2)}
 #listwrap{overflow:auto;flex:1;padding:0 12px calc(14px + var(--sab))}
-.kb{width:38px;height:38px;border-radius:11px;background:var(--kb);border-left:3px solid var(--kc,#3987e5);color:var(--kc,#3987e5);display:flex;align-items:center;justify-content:center;flex:none}
-.ki{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none;vertical-align:-3px}.fchip .ki{margin-right:2px}
+.kb{width:38px;height:38px;border-radius:11px;background:var(--kb);border-inline-start:3px solid var(--kc,#3987e5);color:var(--kc,#3987e5);display:flex;align-items:center;justify-content:center;flex:none}
+.ki{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none;vertical-align:-3px}.fchip .ki{margin-inline-end:2px}
 .ev .kb{width:34px;height:34px;font-size:16px}
-@media(min-width:900px){#panel{left:14px;right:auto;width:420px;bottom:0}}
+@media(min-width:900px){#panel{left:14px;right:auto;width:420px;bottom:0}:root[dir=rtl] #panel{left:auto;right:14px}}
 .scrub{padding:10px 16px 6px;border-bottom:1px solid var(--line)}
 .scrub .lbl{display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted);margin-bottom:2px}
 .ev{display:flex;align-items:center;gap:12px;padding:10px;border-radius:12px;margin:4px 0;background:var(--panel2);border:1px solid transparent;cursor:pointer;transition:border-color .2s,background .2s}.ev:hover{background:var(--hover)}.ev .top{display:flex;align-items:baseline;gap:8px}.ev .top b{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ev .where{color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -143,16 +143,16 @@ details summary{cursor:pointer;color:var(--accent2);font-size:13px;margin-top:8p
 .kpi-l{color:var(--muted);font-size:12.5px}.kpi-v{font-size:26px;font-weight:750;margin-top:2px}.kpi-s{color:var(--muted);font-size:12px;margin-top:2px}
 .vcard{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:10px}.vcard h3{font-size:15px;margin-bottom:2px}
 .stack{display:flex;gap:2px;height:14px;border-radius:7px;overflow:hidden;margin:10px 0}.stack>div{min-width:4px}
-.legend2{display:flex;flex-direction:column;gap:2px}.lg2{display:flex;align-items:center;gap:8px;background:none;border:0;color:var(--text);padding:6px 0;cursor:pointer;text-align:left}
-.lg2 .sw{width:10px;height:10px;border-radius:3px;flex:none}.lg2 span:nth-child(2){flex:1}.lg2 b{font-weight:700}.lg2 .muted{width:36px;text-align:right}
+.legend2{display:flex;flex-direction:column;gap:2px}.lg2{display:flex;align-items:center;gap:8px;background:none;border:0;color:var(--text);padding:6px 0;cursor:pointer;text-align:start}
+.lg2 .sw{width:10px;height:10px;border-radius:3px;flex:none}.lg2 span:nth-child(2){flex:1}.lg2 b{font-weight:700}.lg2 .muted{width:36px;text-align:end}
 .hb{display:flex;flex-direction:column;gap:3px;padding:6px 0;cursor:pointer}.hb-l{font-size:13px}
-.hb-track{display:flex;align-items:center;gap:8px}.hb-bar{height:10px;background:#3987e5;border-radius:0 4px 4px 0}.hb-v{font-size:12.5px;color:var(--muted)}
+.hb-track{display:flex;align-items:center;gap:8px}.hb-bar{height:10px;background:#3987e5;border-start-end-radius:4px;border-end-end-radius:4px}.hb-v{font-size:12.5px;color:var(--muted)}
 .hb:hover .hb-bar,.hb:focus .hb-bar{filter:brightness(1.2)}
 .vchart{margin-top:8px}.cols{width:100%;height:auto;display:block}.cols .tick{fill:var(--muted);font-size:10px}.cols .peak{fill:var(--text);font-size:11px;font-weight:700}
 .cols .hit{cursor:pointer;outline:none}.cols .hit.on,.cols .hit:focus{fill:var(--hit)}
 .linkbtn{background:none;border:0;color:var(--accent2);font-size:12.5px;cursor:pointer;padding:4px}
-.vtable{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px;font-variant-numeric:tabular-nums}.vtable th{text-align:left;color:var(--muted);font-weight:600}.vtable td,.vtable th{padding:4px 2px;border-bottom:1px solid var(--line)}.vtable td:last-child,.vtable th:last-child{text-align:right}
-.hl{display:flex;align-items:center;gap:10px;width:100%;background:none;border:0;border-top:1px solid var(--line);color:var(--text);padding:10px 0;text-align:left;cursor:pointer}
+.vtable{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px;font-variant-numeric:tabular-nums}.vtable th{text-align:start;color:var(--muted);font-weight:600}.vtable td,.vtable th{padding:4px 2px;border-bottom:1px solid var(--line)}.vtable td:last-child,.vtable th:last-child{text-align:end}
+.hl{display:flex;align-items:center;gap:10px;width:100%;background:none;border:0;border-top:1px solid var(--line);color:var(--text);padding:10px 0;text-align:start;cursor:pointer}
 .hl-l{width:84px;flex:none;color:var(--muted);font-size:12.5px}.hl-m{flex:1;display:flex;flex-direction:column;gap:2px;font-size:13px}
 .vtip{position:absolute;z-index:3;pointer-events:none;background:var(--toast);border:1px solid var(--line);color:var(--text);font-size:12.5px;font-weight:650;padding:5px 9px;border-radius:8px;white-space:nowrap;box-shadow:0 6px 20px var(--shadow)}
 @media(min-width:900px){.stats{padding:4px max(14px,calc(50% - 360px)) 24px}.kpis{grid-template-columns:repeat(4,1fr)}.rtabs{max-width:720px;width:calc(100% - 28px);margin:0 auto 8px}}.legend .lg>span{font-size:22px}.legend p{margin:4px 0 0}.dethead .btn.sm{min-width:36px}#detail input[type=range]{width:100%;margin-top:6px}
@@ -189,6 +189,9 @@ details summary{cursor:pointer;color:var(--accent2);font-size:13px;margin-top:8p
 @keyframes ring{0%{transform:scale(.6);opacity:.6}100%{transform:scale(2.4);opacity:0}}
 @keyframes slideup{from{transform:translateY(100%)}to{transform:none}}
 @media(min-width:900px){#view,.auth{max-width:720px;margin:0 auto;width:100%}}
+:root[dir=rtl] body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Tahoma,"Noto Sans Arabic",Roboto,Arial,sans-serif}
+#map,#mt-mapel,.cols{direction:ltr}
+.lang-link{text-align:center;margin:22px 0 0}
 @media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important;animation-delay:0s!important}}
 </style>
 </head>
@@ -231,6 +234,459 @@ try { window.matchMedia("(prefers-color-scheme: light)").addEventListener("chang
 // Without this, Arabic/Hebrew map labels render as disconnected, unshaped glyphs (MapLibre GL JS
 // doesn't ship RTL text shaping by default). Must be called once, before any map is created.
 try { maplibregl.setRTLTextPlugin("https://unpkg.com/@mapbox/mapbox-gl-rtl-text@0.2.3/mapbox-gl-rtl-text.js", null, true); } catch (e) { /* already set */ }
+/* ---------- language: English / Arabic (kept on this device; follows the browser until chosen) ---------- */
+function langPref() { try { const s = localStorage.getItem("cp_lang"); if (s === "ar" || s === "en") return s; } catch (e) { /* private mode */ } return "system"; }
+const LANG = (() => { const p = langPref(); return p !== "system" ? p : /^ar\b/i.test(navigator.language || "") ? "ar" : "en"; })();
+const RTL = LANG === "ar";
+document.documentElement.lang = LANG; document.documentElement.dir = RTL ? "rtl" : "ltr";
+function setLang(l) { try { if (l === "system") localStorage.removeItem("cp_lang"); else localStorage.setItem("cp_lang", l); } catch (e) { /* private mode */ } location.reload(); }
+// English text is the key; an Arabic dictionary maps it to Arabic. A missing entry falls back to English.
+const AR_STR = {
+/*AR:begin*/
+  "Session expired, please sign in again": "انتهت الجلسة، يرجى تسجيل الدخول مرة أخرى",
+  "Something went wrong ({status})": "حدث خطأ ما ({status})",
+  "Same place": "المكان نفسه",
+  "Crossed paths": "تقاطع المسارات",
+  "Travelled together": "سافرتما معًا",
+  "kept until you delete it": "محفوظ حتى تحذفه",
+  "expired": "انتهت الصلاحية",
+  "<1 h left": "أقل من ساعة متبقية",
+  "{n} h left": "متبقٍ {n} ساعة",
+  "{n} days left": "متبقٍ {n} يومًا",
+  "Until I delete them": "حتى أحذفها",
+  "24 hours": "24 ساعة",
+  "7 days": "7 أيام",
+  "30 days": "30 يومًا",
+  "{n} hours": "{n} ساعة",
+  "{n} days": "{n} يومًا",
+  "kept (encrypted) until you delete it": "تُحفظ (مشفّرة) حتى تحذفها",
+  "deleted {when} after you upload it": "تُحذف بعد {when} من رفعها",
+  "at about the same time": "في الوقت نفسه تقريبًا",
+  "about {n} min apart": "بفارق نحو {n} دقيقة",
+  "Looks authentic": "تبدو أصلية",
+  "Some anomalies": "فيها بعض الشذوذ",
+  "Looks unusual": "تبدو غير معتادة",
+  "Too little data": "بيانات قليلة جدًا",
+  "awaiting consent": "بانتظار الموافقة",
+  "running": "قيد التنفيذ",
+  "done": "اكتمل",
+  "failed": "فشل",
+  "declined": "مرفوض",
+  "pending": "قيد الانتظار",
+  "Signed out": "تم تسجيل الخروج",
+  "Did our paths ever cross?": "هل تقاطعت مساراتنا يومًا؟",
+  "Sign in": "تسجيل الدخول",
+  "Create account": "إنشاء حساب",
+  "Username": "اسم المستخدم",
+  "e.g. sara.k": "مثال: sara.k",
+  "Password": "كلمة المرور",
+  "(10+ characters)": "(10 أحرف فأكثر)",
+  "Invite code": "رمز الدعوة",
+  "Registration is closed on this server.": "التسجيل مغلق على هذا الخادم.",
+  "Compare location histories (Google Maps Timeline, Strava, Apple Health, Garmin, Swarm, photos and more) with a friend or a stranger — see only the places and times you both were there. Your raw timeline is encrypted and, unless you choose otherwise, deleted {when} after you upload it.": "قارن سجلات المواقع (الخط الزمني في خرائط Google وStrava وApple Health وGarmin وSwarm والصور وغيرها) مع صديق أو شخص غريب، ولا ترى إلا الأماكن والأوقات التي كنتما فيها معًا. يُخزَّن خطك الزمني الخام مشفّرًا، ويُحذف بعد {when} من رفعه ما لم تختر غير ذلك.",
+  "Uploads": "الرفع",
+  "My Timeline": "خطي الزمني",
+  "People": "الأشخاص",
+  "Checks": "الفحوصات",
+  "Google Maps": "خرائط Google",
+  "Timeline export (.json)": "تصدير الخط الزمني (.json)",
+  "Android: open <b>Settings → Location → Location services → Timeline</b> (or in Google Maps: profile picture → <b>Your Timeline</b> → ⚙️) and choose <b>Export Timeline data</b>.": "أندرويد: افتح <b>الإعدادات ← الموقع ← خدمات الموقع ← الخط الزمني</b> (أو من خرائط Google: صورة الملف الشخصي ← <b>الخط الزمني</b> ← ⚙️) ثم اختر <b>تصدير بيانات الخط الزمني</b>.",
+  "iPhone: Google Maps → profile picture → <b>Settings → Personal content → Export Timeline data</b>.": "آيفون: خرائط Google ← صورة الملف الشخصي ← <b>الإعدادات ← المحتوى الشخصي ← تصدير بيانات الخط الزمني</b>.",
+  "Menu names vary a little between app versions. Choose the saved <i>.json</i> file here. Older Google Takeout downloads work too: <i>Records.json</i> or the <i>Semantic Location History</i> files (or the whole Takeout .zip).": "قد تختلف أسماء القوائم قليلًا بين إصدارات التطبيق. اختر ملف <i>.json</i> المحفوظ هنا. تعمل أيضًا تنزيلات Google Takeout القديمة: ملف <i>Records.json</i> أو ملفات <i>Semantic Location History</i> (أو ملف Takeout المضغوط .zip كاملًا).",
+  "Strava": "Strava",
+  "GPX / FIT / TCX": "GPX / FIT / TCX",
+  "One activity: open it on strava.com → <b>⋯</b> → <b>Export GPX</b>.": "نشاط واحد: افتحه على strava.com ← <b>⋯</b> ← <b>Export GPX</b>.",
+  "Everything: on strava.com go to <b>Settings → My Account → Download or Delete Your Account → Get Started → Request Your Archive</b>. Don't press anything else on that page. Strava emails you a link.": "كل شيء: على strava.com افتح <b>Settings ← My Account ← Download or Delete Your Account ← Get Started ← Request Your Archive</b>. لا تضغط على أي شيء آخر في تلك الصفحة. سترسل لك Strava رابطًا بالبريد الإلكتروني.",
+  "Upload the .zip as it is. If it's over the size limit (photos make it big), unzip it and choose the files inside the <i>activities</i> folder.": "ارفع ملف .zip كما هو. وإن تجاوز الحد المسموح (تجعله الصور كبيرًا) فكّ ضغطه واختر الملفات داخل مجلد <i>activities</i>.",
+  "Apple Health": "Apple Health",
+  "Workout routes (GPX)": "مسارات التمارين (GPX)",
+  "On your iPhone open <b>Health</b> → your picture (top right) → <b>Export All Health Data</b> → save <i>export.zip</i> to Files.": "على آيفون افتح <b>Health</b> ← صورتك (أعلى اليمين) ← <b>Export All Health Data</b> ← احفظ <i>export.zip</i> في تطبيق الملفات.",
+  "Upload <i>export.zip</i> here. Only the workout routes are read; your other health data is skipped.": "ارفع <i>export.zip</i> هنا. تُقرأ مسارات التمارين فقط، وتُتجاهل بقية بياناتك الصحية.",
+  "Too big? Tap the zip in Files to unzip it, open <i>apple_health_export/workout-routes</i> and choose all the .gpx files there.": "الملف كبير جدًا؟ اضغط على ملف zip في تطبيق الملفات لفك ضغطه، ثم افتح <i>apple_health_export/workout-routes</i> واختر كل ملفات .gpx هناك.",
+  "Only workouts recorded with GPS (outdoor walks, runs, rides) have routes.": "لا تحتوي على مسارات إلا التمارين المسجّلة بنظام GPS (المشي والجري وركوب الدراجة في الخارج).",
+  "Samsung Health": "Samsung Health",
+  "Exercise routes": "مسارات التمارين",
+  "Open <b>Samsung Health</b> → ☰ or your profile → <b>Settings → Download personal data</b>.": "افتح <b>Samsung Health</b> ← ☰ أو ملفك الشخصي ← <b>الإعدادات ← تنزيل البيانات الشخصية</b>.",
+  "The files go to <b>My Files → Internal storage → Download → Samsung Health</b>. Long-press that folder → <b>Compress</b> to make a .zip.": "تُحفظ الملفات في <b>ملفاتي ← وحدة التخزين الداخلية ← Download ← Samsung Health</b>. اضغط مطولًا على ذلك المجلد ← <b>ضغط</b> لإنشاء ملف .zip.",
+  "Upload the .zip. The routes are in the <i>location_data.json</i> files; everything else is skipped.": "ارفع ملف .zip. المسارات موجودة في ملفات <i>location_data.json</i>، وتُتجاهل بقية الملفات.",
+  "Garmin": "Garmin",
+  "FIT / GPX": "FIT / GPX",
+  "One activity: Garmin Connect website → the activity → ⚙️ → <b>Export Original</b> (.fit, inside a .zip) or <b>Export to GPX</b>.": "نشاط واحد: موقع Garmin Connect ← النشاط ← ⚙️ ← <b>Export Original</b> (ملف .fit داخل ملف .zip) أو <b>Export to GPX</b>.",
+  "Everything: Garmin account → <b>Data Management → Export Your Data</b>. Garmin emails you a .zip; upload it as it is.": "كل شيء: حساب Garmin ← <b>Data Management ← Export Your Data</b>. سترسل لك Garmin ملف .zip بالبريد الإلكتروني؛ ارفعه كما هو.",
+  "Fitbit · Google Fit": "Fitbit · Google Fit",
+  "TCX": "TCX",
+  "Fitbit: open a GPS exercise → <b>⋯</b> → <b>Export as TCX file</b> (one exercise at a time).": "Fitbit: افتح تمرينًا مسجّلًا بنظام GPS ← <b>⋯</b> ← <b>Export as TCX file</b> (تمرين واحد في كل مرة).",
+  "Google Fit: Google Takeout → choose only <b>Fit</b> → download. Upload the .zip; the activity .tcx files are read.": "Google Fit: Google Takeout ← اختر <b>Fit</b> فقط ← نزّل. ارفع ملف .zip؛ وتُقرأ ملفات .tcx الخاصة بالأنشطة.",
+  "Health Connect on Android has no route export. Export from the app that recorded the workout instead (Strava, Samsung Health, Garmin…).": "لا يتيح Health Connect في أندرويد تصدير المسارات. صدّر من التطبيق الذي سجّل التمرين بدلًا من ذلك (Strava أو Samsung Health أو Garmin…).",
+  "Swarm": "Swarm",
+  "Check-ins": "تسجيلات الوصول",
+  "In the <b>Swarm</b> app: <b>Settings → Privacy Settings → Initiate Data Download Request</b>. Foursquare emails you a link to a .zip.": "في تطبيق <b>Swarm</b>: <b>Settings ← Privacy Settings ← Initiate Data Download Request</b>. سترسل لك Foursquare رابط ملف .zip بالبريد الإلكتروني.",
+  "Upload the .zip (or the <i>checkins*.json</i> files from it).": "ارفع ملف .zip (أو ملفات <i>checkins*.json</i> منه).",
+  "Each check-in counts as 30 minutes at that place, so matches are rougher than with GPS tracks.": "يُحتسب كل تسجيل وصول على أنه 30 دقيقة في ذلك المكان، لذا تكون التطابقات أقل دقة مما هي عليه مع مسارات GPS.",
+  "Other apps": "تطبيقات أخرى",
+  "GPX · KML · GeoJSON · CSV": "GPX · KML · GeoJSON · CSV",
+  "Any app that exports GPX, KML/KMZ, GeoJSON or FIT works: OwnTracks, GPSLogger, Dawarich, Arc, Komoot, Wikiloc, Polarsteps, car and dashcam apps…": "يعمل أي تطبيق يصدّر GPX أو KML/KMZ أو GeoJSON أو FIT: OwnTracks وGPSLogger وDawarich وArc وKomoot وWikiloc وPolarsteps وتطبيقات السيارات وكاميرات القيادة…",
+  "CSV files need a <b>latitude</b>, a <b>longitude</b> and a <b>time</b> column (any common column name works).": "تحتاج ملفات CSV إلى عمود <b>خط العرض</b> وعمود <b>خط الطول</b> وعمود <b>الوقت</b> (يصلح أي اسم شائع للعمود).",
+  "Points without a time can't be compared, so planned routes without times are skipped.": "لا يمكن مقارنة النقاط التي لا وقت لها، لذا تُتجاهل المسارات المخططة التي لا أوقات فيها.",
+  "Add your location history. It stays private and is {phrase}.": "أضف سجل مواقعك. يبقى خاصًا و{phrase}.",
+  "Change": "تغيير",
+  "Import a timeline": "استيراد خط زمني",
+  "Google Maps, Strava, Apple Health, Samsung Health, Garmin, Swarm, GPX, CSV…": "خرائط Google وStrava وApple Health وSamsung Health وGarmin وSwarm وGPX وCSV…",
+  "Scan my photos": "فحص صوري",
+  "Build one from the place and time saved in your photos.": "أنشئ خطًا زمنيًا من المكان والوقت المحفوظين في صورك.",
+  "Where is your history from?": "من أين سجلك؟",
+  "Choose file(s)": "اختر ملفًا أو أكثر",
+  "One file, several at once, or a .zip · up to {mb} MB in total": "ملف واحد أو عدة ملفات معًا أو ملف .zip · حتى {mb} ميغابايت في المجموع",
+  "Choose photos and CrossPaths reads the GPS position and time saved inside each one, right here in your browser. Only those points are uploaded, never the photos. Screenshots and photos sent through chat apps usually have no location and are skipped.": "اختر الصور وسيقرأ CrossPaths موقع GPS والوقت المحفوظين داخل كل صورة، هنا في متصفحك مباشرة. تُرفع هذه النقاط فقط ولا تُرفع الصور أبدًا. لقطات الشاشة والصور المرسلة عبر تطبيقات المحادثة لا تحمل موقعًا عادةً، وتُتجاهل.",
+  "Choose photos": "اختر الصور",
+  "Select as many as you like. At least 20 need a location.": "اختر ما تشاء منها. يجب أن تحمل 20 صورة على الأقل موقعًا.",
+  "On an Android phone the CrossPaths app can scan your whole library in one go. On iPhone, some browsers remove the location from photos you pick; if none is found, try a computer.": "على هاتف أندرويد يستطيع تطبيق CrossPaths فحص مكتبة صورك كاملة دفعة واحدة. وعلى آيفون تزيل بعض المتصفحات الموقع من الصور التي تختارها؛ فإن لم يُعثر على أي موقع فجرّب حاسوبًا.",
+  "No timeline uploaded yet.": "لم يُرفع أي خط زمني بعد.",
+  "Home &amp; work areas hidden from results ({n})": "مناطق المنزل والعمل المخفية من النتائج ({n})",
+  "Any crossing inside these areas is never shown. Remove an area only if you want places there included.": "لا يُعرض أي تقاطع داخل هذه المناطق إطلاقًا. أزل منطقة فقط إذا أردت إدراج الأماكن الواقعة فيها.",
+  "Area {n}": "المنطقة {n}",
+  "{n} m": "{n} م",
+  "Remove": "إزالة",
+  "None detected.": "لم يُكتشف شيء.",
+  "Delete now": "احذف الآن",
+  " · {files} had no locations": " · {files} بلا مواقع",
+  "That's {size} MB; the limit is {max} MB. Choose fewer files or a shorter period.": "الحجم {size} ميغابايت والحد الأقصى {max} ميغابايت. اختر عددًا أقل من الملفات أو فترة أقصر.",
+  "Reading and checking your timeline…": "جارٍ قراءة خطك الزمني وفحصه…",
+  "Reading and checking {files}…": "جارٍ قراءة {files} وفحصها…",
+  "Timeline added": "أُضيف الخط الزمني",
+  "Reading photo {i} of {total} · {n} with a location": "قراءة الصورة {i} من {total} · {n} منها بموقع",
+  "Only {n} of those photos have a location; at least 20 are needed. Choose more photos.": "{n} فقط من هذه الصور تحمل موقعًا، والمطلوب 20 على الأقل. اختر المزيد من الصور.",
+  "None of those photos have a location saved in them. Try photos straight from the camera, or the Android app.": "لا تحمل أي من هذه الصور موقعًا محفوظًا. جرّب صورًا مباشرة من الكاميرا، أو استخدم تطبيق أندرويد.",
+  "Connect with someone to compare timelines. Nothing is compared until you both agree.": "اتصل بشخص ما لمقارنة الخطوط الزمنية. لا تتم أي مقارنة قبل موافقتكما معًا.",
+  "Meet in person": "التقيا وجهًا لوجه",
+  "With someone right now? Show your code for them to scan in the CrossPaths app, or share the link. You're connected and your paths are checked in one go.": "هل أنت مع شخص الآن؟ أظهر رمزك ليمسحه في تطبيق CrossPaths، أو شارك الرابط. يتم الاتصال وفحص مساراتكما دفعة واحدة.",
+  "Show my code": "أظهر رمزي",
+  "Enter a code": "أدخل رمزًا",
+  "Or send a request by username - they accept, then either of you starts a check.": "أو أرسل طلبًا باسم المستخدم؛ فإذا قبل، يبدأ أيٌّ منكما فحصًا.",
+  "Send": "إرسال",
+  "Requests for you": "طلبات موجهة إليك",
+  "wants to compare timelines": "يريد مقارنة الخطوط الزمنية",
+  "Accept": "قبول",
+  "Decline": "رفض",
+  "Block this user": "حظر هذا المستخدم",
+  "Connections": "الاتصالات",
+  "Check paths": "فحص المسارات",
+  "Waiting for a reply": "بانتظار الرد",
+  "No connections yet.": "لا توجد اتصالات بعد.",
+  "Your timeline for the check": "خطك الزمني لهذا الفحص",
+  "You haven't uploaded a timeline, so you'll be connected but no check will run. Upload one first to check straight away.": "لم ترفع خطًا زمنيًا، لذا سيتم الاتصال ولكن لن يُجرى أي فحص. ارفع خطًا زمنيًا أولًا لإجراء الفحص فورًا.",
+  "Checking where your paths crossed…": "جارٍ البحث عن أماكن تقاطع مساراتكما…",
+  "{c} found": "تم العثور على {c}",
+  "Your paths never crossed": "لم تتقاطع مساراتكما قط",
+  "View crossings": "عرض التقاطعات",
+  "The check couldn't run.": "تعذّر إجراء الفحص.",
+  "Connected with {who}": "تم الاتصال بـ {who}",
+  "Done": "تم",
+  "Your code": "رمزك",
+  "Ask them to open CrossPaths → People → <b>Meet in person</b> → Scan. Doing this together counts as both of you agreeing to the check; they'll only see when and roughly where you crossed.": "اطلب منه فتح CrossPaths ← الأشخاص ← <b>التقيا وجهًا لوجه</b> ← مسح. يُعدّ ذلك موافقة منكما معًا على الفحص؛ ولن يرى إلا متى وأين تقريبًا تقاطعتما.",
+  "Copy invite link": "نسخ رابط الدعوة",
+  "Share…": "مشاركة…",
+  "Single use. The link works for someone on the same CrossPaths server as you.": "للاستخدام مرة واحدة. يعمل الرابط مع من هو على خادم CrossPaths نفسه الذي تستخدمه.",
+  "Invite link copied": "تم نسخ رابط الدعوة",
+  "Copy this link:": "انسخ هذا الرابط:",
+  "Connect with me on CrossPaths and check if our paths crossed:": "اتصل بي على CrossPaths لنعرف إن كانت مساراتنا قد تقاطعت:",
+  "This code expired.": "انتهت صلاحية هذا الرمز.",
+  "New code": "رمز جديد",
+  "Valid for {time}": "صالح لمدة {time}",
+  "Enter their code": "أدخل رمزه",
+  "Type the code shown on their phone, or paste their invite link.": "اكتب الرمز الظاهر على هاتفه، أو الصق رابط الدعوة.",
+  "Next": "التالي",
+  "Using the CrossPaths phone app?": "هل تستخدم تطبيق CrossPaths على الهاتف؟",
+  "Open this invite in the app": "افتح هذه الدعوة في التطبيق",
+  "That isn't a CrossPaths code": "هذا ليس رمز CrossPaths",
+  "That's your own code. The other person needs to enter it.": "هذا رمزك أنت. على الشخص الآخر أن يدخله.",
+  "Connect with {who}?": "الاتصال بـ {who}؟",
+  "You'll be connected and your paths checked right away (within {m} m and {min} min). They'll only see when and roughly where you crossed.": "سيتم الاتصال وفحص مساراتكما فورًا (ضمن {m} م و{min} دقيقة). ولن يرى إلا متى وأين تقريبًا تقاطعتما.",
+  "You'll be connected. No check will run until you upload a timeline.": "سيتم الاتصال. لن يُجرى أي فحص حتى ترفع خطًا زمنيًا.",
+  "You'll be connected. {who} hasn't uploaded a timeline, so no check will run yet.": "سيتم الاتصال. لم يرفع {who} خطًا زمنيًا، لذا لن يُجرى أي فحص الآن.",
+  "Connect &amp; check": "اتصال وفحص",
+  "Connect": "اتصال",
+  "Each check runs only after both of you agree.": "لا يُجرى أي فحص إلا بعد موافقتكما معًا.",
+  "No checks yet. Start one from People.": "لا توجد فحوصات بعد. ابدأ واحدًا من تبويب الأشخاص.",
+  "Review": "مراجعة",
+  "{who} wants to check paths with you": "يريد {who} فحص المسارات معك",
+  "Waiting for {who} to agree · expires in {n} d": "بانتظار موافقة {who} · ينتهي خلال {n} يوم",
+  "Finding where your paths crossed…": "جارٍ البحث عن أماكن تقاطع مساراتكما…",
+  "View": "عرض",
+  "No crossings found": "لم يُعثر على تقاطعات",
+  "Something went wrong. Upload again and retry.": "حدث خطأ ما. ارفع الخط الزمني مجددًا وأعد المحاولة.",
+  "Declined": "مرفوض",
+  "Expired": "انتهت صلاحيته",
+  "{n} min": "{n} د",
+  "Delete": "حذف",
+  "{n} pts": "{n} نقطة",
+  "From (optional)": "من (اختياري)",
+  "To (optional)": "إلى (اختياري)",
+  "They will only see <b>when and roughly where</b> (about 100 m) your paths crossed — never your route or full timeline. Your home and work areas are excluded.": "لن يرى إلا <b>متى وأين تقريبًا</b> (بدقة نحو 100 م) تقاطعت مساراتكما، ولن يرى مسارك أو خطك الزمني كاملًا أبدًا. وتُستثنى منطقتا منزلك وعملك.",
+  "Upload your timeline first": "ارفع خطك الزمني أولًا",
+  "Check paths with {who}": "فحص المسارات مع {who}",
+  "Your timeline": "خطك الزمني",
+  "Closeness: {v}": "مدى القرب: {v}",
+  "m": "م",
+  "Time tolerance: {v}": "هامش الوقت: {v}",
+  "min": "دقيقة",
+  "Send request &amp; agree": "إرسال الطلب والموافقة",
+  "Upload your timeline first, then come back": "ارفع خطك الزمني أولًا ثم عد",
+  "{who} wants to check paths": "{who} يريد فحص المسارات",
+  "Closeness {m} m · time tolerance {min} min. Nothing runs until you agree.": "مدى القرب {m} م · هامش الوقت {min} دقيقة. لا يُجرى شيء قبل موافقتك.",
+  "Agree &amp; run": "موافقة وتشغيل",
+  "Unnamed area": "منطقة بلا اسم",
+  "{who}'s timeline looks unusual (possible fake or edited location data). Treat these results with caution.": "يبدو الخط الزمني لدى {who} غير معتاد (ربما بيانات موقع مزيّفة أو معدَّلة). تعامل مع هذه النتائج بحذر.",
+  "Paths crossed with {who}": "مسارات تقاطعت مع {who}",
+  "What do the types mean?": "ما معنى الأنواع؟",
+  "Summary": "الملخص",
+  "Map &amp; list": "الخريطة والقائمة",
+  "Couldn't load the map background.": "تعذّر تحميل خلفية الخريطة.",
+  "Check the server's internet access or MAP_STYLE_URL.": "تحقق من اتصال الخادم بالإنترنت أو من MAP_STYLE_URL.",
+  "Fit to the crossings": "ملاءمة العرض للتقاطعات",
+  "Click a hot spot to zoom in": "انقر على نقطة ساخنة للتقريب",
+  "Resize the results": "تغيير حجم النتائج",
+  "Filter": "تصفية",
+  "Newest": "الأحدث",
+  "Oldest": "الأقدم",
+  "Longest": "الأطول",
+  "What the types mean": "معنى الأنواع",
+  "You were both at the same spot (within {m} m), mostly staying put - a café, a mall, a mosque. You may have been there up to {min} min apart: one arriving as the other left.": "كنتما في الموضع نفسه (ضمن {m} م) وغالبًا مقيمَين فيه، كمقهى أو مجمّع تجاري أو مسجد. وربما كان بين وجوديكما حتى {min} دقيقة: وصل أحدكما حين غادر الآخر.",
+  "You were both on the move and went through the same spot within a few minutes of each other - walking or driving past. Over in a few minutes.": "كنتما في حركة ومررتما بالموضع نفسه خلال دقائق قليلة من بعضكما، مشيًا أو بالسيارة. ينتهي خلال دقائق.",
+  "You moved the same way at the same time for a while - the same road, bus or train.": "تحركتما في الاتجاه نفسه وفي الوقت نفسه لبعض الوقت، على الطريق نفسه أو في الحافلة أو القطار نفسه.",
+  "Places are named from a database on your server (place names © {geonames}, CC BY 4.0; street names © OpenStreetMap contributors). Times are rounded to 15 minutes and places blurred to about {m} m for privacy. Flights are never matched.": "تُسمّى الأماكن اعتمادًا على قاعدة بيانات على خادمك (أسماء الأماكن © {geonames}، رخصة CC BY 4.0؛ أسماء الشوارع © مساهمو OpenStreetMap). تُقرَّب الأوقات إلى 15 دقيقة وتُموَّه الأماكن بنحو {m} م حفاظًا على الخصوصية. ولا تُطابَق رحلات الطيران أبدًا.",
+  "Got it": "حسنًا",
+  "Sun": "الأحد",
+  "Mon": "الاثنين",
+  "Tue": "الثلاثاء",
+  "Wed": "الأربعاء",
+  "Thu": "الخميس",
+  "Fri": "الجمعة",
+  "Sat": "السبت",
+  "Sundays": "أيام الأحد",
+  "Mondays": "أيام الاثنين",
+  "Tuesdays": "أيام الثلاثاء",
+  "Wednesdays": "أيام الأربعاء",
+  "Thursdays": "أيام الخميس",
+  "Fridays": "أيام الجمعة",
+  "Saturdays": "أيام السبت",
+  "{n} h": "{n} س",
+  "Table": "جدول",
+  "Your paths didn't cross within {m} m and {min} min.": "لم تتقاطع مساراتكما ضمن {m} م و{min} دقيقة.",
+  "within {m} m and {min} min": "ضمن {m} م و{min} دقيقة",
+  "Days you crossed": "أيام التقاطع",
+  "busiest: {n} on {date}": "الأكثر ازدحامًا: {n} في {date}",
+  "Time together": "الوقت معًا",
+  "about {n} days, all added up": "نحو {n} يومًا بمجموعها",
+  "all crossings added up": "مجموع كل التقاطعات",
+  "Places": "الأماكن",
+  "in {n} cities": "في {n} مدن",
+  "in {city}": "في {city}",
+  "{date} · tap to see": "{date} · اضغط للعرض",
+  "By type": "حسب النوع",
+  "Tap a type to see just those on the map.": "اضغط على نوع لعرضه وحده على الخريطة.",
+  "What do they mean?": "ما معناها؟",
+  "Where you cross most": "أكثر الأماكن تقاطعًا",
+  "and {x} more": "إضافةً إلى {x}",
+  "Cities": "المدن",
+  "Crossings per month": "التقاطعات في كل شهر",
+  "Crossings per year": "التقاطعات في كل سنة",
+  "Most in {label}: {n}": "الأكثر في {label}: {n}",
+  "Month": "الشهر",
+  "Year": "السنة",
+  "Crossings": "التقاطعات",
+  "Time of day": "وقت اليوم",
+  "Most often around {time}": "في الغالب نحو الساعة {time}",
+  "Hour": "الساعة",
+  "Day of week": "يوم الأسبوع",
+  "Most often on {day}": "في الغالب في {day}",
+  "Day": "اليوم",
+  "Highlights": "أبرز اللحظات",
+  "First": "الأول",
+  "Most recent": "الأحدث",
+  "See all {n} on the map": "عرض الكل ({n}) على الخريطة",
+  "Chart": "رسم بياني",
+  "Scroll left": "تمرير لليسار",
+  "Scroll right": "تمرير لليمين",
+  "Your timelines stay on this server, encrypted, until you delete them on the Uploads tab.": "تبقى خطوطك الزمنية على هذا الخادم مشفّرة حتى تحذفها من تبويب الرفع.",
+  "Each timeline is deleted {when} after you upload it. Choosing a shorter time also deletes older ones straight away.": "يُحذف كل خط زمني بعد {when} من رفعه. واختيار مدة أقصر يحذف الأقدم منها فورًا أيضًا.",
+  "Settings": "الإعدادات",
+  "Language": "اللغة",
+  "System": "النظام",
+  "Theme": "المظهر",
+  "Dark": "داكن",
+  "Light": "فاتح",
+  "Accent colour": "لون التمييز",
+  "Keep my uploaded timelines": "الاحتفاظ بخطوطي الزمنية المرفوعة",
+  "This deletes {n} older than {when} now. Continue?": "سيؤدي هذا إلى حذف {n} أقدم من {when} الآن. هل تريد المتابعة؟",
+  "Uploads are now deleted after {when}": "أصبحت المرفوعات تُحذف بعد {when}",
+  "Uploads are now kept until you delete them": "أصبحت المرفوعات تُحفظ حتى تحذفها",
+  "No crossings": "لا تقاطعات",
+  "{a} of {b}": "{a} من {b}",
+  "No crossings match these filters.": "لا توجد تقاطعات تطابق هذه المرشحات.",
+  "Clear filters": "مسح المرشحات",
+  "Filter crossings": "تصفية التقاطعات",
+  "Type": "النوع",
+  "All": "الكل",
+  "City": "المدينة",
+  "Place": "المكان",
+  "At least": "على الأقل",
+  "{n}+ min": "{n}+ دقيقة",
+  "Any": "أي مدة",
+  "Place or landmark contains": "المكان أو المَعلم يحتوي على",
+  "e.g. Olaya, airport, mall": "مثال: العليا، المطار، المجمّع التجاري",
+  "Only crossings in the visible map area": "التقاطعات في منطقة الخريطة الظاهرة فقط",
+  "Clear": "مسح",
+  "Show {n}": "عرض {n}",
+  "Looking up the street…": "جارٍ البحث عن اسم الشارع…",
+  "OpenStreetMap is busy or refused the lookup. Try again later.": "خدمة OpenStreetMap مشغولة أو رفضت الطلب. حاول لاحقًا.",
+  "OpenStreetMap couldn't look that up.": "تعذّر على OpenStreetMap البحث عن ذلك.",
+  "No street name here": "لا يوجد اسم شارع هنا",
+  "Couldn't reach OpenStreetMap right now.": "تعذّر الوصول إلى OpenStreetMap حاليًا.",
+  "All crossings": "كل التقاطعات",
+  "Previous": "السابق",
+  "Show street name": "إظهار اسم الشارع",
+  "(asks OpenStreetMap)": "(يسأل OpenStreetMap)",
+  "place accurate to about {m} m": "دقة المكان نحو {m} م",
+  "Your path": "مسارك",
+  "Replay": "إعادة التشغيل",
+  "Only your own path is ever shown, never theirs.": "يُعرض مسارك أنت فقط، ولا يُعرض مساره هو أبدًا.",
+  "This result was saved by an older version, before your own path was kept with it. Run the check again to see how you got here and where you went.": "حُفظت هذه النتيجة بنسخة أقدم، قبل حفظ مسارك معها. أعد الفحص لترى كيف وصلت إلى هنا وإلى أين ذهبت.",
+  "No path of yours was recorded in the hours around this crossing.": "لم يُسجَّل أي مسار لك في الساعات المحيطة بهذا التقاطع.",
+  "Pause": "إيقاف مؤقت",
+  "My timeline": "خطي الزمني",
+  "Upload your timeline first, on the Uploads tab.": "ارفع خطك الزمني أولًا من تبويب الرفع.",
+  "Loading your timeline…": "جارٍ تحميل خطك الزمني…",
+  "Show my current location": "إظهار موقعي الحالي",
+  "Live": "مباشر",
+  "Play": "تشغيل",
+  "Search a place": "البحث عن مكان",
+  "See every time you've visited somewhere.": "اعرف كل مرة زرت فيها مكانًا ما.",
+  "Place name": "اسم المكان",
+  "Search": "بحث",
+  "Typed search uses OpenStreetMap and sends your search text there.": "يستخدم البحث بالكتابة OpenStreetMap ويرسل إليه نص بحثك.",
+  "Or tap a point on the map above": "أو اضغط على نقطة في الخريطة أعلاه",
+  "Search radius: {v}": "نطاق البحث: {v}",
+  "Couldn't load your timeline: {msg}": "تعذّر تحميل خطك الزمني: {msg}",
+  "This timeline has no points to show.": "لا توجد في هذا الخط الزمني نقاط للعرض.",
+  "Loading {label}…": "جارٍ تحميل {label}…",
+  "no points recorded": "لا نقاط مسجَّلة",
+  "Couldn't load that day: {msg}": "تعذّر تحميل ذلك اليوم: {msg}",
+  "Searching your timeline…": "جارٍ البحث في خطك الزمني…",
+  "No visits found there.": "لم تُعثر على زيارات هناك.",
+  "Looking up “{q}”…": "جارٍ البحث عن «{q}»…",
+  "No place found for “{q}”.": "لم يُعثر على مكان باسم «{q}».",
+  "Couldn't reach OpenStreetMap's search right now.": "تعذّر الوصول إلى بحث OpenStreetMap حاليًا.",
+  "Tap the map to drop a pin…": "اضغط على الخريطة لوضع دبوس…",
+  "Location isn't available in this browser": "الموقع غير متاح في هذا المتصفح",
+  "Couldn't get your location — check the browser's location permission": "تعذّر تحديد موقعك — تحقق من إذن الموقع في المتصفح",
+  "Delete this timeline from the server now?": "هل تريد حذف هذا الخط الزمني من الخادم الآن؟",
+  "Request sent": "تم إرسال الطلب",
+  "Remove this connection and any results with them?": "هل تريد إزالة هذا الاتصال وأي نتائج معه؟",
+  "Request sent. It runs once they agree.": "تم إرسال الطلب. سيُنفَّذ عند موافقته.",
+  "Delete this check and its results?": "هل تريد حذف هذا الفحص ونتائجه؟",
+  "Sign out": "تسجيل الخروج",
+  "Teal": "أزرق مخضر",
+  "Blue": "أزرق",
+  "Violet": "بنفسجي",
+  "Amber": "كهرماني",
+  "Rose": "وردي",
+  "Please sign in": "يرجى تسجيل الدخول",
+  "Daily limit reached for this action. Try again tomorrow.": "تم بلوغ الحد اليومي لهذا الإجراء. حاول مجددًا غدًا.",
+  "Registration is closed": "التسجيل مغلق",
+  "Invalid invite code": "رمز الدعوة غير صالح",
+  "Username must be 3-30 characters: letters, digits, _ or .": "يجب أن يتكون اسم المستخدم من 3 إلى 30 حرفًا: أحرف أو أرقام أو _ أو .",
+  "Password must be at least 10 characters": "يجب ألا تقل كلمة المرور عن 10 أحرف",
+  "That username is taken": "اسم المستخدم هذا مستخدم بالفعل",
+  "Too many attempts. Wait 15 minutes.": "محاولات كثيرة. انتظر 15 دقيقة.",
+  "Wrong username or password": "اسم المستخدم أو كلمة المرور غير صحيحة",
+  "That isn't one of the choices this server allows": "هذا ليس من الخيارات التي يسمح بها هذا الخادم",
+  "platform (ios|android) and push_token are required": "المنصة (ios|android) ورمز الإشعارات push_token مطلوبان",
+  "Attach your location file(s) as 'file'": "أرفق ملف (ملفات) موقعك باسم 'file'",
+  "Too many files at once (limit 2000). Zip them, or upload them in a few goes.": "ملفات كثيرة دفعة واحدة (الحد 2000). اضغطها في ملف zip أو ارفعها على دفعات.",
+  "That file contains too few location points to compare.": "يحتوي هذا الملف على نقاط موقع قليلة جدًا لا تكفي للمقارنة.",
+  "Upload not found": "لم يُعثر على الملف المرفوع",
+  "Each zone needs lat, lon and radius_m": "تحتاج كل منطقة إلى lat وlon وradius_m",
+  "That upload has expired. Please upload your timeline again.": "انتهت صلاحية هذا الرفع. يرجى رفع خطك الزمني مجددًا.",
+  "date must be in YYYY-MM-DD format": "يجب أن يكون التاريخ بصيغة YYYY-MM-DD",
+  "lat and lon query parameters are required": "المعاملان lat وlon مطلوبان",
+  "Invalid coordinates": "إحداثيات غير صالحة",
+  "No user with that username": "لا يوجد مستخدم بهذا الاسم",
+  "That's you": "هذا أنت",
+  "You already have a request or connection with this user": "لديك بالفعل طلب أو اتصال مع هذا المستخدم",
+  "This request was declined recently. Try again later.": "رُفض هذا الطلب مؤخرًا. حاول لاحقًا.",
+  "Request not found": "لم يُعثر على الطلب",
+  "action must be accept, decline or block": "يجب أن يكون الإجراء قبولًا أو رفضًا أو حظرًا",
+  "Connection not found": "لم يُعثر على الاتصال",
+  "Check not found": "لم يُعثر على الفحص",
+  "Date range is empty": "نطاق التاريخ فارغ",
+  "You can only check with accepted connections": "يمكنك الفحص مع الاتصالات المقبولة فقط",
+  "There is already an open check with this person": "هناك فحص مفتوح بالفعل مع هذا الشخص",
+  "This check is no longer waiting for consent": "لم يعد هذا الفحص بانتظار الموافقة",
+  "You already consented": "لقد وافقت بالفعل",
+  "That's your own code. The other person needs to scan it.": "هذا رمزك أنت. على الشخص الآخر أن يمسحه.",
+  "You can't connect with this person.": "لا يمكنك الاتصال بهذا الشخص.",
+  "This code has expired or was already used. Ask for a new one.": "انتهت صلاحية هذا الرمز أو استُخدم بالفعل. اطلب رمزًا جديدًا.",
+  "lat and lon are required": "lat وlon مطلوبان",
+  "Not found": "غير موجود",
+  "A check with them is already running.": "هناك فحص معه قيد التنفيذ بالفعل.",
+  "uploads no longer available": "لم تعد المرفوعات متاحة",
+  "File too large (limit {mb} MB). Trim the export to a shorter date range, or upload only the files with your routes, and try again.": "الملف كبير جدًا (الحد {mb} ميغابايت). اختصر التصدير إلى فترة زمنية أقصر، أو ارفع الملفات التي تحتوي على مساراتك فقط، ثم أعد المحاولة.",
+  "Couldn't find any time-stamped locations in this file. Use a Google Maps Timeline export, or GPX, TCX, FIT, KML, GeoJSON or CSV files with times (from Strava, Apple Health, Garmin, Samsung Health, Swarm and similar apps).": "لم يُعثر على أي مواقع مقرونة بأوقات في هذا الملف. استخدم تصدير الخط الزمني من خرائط Google، أو ملفات GPX أو TCX أو FIT أو KML أو GeoJSON أو CSV التي تحتوي على أوقات (من Strava وApple Health وGarmin وSamsung Health وSwarm وتطبيقات مشابهة).",
+  "Couldn't find any time-stamped locations in these files. Use a Google Maps Timeline export, or GPX, TCX, FIT, KML, GeoJSON or CSV files with times (from Strava, Apple Health, Garmin, Samsung Health, Swarm and similar apps).": "لم يُعثر على أي مواقع مقرونة بأوقات في هذه الملفات. استخدم تصدير الخط الزمني من خرائط Google، أو ملفات GPX أو TCX أو FIT أو KML أو GeoJSON أو CSV التي تحتوي على أوقات (من Strava وApple Health وGarmin وSamsung Health وSwarm وتطبيقات مشابهة).",
+  "Connected. No check ran because {who} haven't got a timeline uploaded. Upload one, then use Check paths.": "تم الاتصال. لم يُجرَ فحص لأن {who} لم يرفع خطًا زمنيًا بعد. ارفع خطًا زمنيًا ثم استخدم «فحص المسارات».",
+  "Too little data to judge": "بيانات قليلة جدًا للحكم",
+  "{n} physically impossible jump(s)": "{n} قفزة مستحيلة فيزيائيًا",
+  "Location fixes arrive at near-perfectly regular intervals": "تصل نقاط الموقع بفواصل زمنية منتظمة تمامًا تقريبًا",
+  "Many duplicate timestamps": "كثرة الطوابع الزمنية المكررة",
+  "Coordinates look artificially rounded": "تبدو الإحداثيات مقرّبة بشكل مصطنع",
+  "Identical accuracy value on nearly every fix": "قيمة دقة متطابقة في كل نقطة تقريبًا",
+  "{n} unnaturally straight long stretch(es)": "{n} مقطع طويل مستقيم بشكل غير طبيعي",
+  "{n} stretch(es) at an unnaturally constant speed": "{n} مقطع بسرعة ثابتة بشكل غير طبيعي",
+  "No anomalies detected (not a guarantee of authenticity)": "لم تُكتشف أي شذوذات (وهذا لا يضمن الأصالة)",
+/*AR:end*/
+};
+const t = (s, p) => { const r = (RTL && AR_STR[s]) || s; return p ? r.replace(/\{(\w+)\}/g, (m, k) => (p[k] != null ? p[k] : m)) : r; };
+// Plural forms: English has one/other; Arabic has zero/one/two/few/many/other.
+const PL = {
+  en: {
+    crossings: { one: "{n} crossing", other: "{n} crossings" }, days: { one: "{n} day", other: "{n} days" },
+    points: { one: "{n} point", other: "{n} points" }, files: { one: "{n} file", other: "{n} files" },
+    places: { one: "{n} place", other: "{n} places" }, timelines: { one: "{n} timeline", other: "{n} timelines" },
+    times: { one: "time your paths crossed with {who}", other: "times your paths crossed with {who}" },
+  },
+  ar: {
+    crossings: { zero: "{n} تقاطع", one: "تقاطع واحد", two: "تقاطعان", few: "{n} تقاطعات", many: "{n} تقاطعًا", other: "{n} تقاطع" },
+    days: { zero: "{n} يوم", one: "يوم واحد", two: "يومان", few: "{n} أيام", many: "{n} يومًا", other: "{n} يوم" },
+    points: { zero: "{n} نقطة", one: "نقطة واحدة", two: "نقطتان", few: "{n} نقاط", many: "{n} نقطة", other: "{n} نقطة" },
+    files: { zero: "{n} ملف", one: "ملف واحد", two: "ملفان", few: "{n} ملفات", many: "{n} ملفًا", other: "{n} ملف" },
+    places: { zero: "{n} مكان", one: "مكان واحد", two: "مكانان", few: "{n} أماكن", many: "{n} مكانًا", other: "{n} مكان" },
+    timelines: { zero: "{n} خط زمني", one: "خط زمني واحد", two: "خطان زمنيان", few: "{n} خطوط زمنية", many: "{n} خطًا زمنيًا", other: "{n} خط زمني" },
+    times: { few: "مرات تقاطعت فيها مساراتكما مع {who}", other: "مرة تقاطعت فيها مساراتكما مع {who}" },
+  },
+};
+const pluralRules = new Intl.PluralRules(LANG);
+const pl = (key, n, p) => {
+  const f = PL[LANG][key], form = f[pluralRules.select(n)] || f.other;
+  return form.replace(/\{(\w+)\}/g, (m, k) => (k === "n" ? n.toLocaleString(UI_LOCALE) : p && p[k] != null ? p[k] : m));
+};
+// Messages from the server are English; translate the ones we know, pass the rest through.
+function serverMsg(s) {
+  if (!RTL) return s;
+  const n = /^(\d+) (.+)$/.exec(s);   // "3 physically impossible jump(s)" and the like
+  const key = n && "{n} " + n[2];
+  if (key && AR_STR[key]) return t(key, { n: n[1] });
+  const m = /^File too large \(limit (\d+) MB\)\./.exec(s);
+  if (m) return t("File too large (limit {mb} MB). Trim the export to a shorter date range, or upload only the files with your routes, and try again.", { mb: m[1] });
+  return t(s);
+}
+// A pairing note can name users, so it returns HTML-safe text.
+function serverNote(n) {
+  if (!RTL) return esc(n);
+  const m = /^Connected\. No check ran because (.+?) (?:hasn't|haven't) got a timeline uploaded\. Upload one, then use Check paths\.$/.exec(n);
+  if (m) return t("Connected. No check ran because {who} haven't got a timeline uploaded. Upload one, then use Check paths.", { who: m[1].split(" and ").map(x => H(x.replace(/^@/, ""))).join(" و") });
+  return esc(t(n));
+}
 const $ = (s, el = document) => el.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const state = { token: localStorage.getItem("cp_token"), user: null, cfg: {}, tab: "uploads", uploads: [], conns: [], checks: [], authMode: "login", busy: false };
@@ -244,8 +700,8 @@ async function api(path, { method = "GET", body, form } = {}) {
   if (form) payload = form; else if (body) { headers["Content-Type"] = "application/json"; payload = JSON.stringify(body); }
   const r = await fetch(path, { method, headers, body: payload });
   let j = null; try { j = await r.json(); } catch (e) { /* no body */ }
-  if (r.status === 401 && state.token) { logout(true); throw new Error("Session expired, please sign in again"); }
-  if (!r.ok) throw new Error((j && j.error) || "Something went wrong (" + r.status + ")");
+  if (r.status === 401 && state.token) { logout(true); throw new Error(t("Session expired, please sign in again")); }
+  if (!r.ok) throw new Error(j && j.error ? serverMsg(j.error) : t("Something went wrong ({status})", { status: r.status }));
   return j;
 }
 function toast(msg, isErr) {
@@ -255,7 +711,7 @@ function toast(msg, isErr) {
 const run = async (fn) => { try { return await fn(); } catch (e) { toast(e.message, true); } };
 
 /* ---------- formatting ---------- */
-const KIND = { same_place: ["", "Same place"], passing: ["", "Crossed paths"], shared_route: ["", "Travelled together"] };
+const KIND = { same_place: ["", t("Same place")], passing: ["", t("Crossed paths")], shared_route: ["", t("Travelled together")] };
 // Minimal line icons for the three kinds (24-unit grid, drawn with currentColor).
 const KIND_PATHS = {
   same_place: '<path d="M12 21s-6.5-5.7-6.5-11.2a6.5 6.5 0 0 1 13 0C18.5 15.3 12 21 12 21z"/><circle cx="12" cy="9.8" r="2.3"/>',
@@ -263,24 +719,28 @@ const KIND_PATHS = {
   shared_route: '<path d="M8 20V5M4.5 8.5 8 5l3.5 3.5M16 20V5M12.5 8.5 16 5l3.5 3.5"/>'
 };
 const kindIcon = (kind, size = 18) => `<svg class="ki" width="${size}" height="${size}" viewBox="0 0 24 24" aria-hidden="true">${KIND_PATHS[kind] || KIND_PATHS.same_place}</svg>`;
-// The interface is English, so dates are too (an Arabic-language browser would otherwise mix
-// Hijri dates and Arabic digits into English sentences). Place names still follow the language.
-const UI_LOCALE = /^en\b/i.test(navigator.language || "") ? navigator.language : "en-GB";
+// English UI: English dates, even in an Arabic-language browser (no Hijri dates or Arabic digits
+// mixed into English sentences). Arabic UI: Arabic month and day names but Gregorian dates and
+// Western digits, so Hijri dates never appear.
+const UI_LOCALE = RTL ? "ar-u-ca-gregory-nu-latn" : /^en\b/i.test(navigator.language || "") ? navigator.language : "en-GB";
+const NEXT = RTL ? "‹" : "›", PREV = RTL ? "›" : "‹", TO = RTL ? "←" : "→";
 const fmtDay = d => d.toLocaleDateString(UI_LOCALE, { weekday: "short", day: "numeric", month: "short", year: "numeric" });
 const fmtTime = d => d.toLocaleTimeString(UI_LOCALE, { hour: "2-digit", minute: "2-digit" });
 const fmtRange = (s, e) => { const a = new Date(s), b = new Date(e); return fmtDay(a) + " · " + fmtTime(a) + "–" + fmtTime(b); };
 const dateStr = ts => ts ? new Date(ts * 1000).toLocaleDateString(UI_LOCALE, { day: "numeric", month: "short", year: "numeric" }) : "";
-const hoursLeft = ts => { if (ts == null) return "kept until you delete it"; const h = (ts * 1000 - Date.now()) / 36e5; return h <= 0 ? "expired" : h < 1 ? "<1 h left" : h < 48 ? Math.round(h) + " h left" : Math.round(h / 24) + " days left"; };
-const keepLabel = h => !h ? "Until I delete them" : h === 24 ? "24 hours" : h === 168 ? "7 days" : h === 720 ? "30 days" : h % 24 ? h + " hours" : h / 24 + " days";
-const keepPhrase = () => { const h = state.user ? state.user.upload_keep_hours : state.cfg.upload_ttl_hours; return !h ? "kept (encrypted) until you delete it" : `deleted ${keepLabel(h)} after you upload it`; };
-const offsetText = m => Math.abs(m) <= 2 ? "at about the same time" : "about " + Math.abs(m) + " min apart";
-const trustLabel = l => ({ high: "Looks authentic", medium: "Some anomalies", low: "Looks unusual", insufficient: "Too little data" }[l] || l);
+const hoursLeft = ts => { if (ts == null) return t("kept until you delete it"); const h = (ts * 1000 - Date.now()) / 36e5; return h <= 0 ? t("expired") : h < 1 ? t("<1 h left") : h < 48 ? t("{n} h left", { n: Math.round(h) }) : t("{n} days left", { n: Math.round(h / 24) }); };
+const keepLabel = h => !h ? t("Until I delete them") : h === 24 ? t("24 hours") : h === 168 ? t("7 days") : h === 720 ? t("30 days") : h % 24 ? t("{n} hours", { n: h }) : t("{n} days", { n: h / 24 });
+const keepPhrase = () => { const h = state.user ? state.user.upload_keep_hours : state.cfg.upload_ttl_hours; return !h ? t("kept (encrypted) until you delete it") : t("deleted {when} after you upload it", { when: keepLabel(h) }); };
+const offsetText = m => Math.abs(m) <= 2 ? t("at about the same time") : t("about {n} min apart", { n: Math.abs(m) });
+const trustLabel = l => ({ high: t("Looks authentic"), medium: t("Some anomalies"), low: t("Looks unusual"), insufficient: t("Too little data") }[l] || l);
+const STATUS = { awaiting_consent: t("awaiting consent"), running: t("running"), done: t("done"), failed: t("failed"), declined: t("declined"), expired: t("expired"), pending: t("pending") };
+const H = h => `<bdi dir="ltr">@${esc(h)}</bdi>`;   // a username keeps its own direction inside Arabic text
 const pill = (cls, txt) => `<span class="pill ${esc(cls)}">${esc(txt)}</span>`;
 
 /* ---------- auth ---------- */
 function logout(silent) {
   localStorage.removeItem("cp_token"); state.token = null; state.user = null; clearInterval(pollTimer);
-  if (!silent) toast("Signed out");
+  if (!silent) toast(t("Signed out"));
   boot();
 }
 async function boot() {
@@ -299,14 +759,15 @@ function renderAuth() {
   $("#header").style.display = "none"; $("#tabs").style.display = "none";
   const reg = state.authMode === "register", c = state.cfg;
   $("#view").innerHTML = `<div class="auth">
-    <div class="hero" style="padding-top:${Math.max(6, 22)}px"><h1 style="font-size:21px">Did our paths ever cross?</h1></div>
-    <div class="seg"><button data-act="mode" data-m="login" class="${reg ? "" : "on"}">Sign in</button><button data-act="mode" data-m="register" class="${reg ? "on" : ""}">Create account</button></div>
-    <label>Username</label><input type="text" id="a_user" autocomplete="username" autocapitalize="none" placeholder="e.g. sara.k">
-    <label>Password ${reg ? "(10+ characters)" : ""}</label><input type="password" id="a_pass" autocomplete="${reg ? "new-password" : "current-password"}">
-    ${reg && c.invite_required ? `<label>Invite code</label><input type="text" id="a_inv" autocapitalize="none">` : ""}
-    <div style="margin-top:18px"><button class="btn" style="width:100%" data-act="auth">${reg ? "Create account" : "Sign in"}</button></div>
-    ${reg && c.registration_open === false ? `<p class="muted small">Registration is closed on this server.</p>` : ""}
-    <p class="muted small" style="margin-top:18px">Compare location histories (Google Maps Timeline, Strava, Apple Health, Garmin, Swarm, photos and more) with a friend or a stranger — see only the places and times you both were there. Your raw timeline is encrypted and, unless you choose otherwise, deleted ${esc(keepLabel(c.upload_ttl_hours || 24))} after you upload it.</p></div>`;
+    <div class="hero" style="padding-top:${Math.max(6, 22)}px"><h1 style="font-size:21px">${t("Did our paths ever cross?")}</h1></div>
+    <div class="seg"><button data-act="mode" data-m="login" class="${reg ? "" : "on"}">${t("Sign in")}</button><button data-act="mode" data-m="register" class="${reg ? "on" : ""}">${t("Create account")}</button></div>
+    <label>${t("Username")}</label><input type="text" id="a_user" dir="ltr" autocomplete="username" autocapitalize="none" placeholder="${t("e.g. sara.k")}">
+    <label>${t("Password")} ${reg ? t("(10+ characters)") : ""}</label><input type="password" id="a_pass" dir="ltr" autocomplete="${reg ? "new-password" : "current-password"}">
+    ${reg && c.invite_required ? `<label>${t("Invite code")}</label><input type="text" id="a_inv" dir="ltr" autocapitalize="none">` : ""}
+    <div style="margin-top:18px"><button class="btn" style="width:100%" data-act="auth">${reg ? t("Create account") : t("Sign in")}</button></div>
+    ${reg && c.registration_open === false ? `<p class="muted small">${t("Registration is closed on this server.")}</p>` : ""}
+    <p class="muted small" style="margin-top:18px">${t("Compare location histories (Google Maps Timeline, Strava, Apple Health, Garmin, Swarm, photos and more) with a friend or a stranger — see only the places and times you both were there. Your raw timeline is encrypted and, unless you choose otherwise, deleted {when} after you upload it.", { when: keepLabel(c.upload_ttl_hours || 24) })}</p>
+    <p class="small lang-link"><a href="#" data-act="lang" data-l="${RTL ? "en" : "ar"}" lang="${RTL ? "en" : "ar"}">${RTL ? "English" : "العربية"}</a></p></div>`;
 }
 
 /* ---------- data ---------- */
@@ -331,7 +792,7 @@ const ICONS = {
   checks: '<circle cx="12" cy="12" r="8"/><path d="M8.5 12.5l2.4 2.4 4.6-5"/>'
 };
 function renderTabs() {
-  const n = needsMe(), tabs = [["uploads", "Uploads"], ["mytimeline", "My Timeline"], ["people", "People"], ["checks", "Checks"]];
+  const n = needsMe(), tabs = [["uploads", t("Uploads")], ["mytimeline", t("My Timeline")], ["people", t("People")], ["checks", t("Checks")]];
   $("#tabs").innerHTML = tabs.map(([k, l]) => `<button data-act="tab" data-t="${k}" class="${state.tab === k ? "on" : ""}"><svg viewBox="0 0 24 24">${ICONS[k]}</svg>${l}${k === "checks" && n ? `<span class="dot">${n}</span>` : ""}</button>`).join("");
 }
 function render() { ({ uploads: renderTimeline, mytimeline: renderMyTimeline, people: renderPeople, checks: renderChecks })[state.tab](); }
@@ -339,62 +800,62 @@ function render() { ({ uploads: renderTimeline, mytimeline: renderMyTimeline, pe
 /* ---------- timeline tab ---------- */
 // Where people can get a location history from, and how to export it. Shown under "Import a file".
 const SOURCES = [
-  { id: "google", name: "Google Maps", what: "Timeline export (.json)", steps: [
-    "Android: open <b>Settings → Location → Location services → Timeline</b> (or in Google Maps: profile picture → <b>Your Timeline</b> → ⚙️) and choose <b>Export Timeline data</b>.",
-    "iPhone: Google Maps → profile picture → <b>Settings → Personal content → Export Timeline data</b>.",
-    "Menu names vary a little between app versions. Choose the saved <i>.json</i> file here. Older Google Takeout downloads work too: <i>Records.json</i> or the <i>Semantic Location History</i> files (or the whole Takeout .zip)."] },
-  { id: "strava", name: "Strava", what: "GPX / FIT / TCX", steps: [
-    "One activity: open it on strava.com → <b>⋯</b> → <b>Export GPX</b>.",
-    "Everything: on strava.com go to <b>Settings → My Account → Download or Delete Your Account → Get Started → Request Your Archive</b>. Don't press anything else on that page. Strava emails you a link.",
-    "Upload the .zip as it is. If it's over the size limit (photos make it big), unzip it and choose the files inside the <i>activities</i> folder."] },
-  { id: "apple", name: "Apple Health", what: "Workout routes (GPX)", steps: [
-    "On your iPhone open <b>Health</b> → your picture (top right) → <b>Export All Health Data</b> → save <i>export.zip</i> to Files.",
-    "Upload <i>export.zip</i> here. Only the workout routes are read; your other health data is skipped.",
-    "Too big? Tap the zip in Files to unzip it, open <i>apple_health_export/workout-routes</i> and choose all the .gpx files there.",
-    "Only workouts recorded with GPS (outdoor walks, runs, rides) have routes."] },
-  { id: "samsung", name: "Samsung Health", what: "Exercise routes", steps: [
-    "Open <b>Samsung Health</b> → ☰ or your profile → <b>Settings → Download personal data</b>.",
-    "The files go to <b>My Files → Internal storage → Download → Samsung Health</b>. Long-press that folder → <b>Compress</b> to make a .zip.",
-    "Upload the .zip. The routes are in the <i>location_data.json</i> files; everything else is skipped."] },
-  { id: "garmin", name: "Garmin", what: "FIT / GPX", steps: [
-    "One activity: Garmin Connect website → the activity → ⚙️ → <b>Export Original</b> (.fit, inside a .zip) or <b>Export to GPX</b>.",
-    "Everything: Garmin account → <b>Data Management → Export Your Data</b>. Garmin emails you a .zip; upload it as it is."] },
-  { id: "fitbit", name: "Fitbit · Google Fit", what: "TCX", steps: [
-    "Fitbit: open a GPS exercise → <b>⋯</b> → <b>Export as TCX file</b> (one exercise at a time).",
-    "Google Fit: Google Takeout → choose only <b>Fit</b> → download. Upload the .zip; the activity .tcx files are read.",
-    "Health Connect on Android has no route export. Export from the app that recorded the workout instead (Strava, Samsung Health, Garmin…)."] },
-  { id: "swarm", name: "Swarm", what: "Check-ins", steps: [
-    "In the <b>Swarm</b> app: <b>Settings → Privacy Settings → Initiate Data Download Request</b>. Foursquare emails you a link to a .zip.",
-    "Upload the .zip (or the <i>checkins*.json</i> files from it).",
-    "Each check-in counts as 30 minutes at that place, so matches are rougher than with GPS tracks."] },
-  { id: "other", name: "Other apps", what: "GPX · KML · GeoJSON · CSV", steps: [
-    "Any app that exports GPX, KML/KMZ, GeoJSON or FIT works: OwnTracks, GPSLogger, Dawarich, Arc, Komoot, Wikiloc, Polarsteps, car and dashcam apps…",
-    "CSV files need a <b>latitude</b>, a <b>longitude</b> and a <b>time</b> column (any common column name works).",
-    "Points without a time can't be compared, so planned routes without times are skipped."] },
+  { id: "google", name: t("Google Maps"), what: t("Timeline export (.json)"), steps: [
+    t("Android: open <b>Settings → Location → Location services → Timeline</b> (or in Google Maps: profile picture → <b>Your Timeline</b> → ⚙️) and choose <b>Export Timeline data</b>."),
+    t("iPhone: Google Maps → profile picture → <b>Settings → Personal content → Export Timeline data</b>."),
+    t("Menu names vary a little between app versions. Choose the saved <i>.json</i> file here. Older Google Takeout downloads work too: <i>Records.json</i> or the <i>Semantic Location History</i> files (or the whole Takeout .zip).")] },
+  { id: "strava", name: t("Strava"), what: t("GPX / FIT / TCX"), steps: [
+    t("One activity: open it on strava.com → <b>⋯</b> → <b>Export GPX</b>."),
+    t("Everything: on strava.com go to <b>Settings → My Account → Download or Delete Your Account → Get Started → Request Your Archive</b>. Don't press anything else on that page. Strava emails you a link."),
+    t("Upload the .zip as it is. If it's over the size limit (photos make it big), unzip it and choose the files inside the <i>activities</i> folder.")] },
+  { id: "apple", name: t("Apple Health"), what: t("Workout routes (GPX)"), steps: [
+    t("On your iPhone open <b>Health</b> → your picture (top right) → <b>Export All Health Data</b> → save <i>export.zip</i> to Files."),
+    t("Upload <i>export.zip</i> here. Only the workout routes are read; your other health data is skipped."),
+    t("Too big? Tap the zip in Files to unzip it, open <i>apple_health_export/workout-routes</i> and choose all the .gpx files there."),
+    t("Only workouts recorded with GPS (outdoor walks, runs, rides) have routes.")] },
+  { id: "samsung", name: t("Samsung Health"), what: t("Exercise routes"), steps: [
+    t("Open <b>Samsung Health</b> → ☰ or your profile → <b>Settings → Download personal data</b>."),
+    t("The files go to <b>My Files → Internal storage → Download → Samsung Health</b>. Long-press that folder → <b>Compress</b> to make a .zip."),
+    t("Upload the .zip. The routes are in the <i>location_data.json</i> files; everything else is skipped.")] },
+  { id: "garmin", name: t("Garmin"), what: t("FIT / GPX"), steps: [
+    t("One activity: Garmin Connect website → the activity → ⚙️ → <b>Export Original</b> (.fit, inside a .zip) or <b>Export to GPX</b>."),
+    t("Everything: Garmin account → <b>Data Management → Export Your Data</b>. Garmin emails you a .zip; upload it as it is.")] },
+  { id: "fitbit", name: t("Fitbit · Google Fit"), what: t("TCX"), steps: [
+    t("Fitbit: open a GPS exercise → <b>⋯</b> → <b>Export as TCX file</b> (one exercise at a time)."),
+    t("Google Fit: Google Takeout → choose only <b>Fit</b> → download. Upload the .zip; the activity .tcx files are read."),
+    t("Health Connect on Android has no route export. Export from the app that recorded the workout instead (Strava, Samsung Health, Garmin…).")] },
+  { id: "swarm", name: t("Swarm"), what: t("Check-ins"), steps: [
+    t("In the <b>Swarm</b> app: <b>Settings → Privacy Settings → Initiate Data Download Request</b>. Foursquare emails you a link to a .zip."),
+    t("Upload the .zip (or the <i>checkins*.json</i> files from it)."),
+    t("Each check-in counts as 30 minutes at that place, so matches are rougher than with GPS tracks.")] },
+  { id: "other", name: t("Other apps"), what: t("GPX · KML · GeoJSON · CSV"), steps: [
+    t("Any app that exports GPX, KML/KMZ, GeoJSON or FIT works: OwnTracks, GPSLogger, Dawarich, Arc, Komoot, Wikiloc, Polarsteps, car and dashcam apps…"),
+    t("CSV files need a <b>latitude</b>, a <b>longitude</b> and a <b>time</b> column (any common column name works)."),
+    t("Points without a time can't be compared, so planned routes without times are skipped.")] },
 ];
 const ACCEPT = ".json,.geojson,.gpx,.tcx,.fit,.kml,.kmz,.csv,.zip,.gz,application/json,application/zip,application/gpx+xml,text/csv";
 function renderTimeline() {
   const mode = state.addMode, src = SOURCES.find(s => s.id === (state.addSrc || "google"));
   $("#view").innerHTML = `
-  <div class="hero"><h1>Uploads</h1><p>Add your location history. It stays private and is ${keepPhrase()}. <a href="#" data-act="settings">Change</a></p></div>
+  <div class="hero"><h1>${t("Uploads")}</h1><p>${t("Add your location history. It stays private and is {phrase}.", { phrase: keepPhrase() })} <a href="#" data-act="settings">${t("Change")}</a></p></div>
   <div class="addopts">
-    <button class="card addopt${mode === "import" ? " on" : ""}" data-act="addmode" data-m="import"><span class="ico">📂</span><b>Import a timeline</b><span class="muted small">Google Maps, Strava, Apple Health, Samsung Health, Garmin, Swarm, GPX, CSV…</span></button>
-    <button class="card addopt${mode === "photos" ? " on" : ""}" data-act="addmode" data-m="photos"><span class="ico">📷</span><b>Scan my photos</b><span class="muted small">Build one from the place and time saved in your photos.</span></button>
+    <button class="card addopt${mode === "import" ? " on" : ""}" data-act="addmode" data-m="import"><span class="ico">📂</span><b>${t("Import a timeline")}</b><span class="muted small">${t("Google Maps, Strava, Apple Health, Samsung Health, Garmin, Swarm, GPX, CSV…")}</span></button>
+    <button class="card addopt${mode === "photos" ? " on" : ""}" data-act="addmode" data-m="photos"><span class="ico">📷</span><b>${t("Scan my photos")}</b><span class="muted small">${t("Build one from the place and time saved in your photos.")}</span></button>
   </div>
   ${mode === "import" ? `<div class="card">
-    <label style="margin-top:0">Where is your history from?</label>
+    <label style="margin-top:0">${t("Where is your history from?")}</label>
     <div class="fchips">${SOURCES.map(s => `<button class="fchip${s.id === src.id ? " on" : ""}" data-act="addsrc" data-s="${s.id}">${esc(s.name)}</button>`).join("")}</div>
     <div class="guide"><div class="muted small">${esc(src.name)} · ${esc(src.what)}</div><ol>${src.steps.map(x => `<li>${x}</li>`).join("")}</ol></div>
     <label class="drop" id="drop" style="display:block;margin:0"><input id="file" type="file" accept="${ACCEPT}" multiple hidden>
-      <div style="font-size:28px">📂</div><div><b>Choose file(s)</b></div><div class="small">One file, several at once, or a .zip · up to ${esc(state.cfg.max_upload_mb || 80)} MB in total</div></label>
+      <div style="font-size:28px">📂</div><div><b>${t("Choose file(s)")}</b></div><div class="small">${t("One file, several at once, or a .zip · up to {mb} MB in total", { mb: state.cfg.max_upload_mb || 80 })}</div></label>
   </div>` : ""}
   ${mode === "photos" ? `<div class="card">
-    <p class="muted small" style="margin:0 0 12px">Choose photos and CrossPaths reads the GPS position and time saved inside each one, right here in your browser. Only those points are uploaded, never the photos. Screenshots and photos sent through chat apps usually have no location and are skipped.</p>
+    <p class="muted small" style="margin:0 0 12px">${t("Choose photos and CrossPaths reads the GPS position and time saved inside each one, right here in your browser. Only those points are uploaded, never the photos. Screenshots and photos sent through chat apps usually have no location and are skipped.")}</p>
     <label class="drop" id="pdrop" style="display:block;margin:0"><input id="pfile" type="file" accept="image/jpeg,image/heic,image/heif,image/*" multiple hidden>
-      <div style="font-size:28px">📷</div><div><b>Choose photos</b></div><div class="small">Select as many as you like. At least 20 need a location.</div></label>
-    <p class="muted small" style="margin:10px 0 0">On an Android phone the CrossPaths app can scan your whole library in one go. On iPhone, some browsers remove the location from photos you pick; if none is found, try a computer.</p>
+      <div style="font-size:28px">📷</div><div><b>${t("Choose photos")}</b></div><div class="small">${t("Select as many as you like. At least 20 need a location.")}</div></label>
+    <p class="muted small" style="margin:10px 0 0">${t("On an Android phone the CrossPaths app can scan your whole library in one go. On iPhone, some browsers remove the location from photos you pick; if none is found, try a computer.")}</p>
   </div>` : ""}
-  <div id="ulist">${state.uploads.map(uploadCard).join("") || `<p class="muted" style="text-align:center;margin-top:24px">No timeline uploaded yet.</p>`}</div>`;
+  <div id="ulist">${state.uploads.map(uploadCard).join("") || `<p class="muted" style="text-align:center;margin-top:24px">${t("No timeline uploaded yet.")}</p>`}</div>`;
   const wire = (dropId, inputId, fn) => {
     const drop = $("#" + dropId), file = $("#" + inputId); if (!drop) return;
     file.onchange = () => file.files.length && fn([...file.files]);
@@ -406,24 +867,24 @@ function renderTimeline() {
   wire("pdrop", "pfile", scanPhotos);
 }
 function uploadCard(u) {
-  const t = u.trust, zs = u.zones || [];
-  return `<div class="card"><div class="row between"><div class="grow"><h3>${dateStr(u.from)} → ${dateStr(u.to)}</h3>
-    <div class="muted small">${u.points.toLocaleString()} points · ${esc(u.format)} · ${hoursLeft(u.expires_at)}</div></div>${pill(t.level, trustLabel(t.level))}</div>
-    ${t.level !== "high" && t.reasons.length ? `<ul class="muted small" style="margin:8px 0 0 18px;padding:0">${t.reasons.map(r => `<li>${esc(r)}</li>`).join("")}</ul>` : ""}
-    <details><summary>Home &amp; work areas hidden from results (${zs.length})</summary>
-      <p class="muted small">Any crossing inside these areas is never shown. Remove an area only if you want places there included.</p>
-      ${zs.map((z, i) => `<div class="zone"><span>Area ${i + 1} · ${z.lat.toFixed(3)}, ${z.lon.toFixed(3)} · ${Math.round(z.radius_m)} m</span><button class="btn ghost sm" data-act="rmzone" data-id="${u.id}" data-i="${i}">Remove</button></div>`).join("") || `<div class="muted small">None detected.</div>`}</details>
-    <div class="row" style="margin-top:12px"><button class="btn bad sm" data-act="rmupload" data-id="${u.id}">Delete now</button></div></div>`;
+  const tr = u.trust, zs = u.zones || [];
+  return `<div class="card"><div class="row between"><div class="grow"><h3>${dateStr(u.from)} ${TO} ${dateStr(u.to)}</h3>
+    <div class="muted small">${pl("points", u.points)} · ${esc(u.format)} · ${hoursLeft(u.expires_at)}</div></div>${pill(tr.level, trustLabel(tr.level))}</div>
+    ${tr.level !== "high" && tr.reasons.length ? `<ul class="muted small" style="margin:8px 0 0;padding:0;padding-inline-start:18px">${tr.reasons.map(r => `<li>${esc(serverMsg(r))}</li>`).join("")}</ul>` : ""}
+    <details><summary>${t("Home &amp; work areas hidden from results ({n})", { n: zs.length })}</summary>
+      <p class="muted small">${t("Any crossing inside these areas is never shown. Remove an area only if you want places there included.")}</p>
+      ${zs.map((z, i) => `<div class="zone"><span>${t("Area {n}", { n: i + 1 })} · <bdi dir="ltr">${z.lat.toFixed(3)}, ${z.lon.toFixed(3)}</bdi> · ${t("{n} m", { n: Math.round(z.radius_m) })}</span><button class="btn ghost sm" data-act="rmzone" data-id="${u.id}" data-i="${i}">${t("Remove")}</button></div>`).join("") || `<div class="muted small">${t("None detected.")}</div>`}</details>
+    <div class="row" style="margin-top:12px"><button class="btn bad sm" data-act="rmupload" data-id="${u.id}">${t("Delete now")}</button></div></div>`;
 }
-const skippedNote = u => u.import && u.import.skipped ? ` · ${u.import.skipped} file${u.import.skipped === 1 ? "" : "s"} had no locations` : "";
+const skippedNote = u => u.import && u.import.skipped ? t(" · {files} had no locations", { files: pl("files", u.import.skipped) }) : "";
 async function doUpload(files, dropId = "drop") {
   const max = (state.cfg.max_upload_mb || 80) * 1048576, size = files.reduce((s, f) => s + f.size, 0);
-  if (size > max) return toast(`That's ${(size / 1048576).toFixed(0)} MB; the limit is ${state.cfg.max_upload_mb} MB. Choose fewer files or a shorter period.`, true);
-  $("#" + dropId).innerHTML = `<span class="spin"></span> &nbsp;Reading and checking ${files.length === 1 ? "your timeline" : files.length + " files"}…`;
+  if (size > max) return toast(t("That's {size} MB; the limit is {max} MB. Choose fewer files or a shorter period.", { size: (size / 1048576).toFixed(0), max: state.cfg.max_upload_mb }), true);
+  $("#" + dropId).innerHTML = `<span class="spin"></span> &nbsp;${files.length === 1 ? t("Reading and checking your timeline…") : t("Reading and checking {files}…", { files: pl("files", files.length) })}`;
   const fd = new FormData(); files.forEach(f => fd.append("file", f, f.name));
   await run(async () => {
     const u = await api("/api/uploads", { method: "POST", form: fd });
-    toast("Timeline added · " + trustLabel(u.trust.level) + skippedNote(u)); state.addMode = null; await refreshAll();
+    toast(t("Timeline added") + " · " + trustLabel(u.trust.level) + skippedNote(u)); state.addMode = null; await refreshAll();
   });
   renderTimeline();
 }
@@ -478,11 +939,11 @@ function exifPoint(v, tiff, file) {
 async function scanPhotos(files) {
   const drop = $("#pdrop"), pts = [];
   for (let i = 0; i < files.length; i++) {
-    if (i % 25 === 0) drop.innerHTML = `<span class="spin"></span> &nbsp;Reading photo ${i + 1} of ${files.length} · ${pts.length} with a location`;
+    if (i % 25 === 0) drop.innerHTML = `<span class="spin"></span> &nbsp;${t("Reading photo {i} of {total} · {n} with a location", { i: i + 1, total: files.length, n: pts.length })}`;
     try { const p = await photoPoint(files[i]); if (p) pts.push(p); } catch (e) { /* unreadable photo: skip */ }
   }
   if (pts.length < 20) {
-    toast(pts.length ? `Only ${pts.length} of those photos have a location; at least 20 are needed. Choose more photos.` : "None of those photos have a location saved in them. Try photos straight from the camera, or the Android app.", true);
+    toast(pts.length ? t("Only {n} of those photos have a location; at least 20 are needed. Choose more photos.", { n: pts.length }) : t("None of those photos have a location saved in them. Try photos straight from the camera, or the Android app."), true);
     return renderTimeline();
   }
   pts.sort((a, b) => a.t - b.t);
@@ -496,18 +957,18 @@ function renderPeople() {
   const out = state.conns.filter(c => c.direction === "outgoing" && c.status === "pending");
   const ok = state.conns.filter(c => c.status === "accepted");
   $("#view").innerHTML = `
-  <div class="hero"><h1>People</h1><p>Connect with someone to compare timelines. Nothing is compared until you both agree.</p></div>
-  <div class="card"><h3>🤝 Meet in person</h3><p class="muted small">With someone right now? Show your code for them to scan in the CrossPaths app, or share the link. You're connected and your paths are checked in one go.</p>
-    <div class="row" style="gap:8px;margin-top:10px"><button class="btn grow" data-act="paircode">Show my code</button><button class="btn ghost" data-act="pairenter">Enter a code</button></div></div>
-  <p class="muted small" style="margin:14px 4px 0">Or send a request by username - they accept, then either of you starts a check.</p>
-  <div class="card"><div class="row"><input type="text" id="handle" placeholder="@username" autocapitalize="none" autocomplete="off"><button class="btn" data-act="sendreq">Send</button></div></div>
-  ${inc.length ? `<h3 style="margin:18px 4px 0">Requests for you</h3>` + inc.map(c => `<div class="card"><div class="row between"><div><b>@${esc(c.other)}</b><div class="muted small">wants to compare timelines</div></div>
-     <div class="row"><button class="btn sm" data-act="respond" data-id="${c.id}" data-a="accept">Accept</button><button class="btn ghost sm" data-act="respond" data-id="${c.id}" data-a="decline">Decline</button></div></div>
-     <div style="margin-top:8px"><a href="#" class="muted small" data-act="respond" data-id="${c.id}" data-a="block">Block this user</a></div></div>`).join("") : ""}
-  ${ok.length ? `<h3 style="margin:18px 4px 0">Connections</h3>` + ok.map(c => `<div class="card"><div class="row between"><b>@${esc(c.other)}</b><div class="row">
-      <button class="btn sm" data-act="newcheck" data-id="${c.id}" data-o="${esc(c.other)}">Check paths</button><button class="btn ghost sm" data-act="rmconn" data-id="${c.id}">Remove</button></div></div></div>`).join("") : ""}
-  ${out.length ? `<h3 style="margin:18px 4px 0">Waiting for a reply</h3>` + out.map(c => `<div class="card row between"><b>@${esc(c.other)}</b>${pill("pending", "pending")}</div>`).join("") : ""}
-  ${!state.conns.length ? `<p class="muted" style="text-align:center;margin-top:24px">No connections yet.</p>` : ""}`;
+  <div class="hero"><h1>${t("People")}</h1><p>${t("Connect with someone to compare timelines. Nothing is compared until you both agree.")}</p></div>
+  <div class="card"><h3>🤝 ${t("Meet in person")}</h3><p class="muted small">${t("With someone right now? Show your code for them to scan in the CrossPaths app, or share the link. You're connected and your paths are checked in one go.")}</p>
+    <div class="row" style="gap:8px;margin-top:10px"><button class="btn grow" data-act="paircode">${t("Show my code")}</button><button class="btn ghost" data-act="pairenter">${t("Enter a code")}</button></div></div>
+  <p class="muted small" style="margin:14px 4px 0">${t("Or send a request by username - they accept, then either of you starts a check.")}</p>
+  <div class="card"><div class="row"><input type="text" id="handle" dir="ltr" placeholder="@username" autocapitalize="none" autocomplete="off"><button class="btn" data-act="sendreq">${t("Send")}</button></div></div>
+  ${inc.length ? `<h3 style="margin:18px 4px 0">${t("Requests for you")}</h3>` + inc.map(c => `<div class="card"><div class="row between"><div><b>${H(c.other)}</b><div class="muted small">${t("wants to compare timelines")}</div></div>
+     <div class="row"><button class="btn sm" data-act="respond" data-id="${c.id}" data-a="accept">${t("Accept")}</button><button class="btn ghost sm" data-act="respond" data-id="${c.id}" data-a="decline">${t("Decline")}</button></div></div>
+     <div style="margin-top:8px"><a href="#" class="muted small" data-act="respond" data-id="${c.id}" data-a="block">${t("Block this user")}</a></div></div>`).join("") : ""}
+  ${ok.length ? `<h3 style="margin:18px 4px 0">${t("Connections")}</h3>` + ok.map(c => `<div class="card"><div class="row between"><b>${H(c.other)}</b><div class="row">
+      <button class="btn sm" data-act="newcheck" data-id="${c.id}" data-o="${esc(c.other)}">${t("Check paths")}</button><button class="btn ghost sm" data-act="rmconn" data-id="${c.id}">${t("Remove")}</button></div></div></div>`).join("") : ""}
+  ${out.length ? `<h3 style="margin:18px 4px 0">${t("Waiting for a reply")}</h3>` + out.map(c => `<div class="card row between"><b>${H(c.other)}</b>${pill("pending", STATUS.pending)}</div>`).join("") : ""}
+  ${!state.conns.length ? `<p class="muted" style="text-align:center;margin-top:24px">${t("No connections yet.")}</p>` : ""}`;
 }
 
 /* ---------- meet in person: show a code / enter a code (invite links land here too) ---------- */
@@ -515,18 +976,18 @@ let PAIR = { timer: 0 };
 const qrSvg = text => { if (typeof qrcode === "undefined") return ""; const q = qrcode(0, "M"); q.addData(text); q.make(); return q.createSvgTag({ cellSize: 6, margin: 2, scalable: true }); };
 const codeFrom = t => { const s = String(t || "").trim(), m = s.match(/pair\/([A-Za-z0-9]{6,16})/); if (m) return m[1].toUpperCase(); const b = s.replace(/[\s-]/g, ""); return /^[A-Za-z0-9]{6,16}$/.test(b) ? b.toUpperCase() : null; };
 const uploadSelect = (id = "p_up") => state.uploads.length
-  ? `<label>Your timeline for the check</label><select id="${id}">${uploadOptions()}</select>`
-  : `<p class="small" style="color:var(--warn)">You haven't uploaded a timeline, so you'll be connected but no check will run. Upload one first to check straight away.</p>`;
+  ? `<label>${t("Your timeline for the check")}</label><select id="${id}">${uploadOptions()}</select>`
+  : `<p class="small" style="color:var(--warn)">${t("You haven't uploaded a timeline, so you'll be connected but no check will run. Upload one first to check straight away.")}</p>`;
 function stopPairPoll() { clearInterval(PAIR.timer); PAIR.timer = 0; }
 function pairResult(r) {
   stopPairPoll();
   const sh = $("#sheet"); if (!sh) return;
-  const body = c => !c ? "" : c.status === "running" ? `<p class="muted"><span class="spin"></span> &nbsp;Checking where your paths crossed…</p>`
-    : c.status === "done" ? `<p style="font-size:15px">${c.events_count ? `${c.events_count} crossing${c.events_count === 1 ? "" : "s"} found` : "Your paths never crossed"}</p>${c.events_count ? `<button class="btn" style="width:100%" id="p_view">View crossings</button>` : ""}`
-    : `<p style="color:var(--bad)">${esc(c.error || "The check couldn't run.")}</p>`;
+  const body = c => !c ? "" : c.status === "running" ? `<p class="muted"><span class="spin"></span> &nbsp;${t("Checking where your paths crossed…")}</p>`
+    : c.status === "done" ? `<p style="font-size:15px">${c.events_count ? t("{c} found", { c: pl("crossings", c.events_count) }) : t("Your paths never crossed")}</p>${c.events_count ? `<button class="btn" style="width:100%" id="p_view">${t("View crossings")}</button>` : ""}`
+    : `<p style="color:var(--bad)">${esc(c.error ? serverMsg(c.error) : t("The check couldn't run."))}</p>`;
   const draw = c => {
-    sh.innerHTML = `<div class="grip"></div><h2>✅ Connected with @${esc(r.other)}</h2>${r.note ? `<p class="muted small">${esc(r.note)}</p>` : ""}<div id="p_check">${body(c)}</div>
-      <div class="row" style="margin-top:12px"><button class="btn ghost grow" onclick="closeSheet()">Done</button></div>`;
+    sh.innerHTML = `<div class="grip"></div><h2>✅ ${t("Connected with {who}", { who: H(r.other) })}</h2>${r.note ? `<p class="muted small">${serverNote(r.note)}</p>` : ""}<div id="p_check">${body(c)}</div>
+      <div class="row" style="margin-top:12px"><button class="btn ghost grow" onclick="closeSheet()">${t("Done")}</button></div>`;
     const v = $("#p_view"); if (v) v.onclick = () => { closeSheet(true); run(() => openResults(c.id)); };
   };
   draw(r.check);
@@ -540,7 +1001,7 @@ function pairResult(r) {
 }
 async function pairCodeSheet() {
   stopPairPoll();
-  openSheet(`<h2>Your code</h2><p class="muted small">Ask them to open CrossPaths → People → <b>Meet in person</b> → Scan. Doing this together counts as both of you agreeing to the check; they'll only see when and roughly where you crossed.</p>
+  openSheet(`<h2>${t("Your code")}</h2><p class="muted small">${t("Ask them to open CrossPaths → People → <b>Meet in person</b> → Scan. Doing this together counts as both of you agreeing to the check; they'll only see when and roughly where you crossed.")}</p>
     ${uploadSelect()}<div id="p_code" style="text-align:center;margin-top:14px"><span class="spin"></span></div>`);
   const make = async () => {
     stopPairPoll();
@@ -550,17 +1011,17 @@ async function pairCodeSheet() {
     try { code = await api("/api/pair/code", { method: "POST", body: { upload_id: $("#p_up") ? $("#p_up").value : null } }); }
     catch (e) { box.innerHTML = `<p style="color:var(--bad)">${esc(e.message)}</p>`; return; }
     const pretty = code.code.replace(/(.{5})(.{5})/, "$1 $2");
-    box.innerHTML = `<div class="qrbox">${qrSvg(code.url)}</div><div class="paircode">${pretty}</div><div class="muted small" id="p_left"></div>
-      <div class="row" style="gap:8px;margin-top:12px"><button class="btn ghost grow" id="p_copy">Copy invite link</button>${navigator.share ? `<button class="btn ghost grow" id="p_share">Share…</button>` : ""}</div>
-      <p class="muted small">Single use. The link works for someone on the same CrossPaths server as you.</p>`;
-    $("#p_copy").onclick = async () => { try { await navigator.clipboard.writeText(code.url); toast("Invite link copied"); } catch (e) { prompt("Copy this link:", code.url); } };
-    if ($("#p_share")) $("#p_share").onclick = () => navigator.share({ title: "CrossPaths", text: "Connect with me on CrossPaths and check if our paths crossed:", url: code.url }).catch(() => {});
+    box.innerHTML = `<div class="qrbox">${qrSvg(code.url)}</div><div class="paircode" dir="ltr">${pretty}</div><div class="muted small" id="p_left"></div>
+      <div class="row" style="gap:8px;margin-top:12px"><button class="btn ghost grow" id="p_copy">${t("Copy invite link")}</button>${navigator.share ? `<button class="btn ghost grow" id="p_share">${t("Share…")}</button>` : ""}</div>
+      <p class="muted small">${t("Single use. The link works for someone on the same CrossPaths server as you.")}</p>`;
+    $("#p_copy").onclick = async () => { try { await navigator.clipboard.writeText(code.url); toast(t("Invite link copied")); } catch (e) { prompt(t("Copy this link:"), code.url); } };
+    if ($("#p_share")) $("#p_share").onclick = () => navigator.share({ title: "CrossPaths", text: t("Connect with me on CrossPaths and check if our paths crossed:"), url: code.url }).catch(() => {});
     const tick = async () => {
       if (!$("#p_code")) return stopPairPoll();
       const left = Math.round(code.expires_at - Date.now() / 1000);
       const lbl = $("#p_left");
-      if (left <= 0) { stopPairPoll(); $("#p_code").innerHTML = `<p class="muted">This code expired.</p><button class="btn" id="p_new">New code</button>`; $("#p_new").onclick = make; return; }
-      if (lbl) lbl.textContent = `Valid for ${Math.floor(left / 60)}:${String(left % 60).padStart(2, "0")}`;
+      if (left <= 0) { stopPairPoll(); $("#p_code").innerHTML = `<p class="muted">${t("This code expired.")}</p><button class="btn" id="p_new">${t("New code")}</button>`; $("#p_new").onclick = make; return; }
+      if (lbl) lbl.textContent = t("Valid for {time}", { time: `${Math.floor(left / 60)}:${String(left % 60).padStart(2, "0")}` });
       try { const st = await api(`/api/pair/code/${code.code}`); if (st.used && st.other) pairResult(st); } catch (e) { /* retry */ }
     };
     tick(); PAIR.timer = setInterval(tick, 2000);
@@ -570,23 +1031,23 @@ async function pairCodeSheet() {
 }
 function pairEnterSheet(prefill, fromLink) {
   stopPairPoll();
-  openSheet(`<h2>Enter their code</h2><p class="muted small">Type the code shown on their phone, or paste their invite link.</p>
-    <div class="row" style="gap:8px"><input type="text" id="p_in" placeholder="ABCDE 12345" autocapitalize="characters" autocomplete="off" value="${esc(prefill || "")}"><button class="btn" id="p_go">Next</button></div>
-    ${fromLink && prefill ? `<p class="muted small" style="margin-top:8px">Using the CrossPaths phone app? <a href="crosspaths://pair/${esc(prefill)}">Open this invite in the app</a></p>` : ""}
+  openSheet(`<h2>${t("Enter their code")}</h2><p class="muted small">${t("Type the code shown on their phone, or paste their invite link.")}</p>
+    <div class="row" style="gap:8px"><input type="text" id="p_in" dir="ltr" placeholder="ABCDE 12345" autocapitalize="characters" autocomplete="off" value="${esc(prefill || "")}"><button class="btn" id="p_go">${t("Next")}</button></div>
+    ${fromLink && prefill ? `<p class="muted small" style="margin-top:8px">${t("Using the CrossPaths phone app?")} <a href="crosspaths://pair/${esc(prefill)}">${t("Open this invite in the app")}</a></p>` : ""}
     <div id="p_prev"></div>`);
   const look = async () => {
     const code = codeFrom($("#p_in").value), box = $("#p_prev");
-    if (!code) return toast("That isn't a CrossPaths code", true);
+    if (!code) return toast(t("That isn't a CrossPaths code"), true);
     box.innerHTML = `<p><span class="spin"></span></p>`;
     let p;
-    try { p = await api(`/api/pair/code/${code}`); if (p.mine) throw new Error("That's your own code. The other person needs to enter it."); }
+    try { p = await api(`/api/pair/code/${code}`); if (p.mine) throw new Error(t("That's your own code. The other person needs to enter it.")); }
     catch (e) { box.innerHTML = `<p style="color:var(--bad)">${esc(e.message)}</p>`; return; }
     const canCheck = p.they_have_timeline && state.uploads.length;
-    box.innerHTML = `<div class="card" style="margin-top:14px"><h3>Connect with @${esc(p.from)}?</h3>
-      <p class="muted small">${canCheck ? `You'll be connected and your paths checked right away (within ${p.radius_m} m and ${p.window_min} min). They'll only see when and roughly where you crossed.`
-        : p.they_have_timeline ? "You'll be connected. No check will run until you upload a timeline." : `You'll be connected. @${esc(p.from)} hasn't uploaded a timeline, so no check will run yet.`}</p>
+    box.innerHTML = `<div class="card" style="margin-top:14px"><h3>${t("Connect with {who}?", { who: H(p.from) })}</h3>
+      <p class="muted small">${canCheck ? t("You'll be connected and your paths checked right away (within {m} m and {min} min). They'll only see when and roughly where you crossed.", { m: p.radius_m, min: p.window_min })
+        : p.they_have_timeline ? t("You'll be connected. No check will run until you upload a timeline.") : t("You'll be connected. {who} hasn't uploaded a timeline, so no check will run yet.", { who: H(p.from) })}</p>
       ${state.uploads.length ? uploadSelect("p_up2") : ""}
-      <button class="btn" style="width:100%;margin-top:12px" id="p_ok">${canCheck ? "Connect &amp; check" : "Connect"}</button></div>`;
+      <button class="btn" style="width:100%;margin-top:12px" id="p_ok">${canCheck ? t("Connect &amp; check") : t("Connect")}</button></div>`;
     $("#p_ok").onclick = () => run(async () => {
       $("#p_ok").disabled = true;
       try { pairResult(await api("/api/pair/redeem", { method: "POST", body: { code, upload_id: $("#p_up2") ? $("#p_up2").value : null } })); }
@@ -600,22 +1061,22 @@ function pairEnterSheet(prefill, fromLink) {
 
 /* ---------- checks tab ---------- */
 function renderChecks() {
-  $("#view").innerHTML = `<div class="hero"><h1>Checks</h1><p>Each check runs only after both of you agree.</p></div>` +
-    (state.checks.map(checkCard).join("") || `<p class="muted" style="text-align:center;margin-top:24px">No checks yet. Start one from People.</p>`);
+  $("#view").innerHTML = `<div class="hero"><h1>${t("Checks")}</h1><p>${t("Each check runs only after both of you agree.")}</p></div>` +
+    (state.checks.map(checkCard).join("") || `<p class="muted" style="text-align:center;margin-top:24px">${t("No checks yet. Start one from People.")}</p>`);
 }
 function checkCard(c) {
   let action = "", sub = "";
   if (c.status === "awaiting_consent") {
-    if (!c.my_consent) { action = `<button class="btn sm" data-act="review" data-id="${c.id}">Review</button>`; sub = `@${esc(c.other)} wants to check paths with you`; }
-    else sub = `Waiting for @${esc(c.other)} to agree · expires in ${Math.max(1, Math.round((c.expires_at * 1000 - Date.now()) / 864e5))} d`;
-  } else if (c.status === "running") sub = `<span class="pulse-dot"></span> Finding where your paths crossed…`;
-  else if (c.status === "done") { action = `<button class="btn sm" data-act="results" data-id="${c.id}">View</button>`; sub = c.events_count ? `${c.events_count} crossing${c.events_count > 1 ? "s" : ""} found` : "No crossings found"; }
-  else if (c.status === "failed") sub = esc(c.error || "Something went wrong. Upload again and retry.");
-  else if (c.status === "declined") sub = "Declined";
-  else sub = "Expired";
-  return `<div class="card"><div class="row between"><div class="grow"><b>@${esc(c.other)}</b><div class="muted small">${sub}</div>
-    <div class="muted small">${c.radius_m} m · ${c.window_min} min</div></div><div class="row">${pill(c.status, c.status.replace("_", " "))}${action}
-    <button class="btn ghost sm" data-act="rmcheck" data-id="${c.id}" title="Delete">✕</button></div></div></div>`;
+    if (!c.my_consent) { action = `<button class="btn sm" data-act="review" data-id="${c.id}">${t("Review")}</button>`; sub = t("{who} wants to check paths with you", { who: H(c.other) }); }
+    else sub = t("Waiting for {who} to agree · expires in {n} d", { who: H(c.other), n: Math.max(1, Math.round((c.expires_at * 1000 - Date.now()) / 864e5)) });
+  } else if (c.status === "running") sub = `<span class="pulse-dot"></span> ${t("Finding where your paths crossed…")}`;
+  else if (c.status === "done") { action = `<button class="btn sm" data-act="results" data-id="${c.id}">${t("View")}</button>`; sub = c.events_count ? t("{c} found", { c: pl("crossings", c.events_count) }) : t("No crossings found"); }
+  else if (c.status === "failed") sub = esc(c.error ? serverMsg(c.error) : t("Something went wrong. Upload again and retry."));
+  else if (c.status === "declined") sub = t("Declined");
+  else sub = t("Expired");
+  return `<div class="card"><div class="row between"><div class="grow"><b>${H(c.other)}</b><div class="muted small">${sub}</div>
+    <div class="muted small">${t("{n} m", { n: c.radius_m })} · ${t("{n} min", { n: c.window_min })}</div></div><div class="row">${pill(c.status, STATUS[c.status] || c.status.replace("_", " "))}${action}
+    <button class="btn ghost sm" data-act="rmcheck" data-id="${c.id}" title="${t("Delete")}">✕</button></div></div></div>`;
 }
 
 /* ---------- sheets ---------- */
@@ -632,29 +1093,29 @@ function closeSheet(instant) {
   if (instant) { bg.remove(); sh.remove(); return; }
   bg.classList.remove("on"); sh.classList.remove("on"); setTimeout(() => { bg.remove(); sh.remove(); }, 320);
 }
-const uploadOptions = () => state.uploads.length ? state.uploads.map(u => `<option value="${u.id}">${dateStr(u.from)} → ${dateStr(u.to)} · ${u.points.toLocaleString()} pts</option>`).join("") : "";
-const dateRow = () => `<div class="row" style="gap:8px"><div class="grow"><label>From (optional)</label><input type="date" id="d_from"></div><div class="grow"><label>To (optional)</label><input type="date" id="d_to"></div></div>`;
+const uploadOptions = () => state.uploads.length ? state.uploads.map(u => `<option value="${u.id}">${dateStr(u.from)} ${TO} ${dateStr(u.to)} · ${t("{n} pts", { n: u.points.toLocaleString(UI_LOCALE) })}</option>`).join("") : "";
+const dateRow = () => `<div class="row" style="gap:8px"><div class="grow"><label>${t("From (optional)")}</label><input type="date" id="d_from"></div><div class="grow"><label>${t("To (optional)")}</label><input type="date" id="d_to"></div></div>`;
 function readDates() {
   const f = $("#d_from").value, t = $("#d_to").value;
   return { date_from: f ? new Date(f + "T00:00:00").getTime() / 1000 : null, date_to: t ? new Date(t + "T23:59:59").getTime() / 1000 : null };
 }
-const shareNote = `<p class="muted small">They will only see <b>when and roughly where</b> (about 100 m) your paths crossed — never your route or full timeline. Your home and work areas are excluded.</p>`;
+const shareNote = () => `<p class="muted small">${t("They will only see <b>when and roughly where</b> (about 100 m) your paths crossed — never your route or full timeline. Your home and work areas are excluded.")}</p>`;
 
 function newCheckSheet(connId, other) {
-  if (!state.uploads.length) { state.tab = "uploads"; renderTabs(); render(); return toast("Upload your timeline first", true); }
-  openSheet(`<h2>Check paths with @${esc(other)}</h2>${shareNote}
-    <label>Your timeline</label><select id="c_up">${uploadOptions()}</select>
-    <label>Closeness: <b id="rv">100</b> m</label><input type="range" id="c_r" min="50" max="300" step="10" value="100" oninput="$('#rv').textContent=this.value">
-    <label>Time tolerance: <b id="wv">15</b> min</label><input type="range" id="c_w" min="5" max="60" step="5" value="15" oninput="$('#wv').textContent=this.value">
+  if (!state.uploads.length) { state.tab = "uploads"; renderTabs(); render(); return toast(t("Upload your timeline first"), true); }
+  openSheet(`<h2>${t("Check paths with {who}", { who: H(other) })}</h2>${shareNote()}
+    <label>${t("Your timeline")}</label><select id="c_up">${uploadOptions()}</select>
+    <label>${t("Closeness: {v}", { v: `<b id="rv">100</b> ${t("m")}` })}</label><input type="range" id="c_r" min="50" max="300" step="10" value="100" oninput="$('#rv').textContent=this.value">
+    <label>${t("Time tolerance: {v}", { v: `<b id="wv">15</b> ${t("min")}` })}</label><input type="range" id="c_w" min="5" max="60" step="5" value="15" oninput="$('#wv').textContent=this.value">
     ${dateRow()}
-    <div class="row" style="margin-top:18px"><button class="btn grow" data-act="createcheck" data-id="${connId}">Send request &amp; agree</button></div>`);
+    <div class="row" style="margin-top:18px"><button class="btn grow" data-act="createcheck" data-id="${connId}">${t("Send request &amp; agree")}</button></div>`);
 }
 function reviewSheet(c) {
-  if (!state.uploads.length) { closeSheet(); state.tab = "uploads"; renderTabs(); render(); return toast("Upload your timeline first, then come back", true); }
-  openSheet(`<h2>@${esc(c.other)} wants to check paths</h2>${shareNote}
-    <p class="muted small">Closeness ${c.radius_m} m · time tolerance ${c.window_min} min. Nothing runs until you agree.</p>
-    <label>Your timeline</label><select id="c_up">${uploadOptions()}</select>${dateRow()}
-    <div class="row" style="margin-top:18px"><button class="btn grow" data-act="consent" data-id="${c.id}">Agree &amp; run</button><button class="btn ghost" data-act="declinecheck" data-id="${c.id}">Decline</button></div>`);
+  if (!state.uploads.length) { closeSheet(); state.tab = "uploads"; renderTabs(); render(); return toast(t("Upload your timeline first, then come back"), true); }
+  openSheet(`<h2>${t("{who} wants to check paths", { who: H(c.other) })}</h2>${shareNote()}
+    <p class="muted small">${t("Closeness {m} m · time tolerance {min} min. Nothing runs until you agree.", { m: c.radius_m, min: c.window_min })}</p>
+    <label>${t("Your timeline")}</label><select id="c_up">${uploadOptions()}</select>${dateRow()}
+    <div class="row" style="margin-top:18px"><button class="btn grow" data-act="consent" data-id="${c.id}">${t("Agree &amp; run")}</button><button class="btn ghost" data-act="declinecheck" data-id="${c.id}">${t("Decline")}</button></div>`);
 }
 
 /* ---------- results + map ---------- */
@@ -704,30 +1165,30 @@ function boundsOf(coords, minSpan) {
 const pointFC = (lon, lat) => ({ type: "Feature", properties: {}, geometry: { type: "Point", coordinates: [lon, lat] } });
 
 /* ---------- results: crossings overview (heatmap + filters) -> one crossing with your own path ---------- */
-const isArabic = () => /^ar\b/i.test(navigator.language || "");
+const isArabic = () => RTL;
 const placeOf = e => (isArabic() && e.place_ar) ? e.place_ar : (e.place || "");
 const markOf = e => (isArabic() && e.landmark_ar) ? e.landmark_ar : (e.landmark || "");
 const cityOf = e => { const p = placeOf(e); const i = p.lastIndexOf(isArabic() && e.place_ar ? "،" : ","); return (i >= 0 ? p.slice(i + 1) : p).trim(); };
-const whereText = e => [markOf(e), placeOf(e)].filter(Boolean).join(" · ") || (Number.isFinite(e.lat) && Number.isFinite(e.lon) ? `${e.lat.toFixed(4)}, ${e.lon.toFixed(4)}` : "Unnamed area");
+const whereText = e => [markOf(e), placeOf(e)].filter(Boolean).join(" · ") || (Number.isFinite(e.lat) && Number.isFinite(e.lon) ? `\u202A${e.lat.toFixed(4)}, ${e.lon.toFixed(4)}\u202C` : t("Unnamed area"));
 const DUR_STEPS = [0, 5, 15, 30, 60];
 const freshFilters = () => ({ kinds: new Set(Object.keys(KIND)), year: null, city: null, place: null, minDur: 0, q: "", inView: false, sort: "new" });
 
 async function openResults(id) {
   const [chk, tr] = await Promise.all([api("/api/checks/" + id), api(`/api/checks/${id}/my-track`)]);
   const ev = (chk.events || []).map((e, i) => ({ ...e, i, t0: Date.parse(e.start) / 1000, t1: Date.parse(e.end) / 1000 }));
-  const warn = chk.their_trust === "low" ? `<div class="banner">⚠️ @${esc(chk.other)}'s timeline looks unusual (possible fake or edited location data). Treat these results with caution.</div>` : "";
+  const warn = chk.their_trust === "low" ? `<div class="banner">⚠️ ${t("{who}'s timeline looks unusual (possible fake or edited location data). Treat these results with caution.", { who: H(chk.other) })}</div>` : "";
   const el = document.createElement("div"); el.id = "results";
-  el.innerHTML = `<div class="bar"><button class="btn ghost sm" data-act="closeresults">←</button><div class="grow"><h2>Paths crossed with @${esc(chk.other)}</h2><div class="muted small" id="rsub"></div></div>
-      <button class="btn ghost sm" id="legendbtn" title="What do the types mean?">?</button></div>
-    ${ev.length ? `<div class="rtabs"><button data-rt="stats" class="on">Summary</button><button data-rt="map">Map &amp; list</button></div>` : ""}
+  el.innerHTML = `<div class="bar"><button class="btn ghost sm" data-act="closeresults">${RTL ? "→" : "←"}</button><div class="grow"><h2>${t("Paths crossed with {who}", { who: H(chk.other) })}</h2><div class="muted small" id="rsub"></div></div>
+      <button class="btn ghost sm" id="legendbtn" title="${t("What do the types mean?")}">?</button></div>
+    ${ev.length ? `<div class="rtabs"><button data-rt="stats" class="on">${t("Summary")}</button><button data-rt="map">${t("Map &amp; list")}</button></div>` : ""}
     <div id="stats" class="stats">${warn}${statsHtml(computeStats(ev), chk)}<div id="vtip" class="vtip" hidden></div></div>
     <div id="mapzone" style="display:none">
-      <div id="mapwrap"><div id="map"></div><div id="mapmsg">Couldn't load the map background.<br>Check the server's internet access or MAP_STYLE_URL.</div>
-        <button class="mapbtn" id="fitbtn" title="Fit to the crossings">⤢</button><div class="zoomhint off" id="zoomhint">Click a hot spot to zoom in</div></div>
+      <div id="mapwrap"><div id="map"></div><div id="mapmsg">${t("Couldn't load the map background.")}<br>${t("Check the server's internet access or MAP_STYLE_URL.")}</div>
+        <button class="mapbtn" id="fitbtn" title="${t("Fit to the crossings")}">⤢</button><div class="zoomhint off" id="zoomhint">${t("Click a hot spot to zoom in")}</div></div>
       <div id="panel">
-        <div id="sheethead"><button class="sgrip" id="grip" aria-label="Resize the results"><span></span></button>
-          ${ev.length ? `<div class="fbar" id="listhead"><button class="btn ghost sm" id="filterbtn">⚙︎ Filter</button><span class="small grow" id="fcount"></span>
-            <select id="sortsel" class="sortsel"><option value="new">Newest</option><option value="old">Oldest</option><option value="long">Longest</option></select></div>` : ""}
+        <div id="sheethead"><button class="sgrip" id="grip" aria-label="${t("Resize the results")}"><span></span></button>
+          ${ev.length ? `<div class="fbar" id="listhead"><button class="btn ghost sm" id="filterbtn">⚙︎ ${t("Filter")}</button><span class="small grow" id="fcount"></span>
+            <select id="sortsel" class="sortsel"><option value="new">${t("Newest")}</option><option value="old">${t("Oldest")}</option><option value="long">${t("Longest")}</option></select></div>` : ""}
           <div class="dethead" id="dethead" hidden></div></div>
         <div id="detail" hidden></div>
         <div id="listwrap">${warn}<div id="list"></div></div>
@@ -753,20 +1214,20 @@ function closeResults() { if (M) { clearInterval(M.playTimer); M.map && M.map.re
 
 function legendSheet() {
   const c = M ? M.chk : { radius_m: 100, window_min: 15 };
-  openSheet(`<h2>What the types mean</h2>
-    <div class="legend"><div class="lg"><span style="color:${VIZ.kind.same_place}">${kindIcon("same_place", 24)}</span><div><b>${KIND.same_place[1]}</b><p class="muted small">You were both at the same spot (within ${c.radius_m} m), mostly staying put - a café, a mall, a mosque. You may have been there up to ${c.window_min} min apart: one arriving as the other left.</p></div></div>
-    <div class="lg"><span style="color:${VIZ.kind.passing}">${kindIcon("passing", 24)}</span><div><b>${KIND.passing[1]}</b><p class="muted small">You were both on the move and went through the same spot within a few minutes of each other - walking or driving past. Over in a few minutes.</p></div></div>
-    <div class="lg"><span style="color:${VIZ.kind.shared_route}">${kindIcon("shared_route", 24)}</span><div><b>${KIND.shared_route[1]}</b><p class="muted small">You moved the same way at the same time for a while - the same road, bus or train.</p></div></div></div>
-    <p class="muted small">Places are named from a database on your server (place names © <a href="https://www.geonames.org" target="_blank" rel="noopener">GeoNames</a>, CC BY 4.0; street names © OpenStreetMap contributors). Times are rounded to 15 minutes and places blurred to about ${c.radius_m >= 100 ? 100 : c.radius_m} m for privacy. Flights are never matched.</p>
-    <div class="row" style="margin-top:12px"><button class="btn grow" onclick="closeSheet()">Got it</button></div>`);
+  openSheet(`<h2>${t("What the types mean")}</h2>
+    <div class="legend"><div class="lg"><span style="color:${VIZ.kind.same_place}">${kindIcon("same_place", 24)}</span><div><b>${KIND.same_place[1]}</b><p class="muted small">${t("You were both at the same spot (within {m} m), mostly staying put - a café, a mall, a mosque. You may have been there up to {min} min apart: one arriving as the other left.", { m: c.radius_m, min: c.window_min })}</p></div></div>
+    <div class="lg"><span style="color:${VIZ.kind.passing}">${kindIcon("passing", 24)}</span><div><b>${KIND.passing[1]}</b><p class="muted small">${t("You were both on the move and went through the same spot within a few minutes of each other - walking or driving past. Over in a few minutes.")}</p></div></div>
+    <div class="lg"><span style="color:${VIZ.kind.shared_route}">${kindIcon("shared_route", 24)}</span><div><b>${KIND.shared_route[1]}</b><p class="muted small">${t("You moved the same way at the same time for a while - the same road, bus or train.")}</p></div></div></div>
+    <p class="muted small">${t("Places are named from a database on your server (place names © {geonames}, CC BY 4.0; street names © OpenStreetMap contributors). Times are rounded to 15 minutes and places blurred to about {m} m for privacy. Flights are never matched.", { geonames: '<a href="https://www.geonames.org" target="_blank" rel="noopener">GeoNames</a>', m: c.radius_m >= 100 ? 100 : c.radius_m })}</p>
+    <div class="row" style="margin-top:12px"><button class="btn grow" onclick="closeSheet()">${t("Got it")}</button></div>`);
 }
 
 /* ---- summary dashboard: the first thing a result shows ---- */
 const VIZ = { bar: "#3987e5", kind: { same_place: "#3987e5", passing: "#d95926", shared_route: "#199e70" } };   // validated on the dark panel
-const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-const WEEKDAYS_LONG = ["Sundays", "Mondays", "Tuesdays", "Wednesdays", "Thursdays", "Fridays", "Saturdays"];
-const fmtHours = min => min < 60 ? `${Math.round(min)} min` : min < 600 ? `${(min / 60).toFixed(1).replace(/\.0$/, "")} h` : `${Math.round(min / 60).toLocaleString(UI_LOCALE)} h`;
-const hourLabel = h => new Date(2000, 0, 1, h).toLocaleTimeString(UI_LOCALE, { hour: "numeric", minute: "2-digit" }).replace(/:00(?=\s?[AP]M)/i, "");
+const WEEKDAYS = [t("Sun"), t("Mon"), t("Tue"), t("Wed"), t("Thu"), t("Fri"), t("Sat")];
+const WEEKDAYS_LONG = [t("Sundays"), t("Mondays"), t("Tuesdays"), t("Wednesdays"), t("Thursdays"), t("Fridays"), t("Saturdays")];
+const fmtHours = min => min < 60 ? t("{n} min", { n: Math.round(min) }) : min < 600 ? t("{n} h", { n: (min / 60).toFixed(1).replace(/\.0$/, "") }) : t("{n} h", { n: Math.round(min / 60).toLocaleString(UI_LOCALE) });
+const hourLabel = h => new Date(2000, 0, 1, h).toLocaleTimeString(UI_LOCALE, { hour: "numeric", minute: "2-digit" }).replace(/:00(?=\s?(?:[AP]M|[صم]))/i, "");
 const monthLabel = (y, m, withYear) => new Date(y, m, 1).toLocaleDateString(UI_LOCALE, withYear ? { month: "short", year: "numeric" } : { month: "short" });
 
 function computeStats(all) {
@@ -816,6 +1277,7 @@ function barPath(x, y, w, h, r) {
   return `M${x},${y + h}V${y + r}Q${x},${y} ${x + r},${y}H${x + w - r}Q${x + w},${y} ${x + w},${y + r}V${y + h}Z`;
 }
 function columnsSvg(series, { height = 120, tickEvery = 1, tickLabel = s => s.short, tip = s => `${s.value}`, chartId }) {
+  if (RTL) series = series.slice().reverse();   // time runs right to left
   const W = 340, top = 18, bottom = 20, plotH = height - top - bottom, n = series.length;
   const slot = W / n, bw = Math.max(2, Math.min(24, slot - 2)), max = Math.max(1, ...series.map(s => s.value));
   const peak = series.reduce((b, s, i) => (s.value > series[b].value ? i : b), 0);
@@ -842,11 +1304,11 @@ function tableHtml(rows, head) {
 }
 function chartCard(id, title, sub, svg, rows, head) {
   return `<div class="vcard" id="${id}"><div class="row between"><div><h3 id="${id}-t">${esc(title)}</h3>${sub ? `<div class="muted small">${esc(sub)}</div>` : ""}</div>
-    <button class="linkbtn" data-tab="${id}">Table</button></div><div class="vchart">${svg}</div><div class="vtablewrap" hidden>${tableHtml(rows, head)}</div></div>`;
+    <button class="linkbtn" data-tab="${id}">${t("Table")}</button></div><div class="vchart">${svg}</div><div class="vtablewrap" hidden>${tableHtml(rows, head)}</div></div>`;
 }
 
 function statsHtml(st, chk) {
-  if (!st) return `<div class="vempty"><div class="hero-n">0</div><p class="muted">Your paths didn't cross within ${chk.radius_m} m and ${chk.window_min} min.</p></div>`;
+  if (!st) return `<div class="vempty"><div class="hero-n">0</div><p class="muted">${t("Your paths didn't cross within {m} m and {min} min.", { m: chk.radius_m, min: chk.window_min })}</p></div>`;
   const span = `${dateStr(st.first.t0)} – ${dateStr(st.last.t0)}`;
   const kindRow = Object.keys(KIND).filter(k => st.kinds[k]);
   const tile = (label, value, sub, act) => `<div class="kpi${act ? " tap" : ""}" ${act || ""}><div class="kpi-l">${esc(label)}</div><div class="kpi-v">${esc(value)}</div>${sub ? `<div class="kpi-s">${esc(sub)}</div>` : ""}</div>`;
@@ -857,36 +1319,36 @@ function statsHtml(st, chk) {
   return `
   <div class="vhero">
     <div class="hero-n">${st.count.toLocaleString(UI_LOCALE)}</div>
-    <div class="hero-l">time${st.count === 1 ? "" : "s"} your paths crossed with @${esc(chk.other)}</div>
-    <div class="muted small">${esc(span)} · within ${chk.radius_m} m and ${chk.window_min} min</div>
+    <div class="hero-l">${pl("times", st.count, { who: H(chk.other) })}</div>
+    <div class="muted small">${esc(span)} · ${t("within {m} m and {min} min", { m: chk.radius_m, min: chk.window_min })}</div>
   </div>
   <div class="kpis">
-    ${tile("Days you crossed", st.days.toLocaleString(UI_LOCALE), st.days > 1 ? `busiest: ${st.busiest.n} on ${dateStr(st.busiest.day.t0)}` : "")}
-    ${tile("Time together", fmtHours(st.minutes), st.minutes >= 2880 ? `about ${Math.round(st.minutes / 1440)} days, all added up` : "all crossings added up")}
-    ${tile("Places", st.nPlaces.toLocaleString(UI_LOCALE), st.nCities > 1 ? `in ${st.nCities} cities` : st.cities.length ? `in ${st.cities[0][0]}` : "")}
-    ${tile("Longest", fmtHours(st.longest.duration_min), `${dateStr(st.longest.t0)} · tap to see`, `data-sev="${st.longest.i}"`)}
+    ${tile(t("Days you crossed"), st.days.toLocaleString(UI_LOCALE), st.days > 1 ? t("busiest: {n} on {date}", { n: st.busiest.n, date: dateStr(st.busiest.day.t0) }) : "")}
+    ${tile(t("Time together"), fmtHours(st.minutes), st.minutes >= 2880 ? t("about {n} days, all added up", { n: Math.round(st.minutes / 1440) }) : t("all crossings added up"))}
+    ${tile(t("Places"), st.nPlaces.toLocaleString(UI_LOCALE), st.nCities > 1 ? t("in {n} cities", { n: st.nCities }) : st.cities.length ? t("in {city}", { city: st.cities[0][0] }) : "")}
+    ${tile(t("Longest"), fmtHours(st.longest.duration_min), t("{date} · tap to see", { date: dateStr(st.longest.t0) }), `data-sev="${st.longest.i}"`)}
   </div>
-  <div class="vcard"><h3>By type</h3>
+  <div class="vcard"><h3>${t("By type")}</h3>
     <div class="stack" role="img" aria-label="${kindRow.map(k => `${KIND[k][1]} ${st.kinds[k]}`).join(", ")}">${kindRow.map(k => `<div style="flex:${st.kinds[k]};background:${VIZ.kind[k]}" tabindex="0" data-tip="${esc(`${st.kinds[k]} · ${KIND[k][1]}`)}"></div>`).join("")}</div>
     <div class="legend2">${kindRow.map(k => `<button class="lg2" data-fkind="${k}"><span class="sw" style="background:${VIZ.kind[k]}"></span><span class="row" style="gap:6px">${kindIcon(k, 16)}${KIND[k][1]}</span><b>${st.kinds[k]}</b><span class="muted">${Math.round(st.kinds[k] / st.count * 100)}%</span></button>`).join("")}</div>
-    <p class="muted small" style="margin:8px 0 0">Tap a type to see just those on the map. <a href="#" data-legend="1">What do they mean?</a></p></div>
-  ${st.places.length ? `<div class="vcard"><h3>Where you cross most</h3>${st.places.map(([p, n]) => hbar(p, n, maxPlace, `data-fplace="${esc(p)}" tabindex="0"`)).join("")}
-    ${st.nPlaces > st.places.length ? `<div class="muted small" style="margin-top:6px">and ${st.nPlaces - st.places.length} more place${st.nPlaces - st.places.length === 1 ? "" : "s"}</div>` : ""}</div>` : ""}
-  ${st.nCities > 1 ? `<div class="vcard"><h3>Cities</h3>${st.cities.map(([c, n]) => hbar(c, n, maxCity, `data-fcity="${esc(c)}" tabindex="0"`)).join("")}</div>` : ""}
-  ${chartCard("ch-time", st.monthly ? "Crossings per month" : "Crossings per year", peakTl.value ? `Most in ${peakTl.label}: ${peakTl.value}` : "",
-      columnsSvg(tl, { height: 130, tickEvery, tickLabel: (s, i) => (st.monthly && (i === 0 || s.m === 0) ? `${s.short} ${String(s.y).slice(2)}` : s.short), tip: s => `${s.value} crossing${s.value === 1 ? "" : "s"} · ${s.label}`, chartId: "ch-time" }),
-      tl.map(s => [s.label, s.value]), [st.monthly ? "Month" : "Year", "Crossings"])}
-  ${chartCard("ch-hour", "Time of day", `Most often around ${hourLabel(st.peakHour)}`,
-      columnsSvg(st.hours.map((v, h) => ({ value: v, short: hourLabel(h), label: hourLabel(h) })), { height: 120, tickEvery: 6, tip: s => `${s.value} crossing${s.value === 1 ? "" : "s"} · ${s.label}`, chartId: "ch-hour" }),
-      st.hours.map((v, h) => [hourLabel(h), v]), ["Hour", "Crossings"])}
-  ${chartCard("ch-day", "Day of week", `Most often on ${WEEKDAYS_LONG[st.peakDay]}`,
-      columnsSvg(st.wdays.map((v, d) => ({ value: v, short: WEEKDAYS[d], label: WEEKDAYS_LONG[d] })), { height: 120, tip: s => `${s.value} crossing${s.value === 1 ? "" : "s"} · ${s.label}`, chartId: "ch-day" }),
-      st.wdays.map((v, d) => [WEEKDAYS_LONG[d], v]), ["Day", "Crossings"])}
-  <div class="vcard"><h3>Highlights</h3>
-    ${[["Longest", st.longest, `~${fmtHours(st.longest.duration_min)}`], ["First", st.first, ""], ["Most recent", st.last, ""]]
-      .map(([label, e, extra]) => `<button class="hl" data-sev="${e.i}"><span class="hl-l">${label}</span><span class="hl-m"><b>${esc(whereText(e))}</b><span class="muted small">${esc(fmtDay(new Date(e.t0 * 1000)))} · ${fmtTime(new Date(e.t0 * 1000))}${extra ? " · " + extra : ""}</span></span><span class="muted">›</span></button>`).join("")}
+    <p class="muted small" style="margin:8px 0 0">${t("Tap a type to see just those on the map.")} <a href="#" data-legend="1">${t("What do they mean?")}</a></p></div>
+  ${st.places.length ? `<div class="vcard"><h3>${t("Where you cross most")}</h3>${st.places.map(([p, n]) => hbar(p, n, maxPlace, `data-fplace="${esc(p)}" tabindex="0"`)).join("")}
+    ${st.nPlaces > st.places.length ? `<div class="muted small" style="margin-top:6px">${t("and {x} more", { x: pl("places", st.nPlaces - st.places.length) })}</div>` : ""}</div>` : ""}
+  ${st.nCities > 1 ? `<div class="vcard"><h3>${t("Cities")}</h3>${st.cities.map(([c, n]) => hbar(c, n, maxCity, `data-fcity="${esc(c)}" tabindex="0"`)).join("")}</div>` : ""}
+  ${chartCard("ch-time", st.monthly ? t("Crossings per month") : t("Crossings per year"), peakTl.value ? t("Most in {label}: {n}", { label: peakTl.label, n: peakTl.value }) : "",
+      columnsSvg(tl, { height: 130, tickEvery, tickLabel: (s, i) => (st.monthly && (i === 0 || s.m === 0) ? `${s.short} ${String(s.y).slice(2)}` : s.short), tip: s => `${pl("crossings", s.value)} · ${s.label}`, chartId: "ch-time" }),
+      tl.map(s => [s.label, s.value]), [st.monthly ? t("Month") : t("Year"), t("Crossings")])}
+  ${chartCard("ch-hour", t("Time of day"), t("Most often around {time}", { time: hourLabel(st.peakHour) }),
+      columnsSvg(st.hours.map((v, h) => ({ value: v, short: hourLabel(h), label: hourLabel(h) })), { height: 120, tickEvery: 6, tip: s => `${pl("crossings", s.value)} · ${s.label}`, chartId: "ch-hour" }),
+      st.hours.map((v, h) => [hourLabel(h), v]), [t("Hour"), t("Crossings")])}
+  ${chartCard("ch-day", t("Day of week"), t("Most often on {day}", { day: WEEKDAYS_LONG[st.peakDay] }),
+      columnsSvg(st.wdays.map((v, d) => ({ value: v, short: WEEKDAYS[d], label: WEEKDAYS_LONG[d] })), { height: 120, tip: s => `${pl("crossings", s.value)} · ${s.label}`, chartId: "ch-day" }),
+      st.wdays.map((v, d) => [WEEKDAYS_LONG[d], v]), [t("Day"), t("Crossings")])}
+  <div class="vcard"><h3>${t("Highlights")}</h3>
+    ${[[t("Longest"), st.longest, `~${fmtHours(st.longest.duration_min)}`], [t("First"), st.first, ""], [t("Most recent"), st.last, ""]]
+      .map(([label, e, extra]) => `<button class="hl" data-sev="${e.i}"><span class="hl-l">${label}</span><span class="hl-m"><b>${esc(whereText(e))}</b><span class="muted small">${esc(fmtDay(new Date(e.t0 * 1000)))} · ${fmtTime(new Date(e.t0 * 1000))}${extra ? " · " + extra : ""}</span></span><span class="muted">${NEXT}</span></button>`).join("")}
   </div>
-  <button class="btn" style="width:100%;margin:6px 0 18px" data-tabto="map">See all ${st.count} on the map →</button>`;
+  <button class="btn" style="width:100%;margin:6px 0 18px" data-tabto="map">${t("See all {n} on the map", { n: st.count.toLocaleString(UI_LOCALE) })} ${TO}</button>`;
 }
 
 function wireStats() {
@@ -901,7 +1363,7 @@ function wireStats() {
   root.onfocusout = hide;
   root.onclick = e => {
     const tb = e.target.closest("[data-tab]");
-    if (tb) { const card = $("#" + tb.dataset.tab), wrap = card.querySelector(".vtablewrap"), chart = card.querySelector(".vchart"); const on = wrap.hidden; wrap.hidden = !on; chart.hidden = on; tb.textContent = on ? "Chart" : "Table"; return; }
+    if (tb) { const card = $("#" + tb.dataset.tab), wrap = card.querySelector(".vtablewrap"), chart = card.querySelector(".vchart"); const on = wrap.hidden; wrap.hidden = !on; chart.hidden = on; tb.textContent = on ? t("Chart") : t("Table"); return; }
     // A specific crossing: clear any filter from an earlier drill-down, so it's in the list and on the map.
     const ev = e.target.closest("[data-sev]"); if (ev) { const sort = M.f.sort; M.f = freshFilters(); M.f.sort = sort; applyFilters(); showTab("map"); selectEvent(+ev.dataset.sev, true); return; }
     const drill = patch => { const sort = M.f.sort; M.f = Object.assign(freshFilters(), { sort }, patch); M.snap = 1; showTab("map"); showAllCrossings(true); applyFilters(); frameAll(); };
@@ -924,11 +1386,13 @@ function showTab(t) {
 
 /* ---- a row of chips on one line that scrolls sideways ---- */
 const CHEV = d => `<svg viewBox="0 0 24 24"><path d="${d}"/></svg>`;
-const hsRow = (inner, attrs = "") => `<div class="hs"><button type="button" class="hsb l" aria-label="Scroll left"><span>${CHEV("M15 18l-6-6 6-6")}</span></button><div class="fchips" ${attrs}>${inner}</div><button type="button" class="hsb r" aria-label="Scroll right"><span>${CHEV("M9 18l6-6-6-6")}</span></button></div>`;
+const hsRow = (inner, attrs = "") => `<div class="hs"><button type="button" class="hsb l" aria-label="${t("Scroll left")}"><span>${CHEV("M15 18l-6-6 6-6")}</span></button><div class="fchips" ${attrs}>${inner}</div><button type="button" class="hsb r" aria-label="${t("Scroll right")}"><span>${CHEV("M9 18l6-6-6-6")}</span></button></div>`;
 function wireHScroll(root) {
   root.querySelectorAll(".hs").forEach(hs => {
     const row = hs.querySelector(".fchips");
-    const upd = () => { hs.classList.toggle("can-l", row.scrollLeft > 4); hs.classList.toggle("can-r", row.scrollLeft + row.clientWidth < row.scrollWidth - 4); };
+    // scrollLeft runs negative in right-to-left rows, so measure the distance from the start
+    const upd = () => { const sl = Math.abs(row.scrollLeft), more = sl + row.clientWidth < row.scrollWidth - 4, back = sl > 4;
+      hs.classList.toggle("can-l", RTL ? more : back); hs.classList.toggle("can-r", RTL ? back : more); };
     hs.querySelector(".hsb.l").onclick = e => { e.stopPropagation(); row.scrollBy({ left: -row.clientWidth * 0.7 }); };
     hs.querySelector(".hsb.r").onclick = e => { e.stopPropagation(); row.scrollBy({ left: row.clientWidth * 0.7 }); };
     row.addEventListener("scroll", upd, { passive: true });
@@ -936,7 +1400,7 @@ function wireHScroll(root) {
     row.addEventListener("wheel", e => { if (Math.abs(e.deltaY) > Math.abs(e.deltaX) && row.scrollWidth > row.clientWidth) { row.scrollLeft += e.deltaY; e.preventDefault(); } }, { passive: false });
     // start with the chosen chip in view
     const on = row.querySelector(".fchip.on");
-    if (on && on !== row.firstElementChild) row.scrollLeft = Math.max(0, on.offsetLeft - row.offsetLeft - row.clientWidth / 2 + on.offsetWidth / 2);
+    if (on && on !== row.firstElementChild) { const d = Math.max(0, Math.abs(on.offsetLeft - row.offsetLeft) - row.clientWidth / 2 + on.offsetWidth / 2); row.scrollLeft = RTL ? -d : d; }
     requestAnimationFrame(upd);
   });
 }
@@ -945,16 +1409,18 @@ function wireHScroll(root) {
 function settingsSheet() {
   const p = themePref(), u = state.user || {}, opts = state.cfg.upload_keep_options || [state.cfg.upload_ttl_hours || 24];
   const keep = u.upload_keep_hours;
-  const note = h => !h ? "Your timelines stay on this server, encrypted, until you delete them on the Uploads tab." : `Each timeline is deleted ${keepLabel(h)} after you upload it. Choosing a shorter time also deletes older ones straight away.`;
-  openSheet(`<h2>Settings</h2>
-    <label>Theme</label><div class="seg" id="thmode" style="margin-top:0">${[["system", "System"], ["dark", "Dark"], ["light", "Light"]].map(([k, l]) => `<button data-mode="${k}" class="${p.mode === k ? "on" : ""}">${l}</button>`).join("")}</div>
-    <label>Accent colour</label><div class="swatches" id="thacc">${Object.entries(ACCENTS).map(([k, a]) => `<button class="sw2${p.accent === k ? " on" : ""}" data-acc="${k}" style="--c:${a.dark[0]};--c2:${a.light[0]}" aria-label="${a.name}" title="${a.name}"></button>`).join("")}</div>
-    <label style="margin-top:18px">Keep my uploaded timelines</label>${hsRow(opts.map(h => `<button class="fchip${h === keep ? " on" : ""}" data-keep="${h}">${keepLabel(h)}</button>`).join(""), 'id="keepopts"')}
+  const note = h => !h ? t("Your timelines stay on this server, encrypted, until you delete them on the Uploads tab.") : t("Each timeline is deleted {when} after you upload it. Choosing a shorter time also deletes older ones straight away.", { when: keepLabel(h) });
+  openSheet(`<h2>${t("Settings")}</h2>
+    <label>${t("Language")}</label><div class="seg" id="thlang" style="margin-top:0">${[["system", t("System")], ["en", "English"], ["ar", "العربية"]].map(([k, l]) => `<button data-lang="${k}" class="${langPref() === k ? "on" : ""}">${l}</button>`).join("")}</div>
+    <label>${t("Theme")}</label><div class="seg" id="thmode" style="margin-top:0">${[["system", t("System")], ["dark", t("Dark")], ["light", t("Light")]].map(([k, l]) => `<button data-mode="${k}" class="${p.mode === k ? "on" : ""}">${l}</button>`).join("")}</div>
+    <label>${t("Accent colour")}</label><div class="swatches" id="thacc">${Object.entries(ACCENTS).map(([k, a]) => `<button class="sw2${p.accent === k ? " on" : ""}" data-acc="${k}" style="--c:${a.dark[0]};--c2:${a.light[0]}" aria-label="${t(a.name)}" title="${t(a.name)}"></button>`).join("")}</div>
+    <label style="margin-top:18px">${t("Keep my uploaded timelines")}</label>${hsRow(opts.map(h => `<button class="fchip${h === keep ? " on" : ""}" data-keep="${h}">${keepLabel(h)}</button>`).join(""), 'id="keepopts"')}
     <p class="muted small" id="keepnote" style="margin:8px 0 0">${note(keep)}</p>
-    <div class="row" style="margin-top:18px"><button class="btn grow" id="setdone">Done</button></div>`);
+    <div class="row" style="margin-top:18px"><button class="btn grow" id="setdone">${t("Done")}</button></div>`);
   const sh = $("#sheet");
   wireHScroll(sh);
   $("#setdone").onclick = () => closeSheet();
+  $("#thlang").onclick = e => { const b = e.target.closest("[data-lang]"); if (b) setLang(b.dataset.lang); };
   $("#thmode").onclick = e => { const b = e.target.closest("[data-mode]"); if (!b) return; setTheme({ mode: b.dataset.mode }); $("#thmode").querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b)); };
   $("#thacc").onclick = e => { const b = e.target.closest("[data-acc]"); if (!b) return; setTheme({ accent: b.dataset.acc }); $("#thacc").querySelectorAll(".sw2").forEach(x => x.classList.toggle("on", x === b)); };
   $("#keepopts").onclick = async e => {
@@ -962,14 +1428,14 @@ function settingsSheet() {
     const h = +b.dataset.keep;
     if (h === state.user.upload_keep_hours) return;
     const doomed = h ? state.uploads.filter(x => x.created_at + h * 3600 < Date.now() / 1000).length : 0;
-    if (doomed && !confirm(`This deletes ${doomed} uploaded timeline${doomed === 1 ? "" : "s"} older than ${keepLabel(h)} now. Continue?`)) return;
+    if (doomed && !confirm(t("This deletes {n} older than {when} now. Continue?", { n: pl("timelines", doomed), when: keepLabel(h) }))) return;
     try {
       state.user = await api("/api/me/settings", { method: "PUT", body: { upload_keep_hours: h } });
       $("#keepopts").querySelectorAll(".fchip").forEach(x => x.classList.toggle("on", +x.dataset.keep === state.user.upload_keep_hours));
       $("#keepnote").textContent = note(state.user.upload_keep_hours);
       state.uploads = await api("/api/uploads");
       if (state.tab === "uploads" && !$("#results")) render();
-      toast(h ? `Uploads are now deleted after ${keepLabel(h)}` : "Uploads are now kept until you delete them");
+      toast(h ? t("Uploads are now deleted after {when}", { when: keepLabel(h) }) : t("Uploads are now kept until you delete them"));
     } catch (err) { toast(err.message, true); }
   };
 }
@@ -999,9 +1465,9 @@ function applyFilters() {
   if (!M) return;
   M.view = filteredEvents();
   const n = activeFilterCount(), days = new Set(M.view.map(e => localDayKey(new Date(e.t0 * 1000)))).size;
-  $("#rsub").textContent = (M.ev.length ? `${M.ev.length} crossing${M.ev.length === 1 ? "" : "s"}` : "No crossings") + ` · ${M.chk.radius_m} m · ${M.chk.window_min} min`;
-  if ($("#fcount")) $("#fcount").innerHTML = `<b>${n ? `${M.view.length} of ${M.ev.length}` : `${M.view.length} crossing${M.view.length === 1 ? "" : "s"}`}</b> <span class="muted">· ${days} day${days === 1 ? "" : "s"}</span>`;
-  if ($("#filterbtn")) $("#filterbtn").textContent = n ? `⚙︎ Filter (${n})` : "⚙︎ Filter";
+  $("#rsub").textContent = (M.ev.length ? pl("crossings", M.ev.length) : t("No crossings")) + ` · ${t("{n} m", { n: M.chk.radius_m })} · ${t("{n} min", { n: M.chk.window_min })}`;
+  if ($("#fcount")) $("#fcount").innerHTML = `<b>${n ? t("{a} of {b}", { a: M.view.length, b: M.ev.length }) : pl("crossings", M.view.length)}</b> <span class="muted">· ${pl("days", days)}</span>`;
+  if ($("#filterbtn")) $("#filterbtn").textContent = n ? `⚙︎ ${t("Filter")} (${n})` : `⚙︎ ${t("Filter")}`;
   renderList();
   if (M.ready) M.map.getSource("crossings").setData(crossingsFC(M.view));
 }
@@ -1011,14 +1477,14 @@ function crossingsFC(list) {
 function renderList() {
   const row = e => { const k = KIND[e.kind] || KIND.same_place, d0 = new Date(e.t0 * 1000);
     return `<div class="ev${e.i === M.sel ? " sel" : ""}" data-i="${e.i}">${kindBadge(e.kind)}<div class="grow" style="min-width:0"><div class="top"><b>${k[1]}</b>
-      <span class="muted small">${M.f.sort === "long" ? esc(fmtDay(d0)) + " · " : ""}${fmtTime(d0)} · ${e.duration_min} min</span></div>
-      <div class="where small">${esc(whereText(e))}</div></div><div class="muted">›</div></div>`; };
-  if (!M.ev.length) { $("#list").innerHTML = `<p class="muted" style="text-align:center;margin:30px 0">Your paths didn't cross within ${M.chk.radius_m} m and ${M.chk.window_min} min.</p>`; return; }
-  if (!M.view.length) { $("#list").innerHTML = `<p class="muted" style="text-align:center;margin:30px 0">No crossings match these filters.<br><a href="#" id="fclear">Clear filters</a></p>`; $("#fclear").onclick = ev => { ev.preventDefault(); clearFilters(); }; return; }
+      <span class="muted small">${M.f.sort === "long" ? esc(fmtDay(d0)) + " · " : ""}${fmtTime(d0)} · ${t("{n} min", { n: e.duration_min })}</span></div>
+      <div class="where small">${esc(whereText(e))}</div></div><div class="muted">${NEXT}</div></div>`; };
+  if (!M.ev.length) { $("#list").innerHTML = `<p class="muted" style="text-align:center;margin:30px 0">${t("Your paths didn't cross within {m} m and {min} min.", { m: M.chk.radius_m, min: M.chk.window_min })}</p>`; return; }
+  if (!M.view.length) { $("#list").innerHTML = `<p class="muted" style="text-align:center;margin:30px 0">${t("No crossings match these filters.")}<br><a href="#" id="fclear">${t("Clear filters")}</a></p>`; $("#fclear").onclick = ev => { ev.preventDefault(); clearFilters(); }; return; }
   if (M.f.sort === "long") { $("#list").innerHTML = M.view.map(row).join(""); return; }
   const days = [], byKey = {};
   M.view.forEach(e => { const d = new Date(e.t0 * 1000), k = localDayKey(d); if (!byKey[k]) { byKey[k] = { title: fmtDay(d), items: [] }; days.push(byKey[k]); } byKey[k].items.push(e); });
-  $("#list").innerHTML = days.map(d => `<div class="dayhdr">${esc(d.title)} · ${d.items.length}</div>` + d.items.map(row).join("")).join("");
+  $("#list").innerHTML = days.map(d => `<div class="dayhdr">${esc(d.title)} · ${d.items.length.toLocaleString(UI_LOCALE)}</div>` + d.items.map(row).join("")).join("");
 }
 function clearFilters() { const sort = M.f.sort; M.f = freshFilters(); M.f.sort = sort; closeSheet(true); applyFilters(); }
 function filterSheet() {
@@ -1027,18 +1493,18 @@ function filterSheet() {
   const cityCounts = {}; M.ev.forEach(e => { const c = cityOf(e); if (c) cityCounts[c] = (cityCounts[c] || 0) + 1; });
   const cities = Object.entries(cityCounts).sort((a, b) => b[1] - a[1]).slice(0, 12);
   const chip = (on, attrs, label) => `<button class="fchip${on ? " on" : ""}" ${attrs}>${label}</button>`;
-  openSheet(`<h2>Filter crossings</h2>
-    <label>Type</label>${hsRow(Object.entries(KIND).map(([k, v]) => chip(f.kinds.has(k), `data-fk="${k}"`, kindIcon(k, 15) + " " + v[1])).join(""))}
-    ${years.length > 1 ? `<label>Year</label>${hsRow(chip(f.year == null, `data-fy=""`, "All") + years.map(y => chip(f.year === y, `data-fy="${y}"`, y)).join(""))}` : ""}
-    ${cities.length > 1 ? `<label>City</label>${hsRow(chip(f.city == null, `data-fc=""`, "All") + cities.map(([c, n]) => chip(f.city === c, `data-fc="${esc(c)}"`, `${esc(c)} <span class="muted">${n}</span>`)).join(""))}` : ""}
-    ${f.place != null ? `<label id="fplabel">Place</label>${hsRow(chip(true, `data-fp=""`, `${kindIcon("same_place", 15)} ${esc(f.place)} ✕`))}` : ""}
-    <label>At least</label>${hsRow(DUR_STEPS.map(m => chip(f.minDur === m, `data-fd="${m}"`, m ? m + "+ min" : "Any")).join(""))}
-    <label>Place or landmark contains</label><input type="text" id="fq" value="${esc(f.q)}" placeholder="e.g. Olaya, airport, mall">
-    <label class="row" style="gap:8px;margin-top:14px;color:var(--text)"><input type="checkbox" id="fview" ${f.inView ? "checked" : ""} style="width:auto"> Only crossings in the visible map area</label>
-    <div class="row" style="margin-top:16px;gap:8px"><button class="btn ghost" id="fclear2">Clear</button><button class="btn grow" id="fdone">Show ${M.view.length}</button></div>`);
+  openSheet(`<h2>${t("Filter crossings")}</h2>
+    <label>${t("Type")}</label>${hsRow(Object.entries(KIND).map(([k, v]) => chip(f.kinds.has(k), `data-fk="${k}"`, kindIcon(k, 15) + " " + v[1])).join(""))}
+    ${years.length > 1 ? `<label>${t("Year")}</label>${hsRow(chip(f.year == null, `data-fy=""`, t("All")) + years.map(y => chip(f.year === y, `data-fy="${y}"`, y)).join(""))}` : ""}
+    ${cities.length > 1 ? `<label>${t("City")}</label>${hsRow(chip(f.city == null, `data-fc=""`, t("All")) + cities.map(([c, n]) => chip(f.city === c, `data-fc="${esc(c)}"`, `${esc(c)} <span class="muted">${n}</span>`)).join(""))}` : ""}
+    ${f.place != null ? `<label id="fplabel">${t("Place")}</label>${hsRow(chip(true, `data-fp=""`, `${kindIcon("same_place", 15)} ${esc(f.place)} ✕`))}` : ""}
+    <label>${t("At least")}</label>${hsRow(DUR_STEPS.map(m => chip(f.minDur === m, `data-fd="${m}"`, m ? t("{n}+ min", { n: m }) : t("Any"))).join(""))}
+    <label>${t("Place or landmark contains")}</label><input type="text" id="fq" value="${esc(f.q)}" placeholder="${t("e.g. Olaya, airport, mall")}">
+    <label class="row" style="gap:8px;margin-top:14px;color:var(--text)"><input type="checkbox" id="fview" ${f.inView ? "checked" : ""} style="width:auto"> ${t("Only crossings in the visible map area")}</label>
+    <div class="row" style="margin-top:16px;gap:8px"><button class="btn ghost" id="fclear2">${t("Clear")}</button><button class="btn grow" id="fdone">${t("Show {n}", { n: M.view.length })}</button></div>`);
   const sh = $("#sheet");
   wireHScroll(sh);
-  const refresh = () => { applyFilters(); const b = $("#fdone"); if (b) b.textContent = `Show ${M.view.length}`; };
+  const refresh = () => { applyFilters(); const b = $("#fdone"); if (b) b.textContent = t("Show {n}", { n: M.view.length }); };
   sh.onclick = e => {
     const b = e.target.closest(".fchip"); if (!b) return;
     if (b.dataset.fk) { f.kinds.has(b.dataset.fk) ? f.kinds.delete(b.dataset.fk) : f.kinds.add(b.dataset.fk); if (!f.kinds.size) f.kinds.add(b.dataset.fk); }
@@ -1076,7 +1542,7 @@ function setSnap(idx, instant) {
 /** Map padding so framing lands in the part of the map the sheet doesn't cover. At "full" frame as if
  *  at half rather than squeezing everything into a sliver; on a wide screen the sheet is on the left. */
 function mapPad() {
-  if (wide()) return { top: 60, right: 40, bottom: 40, left: 460 };
+  if (wide()) return RTL ? { top: 60, right: 460, bottom: 40, left: 40 } : { top: 60, right: 40, bottom: 40, left: 460 };
   return { top: 60, right: 36, bottom: snaps()[Math.min(M ? M.snap : 1, 1)] + 28, left: 36 };
 }
 function wireSheet() {
@@ -1210,17 +1676,17 @@ function showAllCrossings(initial) {
 }
 async function lookupStreet(e) {
   const out = $("#street"); if (!out) return;
-  out.innerHTML = `<span class="spin" style="width:12px;height:12px;border-width:2px"></span> Looking up the street…`;
+  out.innerHTML = `<span class="spin" style="width:12px;height:12px;border-width:2px"></span> ${t("Looking up the street…")}`;
   try {
-    const lang = encodeURIComponent((navigator.language || "en").split("-")[0]);
+    const lang = encodeURIComponent(RTL ? "ar" : (navigator.language || "en").split("-")[0]);
     // OpenStreetMap's usage policy asks apps to identify themselves: send just this site's
     // address (the page itself is sent with no referrer at all otherwise).
     const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=17&lat=${e.lat}&lon=${e.lon}&accept-language=${lang}`, { referrerPolicy: "origin" });
-    if (!r.ok) { if (M && M.sel === e.i) out.textContent = r.status === 403 || r.status === 429 ? "OpenStreetMap is busy or refused the lookup. Try again later." : "OpenStreetMap couldn't look that up."; return; }
+    if (!r.ok) { if (M && M.sel === e.i) out.textContent = r.status === 403 || r.status === 429 ? t("OpenStreetMap is busy or refused the lookup. Try again later.") : t("OpenStreetMap couldn't look that up."); return; }
     const j = await r.json(), a = j.address || {};
     const street = [a.road || a.pedestrian || a.footway || a.square, a.neighbourhood || a.suburb || a.quarter].filter(Boolean).join(", ");
-    if (M && M.sel === e.i) out.textContent = street || j.display_name || "No street name here";
-  } catch (err) { if (M && M.sel === e.i) out.textContent = "Couldn't reach OpenStreetMap right now."; }
+    if (M && M.sel === e.i) out.textContent = street || j.display_name || t("No street name here");
+  } catch (err) { if (M && M.sel === e.i) out.textContent = t("Couldn't reach OpenStreetMap right now."); }
 }
 function selectEvent(i, moveSheet) {
   if (!M || i < 0 || i >= M.ev.length) return;
@@ -1232,19 +1698,19 @@ function selectEvent(i, moveSheet) {
   const pos = M.view.findIndex(x => x.i === i), prev = pos > 0 ? M.view[pos - 1] : null, next = pos >= 0 && pos < M.view.length - 1 ? M.view[pos + 1] : null;
   const k = KIND[e.kind] || KIND.same_place, d0 = new Date(e.t0 * 1000), d1 = new Date(e.t1 * 1000);
   // One crossing: its details replace the list, with the way back at the top.
-  $("#dethead").innerHTML = `<div class="row" style="gap:8px"><button class="back" id="evall">‹ All crossings</button><span class="grow"></span>
-      ${pos >= 0 ? `<span class="muted small">${pos + 1} of ${M.view.length}</span>` : ""}
-      <button class="btn ghost sm" id="evprev" ${prev ? "" : "disabled"} aria-label="Previous">‹</button><button class="btn ghost sm" id="evnext" ${next ? "" : "disabled"} aria-label="Next">›</button></div>
+  $("#dethead").innerHTML = `<div class="row" style="gap:8px"><button class="back" id="evall">${PREV} ${t("All crossings")}</button><span class="grow"></span>
+      ${pos >= 0 ? `<span class="muted small">${t("{a} of {b}", { a: (pos + 1).toLocaleString(UI_LOCALE), b: M.view.length.toLocaleString(UI_LOCALE) })}</span>` : ""}
+      <button class="btn ghost sm" id="evprev" ${prev ? "" : "disabled"} aria-label="${t("Previous")}">${PREV}</button><button class="btn ghost sm" id="evnext" ${next ? "" : "disabled"} aria-label="${t("Next")}">${NEXT}</button></div>
     <div class="row" style="gap:10px;margin-top:6px">${kindBadge(e.kind)}<div class="grow" style="min-width:0"><h3>${k[1]}</h3>
-      <div class="muted small">${esc(fmtDay(d0))} · ${fmtTime(d0)}–${fmtTime(d1)} · ~${e.duration_min} min</div></div></div>`;
+      <div class="muted small">${esc(fmtDay(d0))} · ${fmtTime(d0)}–${fmtTime(d1)} · ~${t("{n} min", { n: e.duration_min })}</div></div></div>`;
   $("#detail").innerHTML = `<div class="place row" style="gap:8px;align-items:flex-start"><span class="muted" style="margin-top:1px">${kindIcon("same_place", 17)}</span><span class="grow">${esc(whereText(e))}</span></div>
-    <div class="muted small" id="street" style="margin:4px 0 0 25px"><a href="#" id="streetbtn">Show street name</a> <span class="muted">(asks OpenStreetMap)</span></div>
-    <div class="muted small" style="margin-top:8px">${offsetText(e.offset_min)} · place accurate to about ${e.blur_m || 100} m</div>
-    <div class="pathbox">${M.pts.length ? `<div class="row between"><b class="small" id="tlabel">Your path</b><button class="btn ghost sm" id="play">▶ Replay</button></div>
+    <div class="muted small" id="street" style="margin:4px 0 0;margin-inline-start:25px"><a href="#" id="streetbtn">${t("Show street name")}</a> <span class="muted">${t("(asks OpenStreetMap)")}</span></div>
+    <div class="muted small" style="margin-top:8px">${offsetText(e.offset_min)} · ${t("place accurate to about {m} m", { m: e.blur_m || 100 })}</div>
+    <div class="pathbox">${M.pts.length ? `<div class="row between"><b class="small" id="tlabel">${t("Your path")}</b><button class="btn ghost sm" id="play">▶ ${t("Replay")}</button></div>
       <input type="range" id="scr" min="${tMin}" max="${Math.max(tMax, tMin + 1)}" step="1" value="${M.scrubT}">
-      <div class="muted small">Only your own path is ever shown, never theirs.</div>`
-      : M.legacy ? `<p class="muted small" style="margin:0">This result was saved by an older version, before your own path was kept with it. Run the check again to see how you got here and where you went.</p>`
-      : `<p class="muted small" style="margin:0">No path of yours was recorded in the hours around this crossing.</p>`}</div>`;
+      <div class="muted small">${t("Only your own path is ever shown, never theirs.")}</div>`
+      : M.legacy ? `<p class="muted small" style="margin:0">${t("This result was saved by an older version, before your own path was kept with it. Run the check again to see how you got here and where you went.")}</p>`
+      : `<p class="muted small" style="margin:0">${t("No path of yours was recorded in the hours around this crossing.")}</p>`}</div>`;
   showListMode(false);
   $("#detail").scrollTop = 0;
   $("#evprev").onclick = () => prev && selectEvent(prev.i, false);
@@ -1270,7 +1736,7 @@ function selectEvent(i, moveSheet) {
 function updateReplay() {
   if (!M || M.sel < 0) return;
   const lbl = $("#tlabel");
-  if (lbl && M.scrubT != null) lbl.textContent = "Your path · " + fmtTime(new Date(M.scrubT * 1000));
+  if (lbl && M.scrubT != null) lbl.textContent = t("Your path") + " · " + fmtTime(new Date(M.scrubT * 1000));
   const p = M.pts.length && M.scrubT != null ? posAt(M.pts, M.scrubT) : null;
   if (M.ready) {
     M.map.getSource("me").setData(p ? pointFC(p[2], p[1]) : EMPTY_FC);
@@ -1279,12 +1745,12 @@ function updateReplay() {
   const e = M.ev[M.sel], row = $(`.ev[data-i="${M.sel}"]`);
   if (row) row.classList.toggle("live", M.scrubT != null && M.scrubT >= e.t0 && M.scrubT <= e.t1);
 }
-function stopReplay() { if (M && M.playTimer) { clearInterval(M.playTimer); M.playTimer = 0; const b = $("#play"); if (b) b.textContent = "▶ Replay"; } }
+function stopReplay() { if (M && M.playTimer) { clearInterval(M.playTimer); M.playTimer = 0; const b = $("#play"); if (b) b.textContent = "▶ " + t("Replay"); } }
 function toggleReplay(tMin, tMax) {
   if (M.playTimer) return stopReplay();
   if (M.scrubT == null || M.scrubT >= tMax) M.scrubT = tMin;
   const step = Math.max(1, (tMax - tMin) / 400);   // ~20 s whatever the window length
-  $("#play").textContent = "❚❚ Pause";
+  $("#play").textContent = "❚❚ " + t("Pause");
   M.playTimer = setInterval(() => {
     M.scrubT = Math.min(tMax, M.scrubT + step);
     const scr = $("#scr"); if (scr) scr.value = M.scrubT;
@@ -1304,33 +1770,33 @@ function mtStatus(msg, spinning) {
 
 async function renderMyTimeline() {
   if (!state.uploads.length) {
-    $("#view").innerHTML = `<div class="hero"><h1>My timeline</h1></div><p class="muted" style="text-align:center;margin-top:24px">Upload your timeline first, on the Uploads tab.</p>`;
+    $("#view").innerHTML = `<div class="hero"><h1>${t("My timeline")}</h1></div><p class="muted" style="text-align:center;margin-top:24px">${t("Upload your timeline first, on the Uploads tab.")}</p>`;
     return;
   }
   if (!MYT.uploadId || !state.uploads.some(u => u.id === MYT.uploadId)) MYT.uploadId = state.uploads[0].id;
   const upload = state.uploads.find(u => u.id === MYT.uploadId);
   $("#view").innerHTML = `
-    <div class="hero"><h1>My timeline</h1></div>
-    ${state.uploads.length > 1 ? `<div class="mt-row" id="mt-uploadpick">${state.uploads.map(u => `<button class="mo-chip${u.id === MYT.uploadId ? " sel" : ""}" data-mtupload="${u.id}">${dateStr(u.from)} → ${dateStr(u.to)}</button>`).join("")}</div>` : ""}
-    <div class="mt-status" id="mt-status">Loading your timeline…</div>
+    <div class="hero"><h1>${t("My timeline")}</h1></div>
+    ${state.uploads.length > 1 ? `<div class="mt-row" id="mt-uploadpick">${state.uploads.map(u => `<button class="mo-chip${u.id === MYT.uploadId ? " sel" : ""}" data-mtupload="${u.id}">${dateStr(u.from)} ${TO} ${dateStr(u.to)}</button>`).join("")}</div>` : ""}
+    <div class="mt-status" id="mt-status">${t("Loading your timeline…")}</div>
     <div id="mt-picker" style="display:none">
       <div class="mt-row" id="mt-years"></div>
       <div class="mt-row" id="mt-months" style="display:none"></div>
       <div class="mt-row" id="mt-days" style="display:none"></div>
     </div>
     <div class="card" id="mt-mapcard" style="display:none;padding:10px">
-      <div id="mt-map"><div id="mt-mapel"></div><div id="mt-mapmsg">Couldn't load the map background.<br>Check the server's internet access or MAP_STYLE_URL.</div></div>
+      <div id="mt-map"><div id="mt-mapel"></div><div id="mt-mapmsg">${t("Couldn't load the map background.")}<br>${t("Check the server's internet access or MAP_STYLE_URL.")}</div></div>
       <div class="row between" style="margin-top:10px"><span class="muted small" id="mt-daylabel"></span>
-        <div class="row" style="gap:8px"><button class="btn ghost sm" id="mt-locbtn" title="Show my current location">📍 Live</button><button class="btn ghost sm" id="mt-play">▶ Play</button></div></div>
+        <div class="row" style="gap:8px"><button class="btn ghost sm" id="mt-locbtn" title="${t("Show my current location")}">📍 ${t("Live")}</button><button class="btn ghost sm" id="mt-play">▶ ${t("Play")}</button></div></div>
       <input type="range" id="mt-scrub" min="0" max="1000" value="0" style="margin-top:6px">
     </div>
     <div class="card">
-      <h3>Search a place</h3>
-      <p class="muted small">See every time you've visited somewhere.</p>
-      <div class="row" style="gap:8px"><input type="text" id="mt-searchtext" placeholder="Place name"><button class="btn ghost sm" id="mt-searchgo">Search</button></div>
-      <p class="muted small" style="margin-top:4px">Typed search uses OpenStreetMap and sends your search text there.</p>
-      <button class="btn ghost sm" id="mt-pickbtn" style="margin-top:8px;width:100%">📍 Or tap a point on the map above</button>
-      <label style="margin-top:10px">Search radius: <b id="mt-radiusv">150</b> m</label>
+      <h3>${t("Search a place")}</h3>
+      <p class="muted small">${t("See every time you've visited somewhere.")}</p>
+      <div class="row" style="gap:8px"><input type="text" id="mt-searchtext" placeholder="${t("Place name")}"><button class="btn ghost sm" id="mt-searchgo">${t("Search")}</button></div>
+      <p class="muted small" style="margin-top:4px">${t("Typed search uses OpenStreetMap and sends your search text there.")}</p>
+      <button class="btn ghost sm" id="mt-pickbtn" style="margin-top:8px;width:100%">📍 ${t("Or tap a point on the map above")}</button>
+      <label style="margin-top:10px">${t("Search radius: {v}", { v: `<b id="mt-radiusv">150</b> ${t("m")}` })}</label>
       <input type="range" id="mt-radius" min="50" max="1000" step="25" value="150">
       <div id="mt-searchresults" class="mt-loc-list"></div>
     </div>`;
@@ -1339,14 +1805,14 @@ async function renderMyTimeline() {
 }
 
 async function loadSummary(upload) {
-  mtStatus("Loading your timeline…", true);
+  mtStatus(t("Loading your timeline…"), true);
   try {
     MYT.summary = await api(`/api/uploads/${upload.id}/summary?tz=${tzParam()}`);
   } catch (e) {
-    mtStatus("Couldn't load your timeline: " + e.message);
+    mtStatus(t("Couldn't load your timeline: {msg}", { msg: e.message }));
     return;
   }
-  if (!MYT.summary.years.length) { mtStatus("This timeline has no points to show."); return; }
+  if (!MYT.summary.years.length) { mtStatus(t("This timeline has no points to show.")); return; }
   $("#mt-picker").style.display = "";
   renderYearsRow();
   const years = MYT.summary.years;
@@ -1444,17 +1910,17 @@ async function loadDay(year, month, day) {
   MYT.day = day;
   const dateStr2 = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
   const label = new Date(year, month - 1, day).toLocaleDateString(UI_LOCALE, { weekday: "short", day: "numeric", month: "short", year: "numeric" });
-  mtStatus(`Loading ${label}…`, true);
+  mtStatus(t("Loading {label}…", { label }), true);
   $("#mt-mapcard").style.display = "";
   ensureMap();
   try {
     const r = await api(`/api/uploads/${MYT.uploadId}/day?date=${dateStr2}&tz=${tzParam()}`);
     MYT.daySegs = r.segments || [];
     MYT.dayPts = MYT.daySegs.flat().sort((a, b) => a[0] - b[0]);
-    mtStatus(MYT.dayPts.length ? `${label} · ${MYT.dayPts.length.toLocaleString()} point${MYT.dayPts.length === 1 ? "" : "s"}` : `${label} · no points recorded`);
+    mtStatus(MYT.dayPts.length ? `${label} · ${pl("points", MYT.dayPts.length)}` : `${label} · ${t("no points recorded")}`);
     renderDayOnMap();
   } catch (e) {
-    mtStatus("Couldn't load that day: " + e.message);
+    mtStatus(t("Couldn't load that day: {msg}", { msg: e.message }));
   }
 }
 function renderDayOnMap() {
@@ -1481,7 +1947,7 @@ function updateScrub() {
 }
 function setSearchPin(lat, lon) {
   MYT.pinLat = lat; MYT.pinLon = lon; MYT.pickMode = false;
-  $("#mt-pickbtn").textContent = "📍 Or tap a point on the map above";
+  $("#mt-pickbtn").textContent = "📍 " + t("Or tap a point on the map above");
   if (MYT.pinMarker) MYT.pinMarker.remove();
   const el = document.createElement("div"); el.className = "mk sel";
   MYT.pinMarker = new maplibregl.Marker({ element: el }).setLngLat([lon, lat]).addTo(MYT.map);
@@ -1490,7 +1956,7 @@ function setSearchPin(lat, lon) {
 async function runSearch() {
   if (MYT.pinLat == null) return;
   const radius = +$("#mt-radius").value;
-  $("#mt-searchresults").innerHTML = `<div class="muted small" style="padding:8px 0"><span class="spin" style="width:14px;height:14px;border-width:2px"></span> Searching your timeline…</div>`;
+  $("#mt-searchresults").innerHTML = `<div class="muted small" style="padding:8px 0"><span class="spin" style="width:14px;height:14px;border-width:2px"></span> ${t("Searching your timeline…")}</div>`;
   try {
     const r = await api(`/api/uploads/${MYT.uploadId}/visits?lat=${MYT.pinLat}&lon=${MYT.pinLon}&radius_m=${radius}`);
     renderSearchResults(r.visits);
@@ -1499,10 +1965,10 @@ async function runSearch() {
   }
 }
 function renderSearchResults(visits) {
-  if (!visits.length) { $("#mt-searchresults").innerHTML = `<p class="muted small" style="padding-top:8px">No visits found there.</p>`; return; }
+  if (!visits.length) { $("#mt-searchresults").innerHTML = `<p class="muted small" style="padding-top:8px">${t("No visits found there.")}</p>`; return; }
   $("#mt-searchresults").innerHTML = visits.slice().reverse().map((v, i) => {
     const s = new Date(v.start * 1000), e = new Date(v.end * 1000);
-    return `<div class="mt-search-result" data-visit="${i}"><div><b>${fmtDay(s)}</b><div class="muted small">${fmtTime(s)}${v.end !== v.start ? "–" + fmtTime(e) : ""}</div></div><span class="muted">›</span></div>`;
+    return `<div class="mt-search-result" data-visit="${i}"><div><b>${fmtDay(s)}</b><div class="muted small">${fmtTime(s)}${v.end !== v.start ? "–" + fmtTime(e) : ""}</div></div><span class="muted">${NEXT}</span></div>`;
   }).join("");
   MYT._visits = visits.slice().reverse();
   $("#mt-searchresults").onclick = e => {
@@ -1519,13 +1985,13 @@ function renderSearchResults(visits) {
 }
 async function searchPlaceName() {
   const q = $("#mt-searchtext").value.trim(); if (!q) return;
-  $("#mt-searchresults").innerHTML = `<div class="muted small" style="padding:8px 0"><span class="spin" style="width:14px;height:14px;border-width:2px"></span> Looking up "${esc(q)}"…</div>`;
+  $("#mt-searchresults").innerHTML = `<div class="muted small" style="padding:8px 0"><span class="spin" style="width:14px;height:14px;border-width:2px"></span> ${t("Looking up “{q}”…", { q: esc(q) })}</div>`;
   try {
     const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=5&q=${encodeURIComponent(q)}`, { referrerPolicy: "origin" });
     if (!res.ok) throw new Error("status " + res.status);
     const places = await res.json();
-    if (!places.length) { $("#mt-searchresults").innerHTML = `<p class="muted small">No place found for "${esc(q)}".</p>`; return; }
-    $("#mt-searchresults").innerHTML = places.map((p, i) => `<div class="mt-search-result" data-place="${i}"><div>${esc(p.display_name)}</div><span class="muted">›</span></div>`).join("");
+    if (!places.length) { $("#mt-searchresults").innerHTML = `<p class="muted small">${t("No place found for “{q}”.", { q: esc(q) })}</p>`; return; }
+    $("#mt-searchresults").innerHTML = places.map((p, i) => `<div class="mt-search-result" data-place="${i}"><div>${esc(p.display_name)}</div><span class="muted">${NEXT}</span></div>`).join("");
     $("#mt-searchresults").onclick = e => {
       const row = e.target.closest(".mt-search-result"); if (!row) return;
       const p = places[+row.dataset.place];
@@ -1535,7 +2001,7 @@ async function searchPlaceName() {
       setSearchPin(+p.lat, +p.lon);
     };
   } catch (e) {
-    $("#mt-searchresults").innerHTML = `<p class="muted small">Couldn't reach OpenStreetMap's search right now.</p>`;
+    $("#mt-searchresults").innerHTML = `<p class="muted small">${t("Couldn't reach OpenStreetMap's search right now.")}</p>`;
   }
 }
 function wireMyTimelineChrome() {
@@ -1543,19 +2009,19 @@ function wireMyTimelineChrome() {
   const up = $("#mt-uploadpick"); if (up) up.onclick = e => { const b = e.target.closest("[data-mtupload]"); if (b && b.dataset.mtupload !== MYT.uploadId) { MYT.uploadId = b.dataset.mtupload; MYT.year = MYT.month = MYT.day = null; renderMyTimeline(); } };
   $("#mt-scrub").oninput = updateScrub;
   $("#mt-play").onclick = () => {
-    if (MYT.playTimer) { clearInterval(MYT.playTimer); MYT.playTimer = 0; $("#mt-play").textContent = "▶ Play"; return; }
+    if (MYT.playTimer) { clearInterval(MYT.playTimer); MYT.playTimer = 0; $("#mt-play").textContent = "▶ " + t("Play"); return; }
     const scr = $("#mt-scrub"); if (+scr.value >= 1000) scr.value = 0;
-    $("#mt-play").textContent = "❚❚ Pause";
-    MYT.playTimer = setInterval(() => { scr.value = Math.min(1000, +scr.value + 4); updateScrub(); if (+scr.value >= 1000) { clearInterval(MYT.playTimer); MYT.playTimer = 0; $("#mt-play").textContent = "▶ Play"; } }, 50);
+    $("#mt-play").textContent = "❚❚ " + t("Pause");
+    MYT.playTimer = setInterval(() => { scr.value = Math.min(1000, +scr.value + 4); updateScrub(); if (+scr.value >= 1000) { clearInterval(MYT.playTimer); MYT.playTimer = 0; $("#mt-play").textContent = "▶ " + t("Play"); } }, 50);
   };
   $("#mt-locbtn").onclick = showLiveLocation;
   $("#mt-radius").oninput = () => { $("#mt-radiusv").textContent = $("#mt-radius").value; if (MYT.pinLat != null) runSearch(); };
-  $("#mt-pickbtn").onclick = () => { MYT.pickMode = !MYT.pickMode; $("#mt-pickbtn").textContent = MYT.pickMode ? "Tap the map to drop a pin…" : "📍 Or tap a point on the map above"; };
+  $("#mt-pickbtn").onclick = () => { MYT.pickMode = !MYT.pickMode; $("#mt-pickbtn").textContent = MYT.pickMode ? t("Tap the map to drop a pin…") : "📍 " + t("Or tap a point on the map above"); };
   $("#mt-searchgo").onclick = searchPlaceName;
 }
 let liveWatchId = null, liveMarker = null;
 function showLiveLocation() {
-  if (!navigator.geolocation) { toast("Location isn't available in this browser", true); return; }
+  if (!navigator.geolocation) { toast(t("Location isn't available in this browser"), true); return; }
   const btn = $("#mt-locbtn");
   if (liveWatchId) {
     navigator.geolocation.clearWatch(liveWatchId); liveWatchId = null;
@@ -1572,7 +2038,7 @@ function showLiveLocation() {
       if (!liveMarker) { const el = document.createElement("div"); el.className = "me"; el.style.background = "#4ade80"; liveMarker = new maplibregl.Marker({ element: el }).setLngLat([longitude, latitude]).addTo(MYT.map); }
       else liveMarker.setLngLat([longitude, latitude]);
     },
-    () => toast("Couldn't get your location — check the browser's location permission", true),
+    () => toast(t("Couldn't get your location — check the browser's location permission"), true),
     { enableHighAccuracy: true, maximumAge: 5000 }
   );
 }
@@ -1585,6 +2051,7 @@ document.addEventListener("click", async e => {
   switch (act) {
     case "logout": return logout();
     case "settings": return settingsSheet();
+    case "lang": return setLang(a.dataset.l);
     case "mode": state.authMode = a.dataset.m; return renderAuth();
     case "auth": return run(async () => {
       const handle = $("#a_user").value, password = $("#a_pass").value, reg = state.authMode === "register";
@@ -1598,21 +2065,21 @@ document.addEventListener("click", async e => {
       const u = state.uploads.find(x => x.id === id), zones = u.zones.filter((_, i) => i !== +a.dataset.i);
       await api(`/api/uploads/${id}/zones`, { method: "PUT", body: { zones } }); await refreshAll(); renderTimeline();
     });
-    case "rmupload": if (!confirm("Delete this timeline from the server now?")) return;
+    case "rmupload": if (!confirm(t("Delete this timeline from the server now?"))) return;
       return run(async () => { await api("/api/uploads/" + id, { method: "DELETE" }); await refreshAll(); renderTimeline(); });
     case "sendreq": return run(async () => {
       const h = $("#handle").value.trim(); if (!h) return;
-      await api("/api/connections", { method: "POST", body: { handle: h } }); toast("Request sent"); await refreshAll(); renderPeople();
+      await api("/api/connections", { method: "POST", body: { handle: h } }); toast(t("Request sent")); await refreshAll(); renderPeople();
     });
     case "respond": return run(async () => { await api(`/api/connections/${id}/respond`, { method: "POST", body: { action: a.dataset.a } }); await refreshAll(); renderTabs(); renderPeople(); });
-    case "rmconn": if (!confirm("Remove this connection and any results with them?")) return;
+    case "rmconn": if (!confirm(t("Remove this connection and any results with them?"))) return;
       return run(async () => { await api("/api/connections/" + id, { method: "DELETE" }); await refreshAll(); renderTabs(); renderPeople(); });
     case "newcheck": return newCheckSheet(id, a.dataset.o);
     case "paircode": return pairCodeSheet();
     case "pairenter": return pairEnterSheet("");
     case "createcheck": return run(async () => {
       const body = { connection_id: id, upload_id: $("#c_up").value, radius_m: +$("#c_r").value, window_min: +$("#c_w").value, ...readDates() };
-      await api("/api/checks", { method: "POST", body }); closeSheet(); toast("Request sent. It runs once they agree.");
+      await api("/api/checks", { method: "POST", body }); closeSheet(); toast(t("Request sent. It runs once they agree."));
       await refreshAll(); state.tab = "checks"; renderTabs(); render();
     });
     case "review": return reviewSheet(state.checks.find(c => c.id === id));
@@ -1621,7 +2088,7 @@ document.addEventListener("click", async e => {
       closeSheet(); await refreshAll(); renderTabs(); renderChecks();
     });
     case "declinecheck": return run(async () => { await api(`/api/checks/${id}/decline`, { method: "POST" }); closeSheet(); await refreshAll(); renderTabs(); renderChecks(); });
-    case "rmcheck": if (!confirm("Delete this check and its results?")) return;
+    case "rmcheck": if (!confirm(t("Delete this check and its results?"))) return;
       return run(async () => { await api("/api/checks/" + id, { method: "DELETE" }); await refreshAll(); renderTabs(); renderChecks(); });
     case "results": return run(() => openResults(id));
     case "closeresults": return closeResults();
@@ -1633,6 +2100,7 @@ document.addEventListener("focusin", e => {
   if (e.target.matches("input,select,textarea")) setTimeout(() => e.target.scrollIntoView({ block: "center", behavior: "smooth" }), 300);
 });
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js").catch(() => {});
+$("#settingsbtn").setAttribute("aria-label", t("Settings")); $("#settingsbtn").title = t("Settings"); $("#logout").textContent = t("Sign out");
 boot();
 </script>
 </body>
