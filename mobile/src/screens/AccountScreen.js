@@ -10,6 +10,8 @@ import { Api } from "../api";
 import { useServerState } from "../useServer";
 import { useAuth } from "../auth";
 import { useTheme } from "../themeContext";
+import { changeLanguage } from "../changeLanguage";
+import { LANG_PREF, pl, t } from "../i18n";
 import { ACCENTS, colors, keepLabel, THEME_MODES } from "../theme";
 
 export default function AccountScreen({ navigation }) {
@@ -19,8 +21,15 @@ export default function AccountScreen({ navigation }) {
   const server = useServerState();
   const toast = useToast();
   const [saving, setSaving] = useState(false);
+  const [lang, setLang] = useState(LANG_PREF);
   const keepOptions = cfg.upload_keep_options || [cfg.upload_ttl_hours || 24];
   const keep = user && user.upload_keep_hours != null ? user.upload_keep_hours : cfg.upload_ttl_hours;
+
+  function chooseLanguage(pref) {
+    if (pref === lang) return;
+    setLang(pref);
+    changeLanguage(pref);
+  }
 
   async function chooseKeep(h) {
     if (h === keep || saving || !user || user.offline) return;
@@ -28,7 +37,7 @@ export default function AccountScreen({ navigation }) {
       setSaving(true);
       try {
         setUser(await Api.updateSettings({ upload_keep_hours: h }));
-        toast(h ? `Uploads are now deleted after ${keepLabel(h)}` : "Uploads are now kept until you delete them");
+        toast(h ? t("Uploads are now deleted after {when}", { when: keepLabel(h) }) : t("Uploads are now kept until you delete them"));
       } catch (e) {
         toast(e.message, true);
       } finally {
@@ -37,20 +46,20 @@ export default function AccountScreen({ navigation }) {
     };
     if (h && (!keep || h < keep)) {
       Alert.alert(
-        `Delete after ${keepLabel(h)}?`,
-        `Timelines you uploaded more than ${keepLabel(h)} ago will be deleted now.`,
+        t("Delete after {when}?", { when: keepLabel(h) }),
+        t("Timelines you uploaded more than {when} ago will be deleted now.", { when: keepLabel(h) }),
         [
-          { text: "Cancel", style: "cancel" },
-          { text: "Change", onPress: save },
+          { text: t("Cancel"), style: "cancel" },
+          { text: t("Change"), onPress: save },
         ]
       );
     } else save();
   }
 
   function confirmLogout() {
-    Alert.alert("Sign out?", "You can sign back in, or into a different account, at any time.", [
-      { text: "Cancel", style: "cancel" },
-      { text: "Sign out", style: "destructive", onPress: () => logout() },
+    Alert.alert(t("Sign out?"), t("You can sign back in, or into a different account, at any time."), [
+      { text: t("Cancel"), style: "cancel" },
+      { text: t("Sign out"), style: "destructive", onPress: () => logout() },
     ]);
   }
 
@@ -61,23 +70,38 @@ export default function AccountScreen({ navigation }) {
       style={{ flex: 1, backgroundColor: colors.bg }}
       contentContainerStyle={{ padding: 16, paddingTop: insets.top + 16, paddingBottom: 100 }}
     >
-      <Text style={{ color: colors.text, fontSize: 24, fontWeight: "800", marginBottom: 12 }}>Account</Text>
+      <Text style={{ color: colors.text, fontSize: 24, fontWeight: "800", marginBottom: 12 }}>{t("Account")}</Text>
 
       <Card>
-        <Text style={{ color: colors.muted, fontSize: 12.5 }}>Signed in as</Text>
+        <Text style={{ color: colors.muted, fontSize: 12.5 }}>{t("Signed in as")}</Text>
         <Text style={{ color: colors.text, fontWeight: "700", fontSize: 17, marginTop: 2 }}>
-          {user && user.handle ? `@${user.handle}` : "…"}
+          {user && user.handle ? `\u2066@${user.handle}\u2069` : "…"}
         </Text>
         {user && user.offline ? (
           <Text style={{ color: colors.warn, fontSize: 12.5, marginTop: 6 }}>
-            Can't reach the server right now. Everything will refresh once it's reachable.
+            {t("Can't reach the server right now. Everything will refresh once it's reachable.")}
           </Text>
         ) : null}
-        <Button title="Sign out" variant="bad" onPress={confirmLogout} style={{ marginTop: 14 }} />
+        <Button title={t("Sign out")} variant="bad" onPress={confirmLogout} style={{ marginTop: 14 }} />
       </Card>
 
       <Card>
-        <Text style={{ color: colors.text, fontWeight: "700", fontSize: 15 }}>Appearance</Text>
+        <Text style={{ color: colors.text, fontWeight: "700", fontSize: 15 }}>{t("Language")}</Text>
+        <View style={{ flexDirection: "row", backgroundColor: colors.panel2, borderRadius: 12, padding: 3, marginTop: 12 }}>
+          {[["system", t("System")], ["en", "English"], ["ar", "العربية"]].map(([k, label]) => (
+            <Pressable
+              key={k}
+              onPress={() => chooseLanguage(k)}
+              style={{ flex: 1, paddingVertical: 9, borderRadius: 10, alignItems: "center", backgroundColor: lang === k ? colors.panel : "transparent" }}
+            >
+              <Text style={{ color: lang === k ? colors.text : colors.muted, fontWeight: "700" }}>{label}</Text>
+            </Pressable>
+          ))}
+        </View>
+      </Card>
+
+      <Card>
+        <Text style={{ color: colors.text, fontWeight: "700", fontSize: 15 }}>{t("Appearance")}</Text>
         <View style={{ flexDirection: "row", backgroundColor: colors.panel2, borderRadius: 12, padding: 3, marginTop: 12 }}>
           {THEME_MODES.map(([k, label]) => (
             <Pressable
@@ -89,7 +113,7 @@ export default function AccountScreen({ navigation }) {
             </Pressable>
           ))}
         </View>
-        <Text style={{ color: colors.muted, fontSize: 12.5, marginTop: 14, marginBottom: 8 }}>Accent colour</Text>
+        <Text style={{ color: colors.muted, fontSize: 12.5, marginTop: 14, marginBottom: 8 }}>{t("Accent colour")}</Text>
         <View style={{ flexDirection: "row", gap: 14 }}>
           {Object.entries(ACCENTS).map(([k, a]) => {
             const on = pref.accent === k;
@@ -109,7 +133,7 @@ export default function AccountScreen({ navigation }) {
       </Card>
 
       <Card>
-        <Text style={{ color: colors.text, fontWeight: "700", fontSize: 15 }}>Keep my uploaded timelines</Text>
+        <Text style={{ color: colors.text, fontWeight: "700", fontSize: 15 }}>{t("Keep my uploaded timelines")}</Text>
         <View style={{ marginTop: 12, opacity: saving ? 0.6 : 1 }}>
           <ChipScroller selected={keepOptions.indexOf(keep)}>
             {keepOptions.map((h) => {
@@ -135,40 +159,40 @@ export default function AccountScreen({ navigation }) {
         </View>
         <Text style={{ color: colors.muted, fontSize: 12.5, marginTop: 10, lineHeight: 18 }}>
           {keep
-            ? `Each timeline you upload is deleted ${keepLabel(keep)} after you upload it. Keep it longer to look at My timeline or run new checks without uploading again.`
-            : "Your timelines stay on the server, encrypted, until you delete them on the Timeline tab."}
+            ? t("Each timeline you upload is deleted {when} after you upload it. Keep it longer to look at My timeline or run new checks without uploading again.", { when: keepLabel(keep) })
+            : t("Your timelines stay on the server, encrypted, until you delete them on the Timeline tab.")}
         </Text>
       </Card>
 
       <Card>
         <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-          <Text style={{ color: colors.muted, fontSize: 12.5 }}>Server</Text>
+          <Text style={{ color: colors.muted, fontSize: 12.5 }}>{t("Server")}</Text>
           {server.alt ? (
             <Text style={{ color: server.via === "backup" ? colors.accent2 : colors.good, fontSize: 12.5, fontWeight: "700" }}>
-              {server.via === "backup" ? "via backup address" : "main address"}
-              {server.auto ? " · auto" : ""}
+              {server.via === "backup" ? t("via backup address") : t("main address")}
+              {server.auto ? ` · ${t("auto")}` : ""}
             </Text>
           ) : null}
         </View>
         <Text style={{ color: colors.text, marginTop: 2 }} selectable>
-          {server.active || "Not set"}
+          {server.active || t("Not set")}
         </Text>
         {server.alt ? (
           <Text style={{ color: colors.muted, fontSize: 12.5, marginTop: 4 }} numberOfLines={1}>
-            {server.via === "backup" ? `Main: ${server.home}` : `Backup: ${server.alt}`}
+            {server.via === "backup" ? t("Main: {url}", { url: server.home }) : t("Backup: {url}", { url: server.alt })}
           </Text>
         ) : (
           <Text style={{ color: colors.muted, fontSize: 12.5, marginTop: 4, lineHeight: 18 }}>
-            Add a backup address to keep using the app if the main one can't be reached.
+            {t("Add a backup address to keep using the app if the main one can't be reached.")}
           </Text>
         )}
-        <Button title={server.alt ? "Server addresses" : "Server addresses"} variant="ghost" onPress={() => navigation.navigate("Settings")} style={{ marginTop: 12 }} />
+        <Button title={t("Server addresses")} variant="ghost" onPress={() => navigation.navigate("Settings")} style={{ marginTop: 12 }} />
       </Card>
 
       <Card>
-        <Row label="App version" value={appVersion} />
-        <Row label="Server version" value={cfg.version || "—"} />
-        <Row label="Results are deleted after" value={cfg.results_ttl_days ? `${cfg.results_ttl_days} days` : "—"} />
+        <Row label={t("App version")} value={appVersion} />
+        <Row label={t("Server version")} value={cfg.version || "—"} />
+        <Row label={t("Results are deleted after")} value={cfg.results_ttl_days ? pl("days", cfg.results_ttl_days) : "—"} />
       </Card>
     </ScrollView>
   );

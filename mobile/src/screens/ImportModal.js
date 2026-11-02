@@ -7,6 +7,7 @@ import Card from "../components/Card";
 import { useToast } from "../components/Toast";
 import { Api } from "../api";
 import { SOURCES } from "../importSources";
+import { pl, t } from "../i18n";
 import { colors, trustLabel } from "../theme";
 
 // "**bold**" -> nested bold Text
@@ -38,15 +39,15 @@ export default function ImportModal({ navigation, cfg, onDone }) {
     const files = res.assets;
     const size = files.reduce((s, f) => s + (f.size || 0), 0);
     if (cfg.max_upload_mb && size > cfg.max_upload_mb * 1048576) {
-      toast(`That's ${Math.round(size / 1048576)} MB; the limit is ${cfg.max_upload_mb} MB. Pick fewer files or a shorter period.`, true);
+      toast(t("That's {size} MB; the limit is {max} MB. Choose fewer files or a shorter period.", { size: Math.round(size / 1048576), max: cfg.max_upload_mb }), true);
       return;
     }
     setBusy(true);
     setCount(files.length);
     try {
       const u = await Api.uploadFiles(files.map((f) => ({ uri: f.uri, name: f.name, type: f.mimeType })));
-      const skipped = u.import && u.import.skipped ? ` · ${u.import.skipped} file${u.import.skipped === 1 ? "" : "s"} had no locations` : "";
-      toast("Timeline added · " + trustLabel(u.trust.level) + skipped);
+      const skipped = u.import && u.import.skipped ? t(" · {files} had no locations", { files: pl("files", u.import.skipped) }) : "";
+      toast(t("Timeline added") + " · " + trustLabel(u.trust.level) + skipped);
       await onDone();
       navigation.goBack();
     } catch (e) {
@@ -61,12 +62,12 @@ export default function ImportModal({ navigation, cfg, onDone }) {
       style={{ flex: 1, backgroundColor: colors.panel }}
       contentContainerStyle={{ padding: 20, paddingTop: insets.top + 16, paddingBottom: 40 }}
     >
-      <Text style={{ color: colors.text, fontSize: 20, fontWeight: "800" }}>Import a timeline</Text>
+      <Text style={{ color: colors.text, fontSize: 20, fontWeight: "800" }}>{t("Import a timeline")}</Text>
       <Text style={{ color: colors.muted, marginTop: 8, lineHeight: 20 }}>
-        Use the location history saved by an app you already have. Pick one file, several at once, or a .zip.
+        {t("Use the location history saved by an app you already have. Pick one file, several at once, or a .zip.")}
       </Text>
 
-      <Text style={{ color: colors.muted, fontSize: 13, marginTop: 18, marginBottom: 8 }}>Where is your history from?</Text>
+      <Text style={{ color: colors.muted, fontSize: 13, marginTop: 18, marginBottom: 8 }}>{t("Where is your history from?")}</Text>
       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
         {SOURCES.map((s) => {
           const on = s.id === src;
@@ -104,16 +105,16 @@ export default function ImportModal({ navigation, cfg, onDone }) {
       </Card>
 
       <Button
-        title={busy ? (count > 1 ? `Reading ${count} files…` : "Reading your timeline…") : "📂 Choose file(s)"}
+        title={busy ? (count > 1 ? t("Reading {files}…", { files: pl("files", count) }) : t("Reading your timeline…")) : "📂 " + t("Choose file(s)")}
         onPress={pickAndUpload}
         loading={busy}
         style={{ marginTop: 18 }}
       />
       <Text style={{ color: colors.muted, fontSize: 11.5, marginTop: 8, textAlign: "center" }}>
-        GPX · TCX · FIT · KML · GeoJSON · CSV · JSON · ZIP · up to {cfg.max_upload_mb || 80} MB in total
+        {t("GPX · TCX · FIT · KML · GeoJSON · CSV · JSON · ZIP · up to {mb} MB in total", { mb: cfg.max_upload_mb || 80 })}
       </Text>
       <Pressable onPress={() => navigation.goBack()} disabled={busy} style={{ marginTop: 14, alignItems: "center" }}>
-        <Text style={{ color: colors.muted, fontSize: 13 }}>Cancel</Text>
+        <Text style={{ color: colors.muted, fontSize: 13 }}>{t("Cancel")}</Text>
       </Pressable>
     </ScrollView>
   );

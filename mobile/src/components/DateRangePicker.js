@@ -1,10 +1,11 @@
 import DateTimePicker, { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
 import React, { useState } from "react";
 import { Platform, Pressable, Text, View } from "react-native";
+import { t } from "../i18n";
 import { colors, UI_LOCALE } from "../theme";
 
 function fmt(d) {
-  return d ? d.toLocaleDateString(UI_LOCALE, { day: "numeric", month: "short", year: "numeric" }) : "Any";
+  return d ? d.toLocaleDateString(UI_LOCALE, { day: "numeric", month: "short", year: "numeric" }) : t("Any");
 }
 
 // The picker returns the chosen day at the current clock time; a range means whole days.
@@ -46,8 +47,8 @@ export default function DateRangePicker({ from, to, onChangeFrom, onChangeTo }) 
   return (
     <View>
       <View style={{ flexDirection: "row", gap: 10 }}>
-        <Field label="From" value={fmt(from)} onPress={() => open("from")} onClear={from ? () => onChangeFrom(null) : null} />
-        <Field label="To" value={fmt(to)} onPress={() => open("to")} onClear={to ? () => onChangeTo(null) : null} />
+        <Field label={t("From")} value={fmt(from)} onPress={() => open("from")} onClear={from ? () => onChangeFrom(null) : null} />
+        <Field label={t("To")} value={fmt(to)} onPress={() => open("to")} onClear={to ? () => onChangeTo(null) : null} />
       </View>
       {Platform.OS === "ios" && iosField ? (
         <View>
@@ -63,7 +64,7 @@ export default function DateRangePicker({ from, to, onChangeFrom, onChangeTo }) 
             }}
           />
           <Pressable onPress={() => setIosField(null)} style={{ alignSelf: "flex-end", padding: 8 }}>
-            <Text style={{ color: colors.accent, fontWeight: "700" }}>Done</Text>
+            <Text style={{ color: colors.accent, fontWeight: "700" }}>{t("Done")}</Text>
           </Pressable>
         </View>
       ) : null}
@@ -89,7 +90,7 @@ function Field({ label, value, onPress, onClear }) {
         <Text style={{ color: colors.text, marginTop: 2 }}>{value}</Text>
         {onClear ? (
           <Text onPress={onClear} style={{ color: colors.accent2, fontSize: 12 }}>
-            clear
+            {t("clear")}
           </Text>
         ) : null}
       </View>

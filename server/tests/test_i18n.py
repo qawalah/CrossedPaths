@@ -68,3 +68,45 @@ def test_arabic_has_no_leftover_english_sentences():
 
 def test_page_is_direction_aware():
     assert "document.documentElement.dir" in HTML and "AR_STR" in HTML
+
+
+# ---- the Android app (mobile/src): same scheme, its own dictionary ----
+MOBILE = os.path.join(os.path.dirname(ROOT), "mobile")
+
+
+def _mobile_arabic():
+    out = {}
+    for line in open(os.path.join(MOBILE, "src", "i18n.ar.js"), encoding="utf-8"):
+        line = line.strip()
+        if line.startswith('"'):
+            k, v = json.loads("[" + line.rstrip(",").replace('": "', '", "', 1) + "]")
+            out[k] = v
+    return out
+
+
+def _mobile_keys():
+    keys = []
+    for root, _, files in os.walk(os.path.join(MOBILE, "src")):
+        for f in files:
+            if f.endswith(".js") and f != "i18n.ar.js":
+                src = open(os.path.join(root, f), encoding="utf-8").read()
+                keys += [m.group(1).replace("\\'", "'") for m in re.finditer(r'(?<![\w.])t\("((?:[^"\\]|\\.)*)"', src)]
+    keys += [m.group(1) for m in re.finditer(r'(?<![\w.])t\("((?:[^"\\]|\\.)*)"', open(os.path.join(MOBILE, "App.js"), encoding="utf-8").read())]
+    return keys
+
+
+def test_mobile_every_string_has_arabic():
+    ar = _mobile_arabic()
+    missing = [k for k in dict.fromkeys(_mobile_keys()) if k not in ar]
+    assert not missing, missing
+
+
+def test_mobile_has_the_fixed_server_messages():
+    ar = _mobile_arabic()
+    missing = [m for m in _server_messages() if m not in ar]
+    assert not missing, missing
+
+
+def test_mobile_arabic_keeps_the_placeholders():
+    bad = [k for k, v in _mobile_arabic().items() if _holes(k) != _holes(v)]
+    assert not bad, bad

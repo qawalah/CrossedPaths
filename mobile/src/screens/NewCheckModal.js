@@ -5,7 +5,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Button from "../components/Button";
 import { useToast } from "../components/Toast";
 import { Api } from "../api";
-import { colors, dateStr } from "../theme";
+import { H, t } from "../i18n";
+import { colors } from "../theme";
 import DateRangePicker from "../components/DateRangePicker";
 import UploadPicker from "../components/UploadPicker";
 
@@ -28,7 +29,7 @@ export default function NewCheckModal({ route, navigation, uploads, onDone }) {
 
   async function send() {
     if (!uploadId) {
-      toast("Choose a timeline first", true);
+      toast(t("Choose a timeline first"), true);
       return;
     }
     setBusy(true);
@@ -41,7 +42,7 @@ export default function NewCheckModal({ route, navigation, uploads, onDone }) {
         date_from: dateFrom ? dateFrom.getTime() / 1000 : null,
         date_to: dateTo ? dateTo.getTime() / 1000 : null,
       });
-      toast("Request sent. It runs once they agree.");
+      toast(t("Request sent. It runs once they agree."));
       await onDone();
       navigation.goBack();
     } catch (e) {
@@ -56,31 +57,30 @@ export default function NewCheckModal({ route, navigation, uploads, onDone }) {
       style={{ flex: 1, backgroundColor: colors.panel }}
       contentContainerStyle={{ padding: 20, paddingTop: insets.top + 16, paddingBottom: 40 }}
     >
-      <Text style={{ color: colors.text, fontSize: 20, fontWeight: "800" }}>Check paths with @{other}</Text>
+      <Text style={{ color: colors.text, fontSize: 20, fontWeight: "800" }}>{t("Check paths with {who}", { who: H(other) })}</Text>
       <Text style={{ color: colors.muted, marginTop: 8, lineHeight: 20 }}>
-        They will only see when and roughly where (about 100 m) your paths crossed — never your
-        route or full timeline. Your home and work areas are excluded.
+        {t("They will only see when and roughly where (about 100 m) your paths crossed — never your route or full timeline. Your home and work areas are excluded.")}
       </Text>
 
-      <Label>Your timeline</Label>
+      <Label>{t("Your timeline")}</Label>
       <UploadPicker uploads={uploads} value={uploadId} onChange={setUploadId} />
 
       <Label>
-        Closeness: <Text style={{ color: colors.text }}>{Math.round(radius)} m</Text>
+        {t("Closeness:")} <Text style={{ color: colors.text }}>{t("{n} m", { n: Math.round(radius) })}</Text>
       </Label>
       <Slider minimumValue={50} maximumValue={300} step={10} value={radius} onValueChange={setRadius}
         minimumTrackTintColor={colors.accent} maximumTrackTintColor={colors.line} thumbTintColor={colors.accent} />
 
       <Label>
-        Time tolerance: <Text style={{ color: colors.text }}>{Math.round(window)} min</Text>
+        {t("Time tolerance:")} <Text style={{ color: colors.text }}>{t("{n} min", { n: Math.round(window) })}</Text>
       </Label>
       <Slider minimumValue={5} maximumValue={60} step={5} value={window} onValueChange={setWindow}
         minimumTrackTintColor={colors.accent} maximumTrackTintColor={colors.line} thumbTintColor={colors.accent} />
 
-      <Label>Date range (optional)</Label>
+      <Label>{t("Date range (optional)")}</Label>
       <DateRangePicker from={dateFrom} to={dateTo} onChangeFrom={setDateFrom} onChangeTo={setDateTo} />
 
-      <Button title="Send request & agree" onPress={send} loading={busy} style={{ marginTop: 24 }} />
+      <Button title={t("Send request & agree")} onPress={send} loading={busy} style={{ marginTop: 24 }} />
     </ScrollView>
   );
 }

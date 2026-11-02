@@ -7,6 +7,8 @@ module.exports = function withCrossPathsAndroid(config) {
   config = withAndroidManifest(config, (c) => {
     const app = c.modResults.manifest.application[0];
     app.$["android:usesCleartextTraffic"] = "true";
+    // Arabic is a right-to-left language: let Android mirror the layout (src/i18n.js decides when).
+    app.$["android:supportsRtl"] = "true";
     return c;
   });
   // Compress native libraries inside the APK: ~14 MB instead of ~31 MB for a sideloaded build.

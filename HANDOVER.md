@@ -63,7 +63,7 @@ Main features:
 - `applicationId` / namespace: `com.example.crosspaths`. **This must change before Play**: Play
   rejects `com.example.*`. The suggested name is `com.abu.crosspaths`. Changing it makes it a new
   app for anyone with the sideloaded version, so they'll need to install it fresh.
-- `versionCode` **9**, `versionName` **1.7.0** (in `mobile/app.json` and
+- `versionCode` **10**, `versionName` **1.8.0** (in `mobile/app.json` and
   `mobile/android/app/build.gradle`). `package.json` still says 1.0.0; ignore it.
 - **Signing:** there's no own key yet. Release builds are signed with React Native's stock
   **debug keystore** (`android/app/debug.keystore`, alias `androiddebugkey`; deliberately not in
@@ -76,7 +76,7 @@ Main features:
 planned), `buildNumber` 4. Waiting on the owner's Apple Developer enrollment; plan was EAS build
 and then TestFlight. `eas.json` exists, but there's no EAS `projectId` yet.
 
-**Server:** version in `server/VERSION`, currently **0.12.0**, reported at `GET /api/config`.
+**Server:** version in `server/VERSION`, currently **0.13.0**, reported at `GET /api/config`.
 Entry point `server/wsgi.py` → `server.app:create_app()`. Run by gunicorn: 1 worker, 8 threads,
 port 8787.
 
@@ -96,7 +96,7 @@ docker compose up -d --build        # first time, or when requirements.txt / Doc
 So **most updates are "copy those four in, restart the container"**, with no rebuild. Never touch
 `./data`.
 
-Tests (55 passing), from `server/`:
+Tests (63 passing), from `server/`:
 ```bash
 pip install -r requirements.txt pytest
 python -m pytest -q
@@ -187,6 +187,8 @@ cd android
   hit-tests by elevation;
 - a theme switch: the navigator remounts and should keep your place;
 - the one-line chip rows with edge arrows;
+- **Arabic**: the whole app in RTL (mirrored layout, chart direction, chevrons, date and digit format
+  on Hermes), and that the restart prompt after changing language really reopens in the new language;
 - automatic switching between the main and backup addresses.
 
 **Publishing to Play:**
@@ -278,6 +280,15 @@ route files then. Separate workouts close together in place (within 200 m and 6 
   Web: English text is the key, `AR_STR` in `index.html` holds the Arabic; `tests/test_i18n.py`
   fails if a string or fixed server message has no Arabic entry. Don't use `t` as a local variable
   name in the web client: it is the translate function.
+  Mobile: same scheme in `mobile/src/i18n.js` (`t`, `pl`, `serverMsg`) with the dictionary in
+  `i18n.ar.js`; the same test file checks it. The language is read once at start-up
+  (`SecureStore.getItem`, synchronous), because Android only applies right-to-left layout at launch:
+  choosing a language in Account (or the link on the sign-in screen) saves it, calls
+  `I18nManager.forceRTL`/`allowRTL`, and asks the person to close and reopen the app
+  (`src/changeLanguage.js`). `android:supportsRtl="true"` is in the manifest and in
+  `plugins/withCrossPathsAndroid.js`. `ChipScroller` forces `direction: "ltr"` because its scroll offsets and
+  edge arrows are physical. Hermes has no `Intl.PluralRules`, so `pl()` writes the rules out.
+  Don't name a local variable `t` where `t()` is called.
 
 **Builds and deployment**
 - **APK:** arm64-only, minified, legacy packaging (about 18 MB).

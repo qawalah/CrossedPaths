@@ -8,6 +8,7 @@ import { useToast } from "../components/Toast";
 import { confirm } from "../components/confirm";
 import { Api } from "../api";
 import { useAuth } from "../auth";
+import { RTL, pl, serverMsg, t } from "../i18n";
 import { colors, dateStr, hoursLeft, keepPhrase, trustLabel } from "../theme";
 
 export default function TimelineScreen({ data, navigation }) {
@@ -17,7 +18,7 @@ export default function TimelineScreen({ data, navigation }) {
   const toast = useToast();
 
   async function removeZone(upload, i) {
-    if (!(await confirm("Include this area?", "Crossings inside it will no longer be hidden from future checks.", "Include"))) return;
+    if (!(await confirm(t("Include this area?"), t("Crossings inside it will no longer be hidden from future checks."), t("Include")))) return;
     const zones = upload.zones.filter((_, idx) => idx !== i);
     try {
       await Api.putZones(upload.id, zones);
@@ -28,11 +29,11 @@ export default function TimelineScreen({ data, navigation }) {
   }
 
   async function deleteUpload(id) {
-    if (!(await confirm("Delete this timeline?", "It's removed from the server now. Checks already finished keep their results."))) return;
+    if (!(await confirm(t("Delete this timeline?"), t("It's removed from the server now. Checks already finished keep their results.")))) return;
     try {
       await Api.deleteUpload(id);
       await refresh();
-      toast("Timeline deleted");
+      toast(t("Timeline deleted"));
     } catch (e) {
       toast(e.message, true);
     }
@@ -46,36 +47,37 @@ export default function TimelineScreen({ data, navigation }) {
       keyExtractor={(u) => u.id}
       ListHeaderComponent={
         <View>
-          <Text style={{ color: colors.text, fontSize: 24, fontWeight: "800" }}>Your timeline</Text>
+          <Text style={{ color: colors.text, fontSize: 24, fontWeight: "800" }}>{t("Your timeline")}</Text>
           <Text style={{ color: colors.muted, marginTop: 6, marginBottom: 16, lineHeight: 20 }}>
-            Add your location history. It stays private and is{" "}
-            {keepPhrase(user && user.upload_keep_hours != null ? user.upload_keep_hours : cfg.upload_ttl_hours)} (change this on the Account tab).
+            {t("Add your location history. It stays private and is {phrase} (change this on the Account tab).", {
+              phrase: keepPhrase(user && user.upload_keep_hours != null ? user.upload_keep_hours : cfg.upload_ttl_hours),
+            })}
           </Text>
           <View style={{ flexDirection: "row", gap: 10, marginBottom: 6 }}>
             <AddOption
               icon="📂"
-              title="Import a timeline"
-              text="Google Maps, Strava, Apple Health, Samsung Health, Garmin, Swarm, GPX, CSV…"
+              title={t("Import a timeline")}
+              text={t("Google Maps, Strava, Apple Health, Samsung Health, Garmin, Swarm, GPX, CSV…")}
               onPress={() => navigation.navigate("Import")}
             />
             <AddOption
               icon="📷"
-              title="Scan my photos"
-              text="Build one from the place and time saved in your photos."
+              title={t("Scan my photos")}
+              text={t("Build one from the place and time saved in your photos.")}
               onPress={() => navigation.navigate("PhotoScan")}
             />
           </View>
         </View>
       }
       ListEmptyComponent={
-        <Text style={{ color: colors.muted, textAlign: "center", marginTop: 30 }}>No timeline uploaded yet.</Text>
+        <Text style={{ color: colors.muted, textAlign: "center", marginTop: 30 }}>{t("No timeline uploaded yet.")}</Text>
       }
       renderItem={({ item }) => (
         <UploadCard
           upload={item}
           onRemoveZone={removeZone}
           onDelete={deleteUpload}
-          onView={() => navigation.navigate("MyTimeline", { uploadId: item.id, uploadLabel: `${dateStr(item.from)} → ${dateStr(item.to)}` })}
+          onView={() => navigation.navigate("MyTimeline", { uploadId: item.id, uploadLabel: `${dateStr(item.from)} ${RTL ? "←" : "→"} ${dateStr(item.to)}` })}
         />
       )}
     />
@@ -104,26 +106,26 @@ function AddOption({ icon, title, text, onPress }) {
 }
 
 function UploadCard({ upload, onRemoveZone, onDelete, onView }) {
-  const t = upload.trust;
+  const trust = upload.trust;
   return (
     <Card>
       <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}>
         <View style={{ flex: 1, marginRight: 10 }}>
           <Text style={{ color: colors.text, fontWeight: "700", fontSize: 15 }}>
-            {dateStr(upload.from)} → {dateStr(upload.to)}
+            {dateStr(upload.from)} {RTL ? "←" : "→"} {dateStr(upload.to)}
           </Text>
           <Text style={{ color: colors.muted, fontSize: 12.5, marginTop: 3 }}>
-            {upload.points.toLocaleString()} points · {upload.format} · {hoursLeft(upload.expires_at)}
+            {pl("points", upload.points)} · {upload.format} · {hoursLeft(upload.expires_at)}
           </Text>
         </View>
-        <Pill label={trustLabel(t.level)} level={t.level} />
+        <Pill label={trustLabel(trust.level)} level={trust.level} />
       </View>
-      <Button title="🗺️ View on map" variant="ghost" onPress={onView} style={{ marginTop: 10 }} />
-      {t.level !== "high" && t.reasons.length ? (
+      <Button title={"🗺️ " + t("View on map")} variant="ghost" onPress={onView} style={{ marginTop: 10 }} />
+      {trust.level !== "high" && trust.reasons.length ? (
         <View style={{ marginTop: 8 }}>
-          {t.reasons.map((r, i) => (
+          {trust.reasons.map((r, i) => (
             <Text key={i} style={{ color: colors.muted, fontSize: 12.5 }}>
-              • {r}
+              • {serverMsg(r)}
             </Text>
           ))}
         </View>
@@ -131,7 +133,7 @@ function UploadCard({ upload, onRemoveZone, onDelete, onView }) {
       {upload.zones.length ? (
         <View style={{ marginTop: 10, borderTopWidth: 1, borderTopColor: colors.line, paddingTop: 8 }}>
           <Text style={{ color: colors.muted, fontSize: 12.5, marginBottom: 4 }}>
-            Home &amp; work areas hidden from results ({upload.zones.length})
+            {t("Home & work areas hidden from results ({n})", { n: upload.zones.length })}
           </Text>
           {upload.zones.map((z, i) => (
             <View
@@ -139,13 +141,13 @@ function UploadCard({ upload, onRemoveZone, onDelete, onView }) {
               style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingVertical: 4 }}
             >
               <Text style={{ color: colors.muted, fontSize: 12.5 }}>
-                Area {i + 1} · {z.lat.toFixed(3)}, {z.lon.toFixed(3)} · {Math.round(z.radius_m)} m
+                {t("Area {n}", { n: i + 1 })} · {`\u202A${z.lat.toFixed(3)}, ${z.lon.toFixed(3)}\u202C`} · {t("{n} m", { n: Math.round(z.radius_m) })}
               </Text>
               <Text
                 onPress={() => onRemoveZone(upload, i)}
                 style={{ color: colors.accent2, fontSize: 12.5 }}
               >
-                Remove
+                {t("Remove")}
               </Text>
             </View>
           ))}
@@ -155,7 +157,7 @@ function UploadCard({ upload, onRemoveZone, onDelete, onView }) {
         onPress={() => onDelete(upload.id)}
         style={{ color: colors.bad, fontSize: 13, marginTop: 12 }}
       >
-        Delete now
+        {t("Delete now")}
       </Text>
     </Card>
   );

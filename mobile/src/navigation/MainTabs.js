@@ -5,6 +5,7 @@ import AccountScreen from "../screens/AccountScreen";
 import ChecksScreen from "../screens/ChecksScreen";
 import PeopleScreen from "../screens/PeopleScreen";
 import TimelineScreen from "../screens/TimelineScreen";
+import { t } from "../i18n";
 import { colors } from "../theme";
 
 const Tab = createBottomTabNavigator();
@@ -23,12 +24,12 @@ export default function MainTabs({ data }) {
         tabBarBadge: route.name === "Checks" && data.pendingForMe ? data.pendingForMe : undefined,
       })}
     >
-      <Tab.Screen name="Timeline">{(props) => <TimelineScreen {...props} data={data} />}</Tab.Screen>
-      <Tab.Screen name="People">
+      <Tab.Screen name="Timeline" options={{ title: t("Uploads") }}>{(props) => <TimelineScreen {...props} data={data} />}</Tab.Screen>
+      <Tab.Screen name="People" options={{ title: t("People") }}>
         {(props) => <PeopleScreen {...props} data={data} uploads={data.uploads} />}
       </Tab.Screen>
-      <Tab.Screen name="Checks">{(props) => <ChecksScreen {...props} data={data} />}</Tab.Screen>
-      <Tab.Screen name="Account" component={AccountScreen} />
+      <Tab.Screen name="Checks" options={{ title: t("Checks") }}>{(props) => <ChecksScreen {...props} data={data} />}</Tab.Screen>
+      <Tab.Screen name="Account" component={AccountScreen} options={{ title: t("Account") }} />
     </Tab.Navigator>
   );
 }

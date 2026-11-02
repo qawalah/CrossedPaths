@@ -3,6 +3,7 @@ import { ScrollView, Switch, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Button from "../components/Button";
 import { getServerState, probeServer, setServerAddresses } from "../api";
+import { t } from "../i18n";
 import { colors } from "../theme";
 import { useAuth } from "../auth";
 import { useToast } from "../components/Toast";
@@ -31,24 +32,24 @@ export default function SettingsScreen({ navigation }) {
 
   async function save() {
     const h = home.trim(), a = alt.trim();
-    if (!URL_RE.test(h)) return toast("Enter the server address in full, starting with http:// or https://", true);
-    if (a && !URL_RE.test(a)) return toast("Enter the backup address in full, starting with http:// or https://", true);
+    if (!URL_RE.test(h)) return toast(t("Enter the server address in full, starting with http:// or https://"), true);
+    if (a && !URL_RE.test(a)) return toast(t("Enter the backup address in full, starting with http:// or https://"), true);
     setBusy(true);
     try {
       if (a) {
         const [ph, pa] = await Promise.all([probeServer(h, 4000), probeServer(a, 4000)]);
         if (ph.cfg && pa.cfg && ph.cfg.instance && pa.cfg.instance && ph.cfg.instance !== pa.cfg.instance) {
           setTest({ home: ph, alt: pa, mismatch: true });
-          return toast("Those two addresses are different servers. Check the backup address.", true);
+          return toast(t("Those two addresses are different servers. Check the backup address."), true);
         }
       }
       await setServerAddresses({ home: h, alt: a, auto });
       try {
         await refreshConfig();
-        toast("Server addresses saved");
+        toast(t("Server addresses saved"));
       } catch (e) {
         // Saved anyway (you may be setting it up away from home), but say so.
-        toast("Saved, but the server can't be reached right now. Check the addresses and your connection.", true);
+        toast(t("Saved, but the server can't be reached right now. Check the addresses and your connection."), true);
       }
       navigation.goBack();
     } finally {
@@ -63,6 +64,8 @@ export default function SettingsScreen({ navigation }) {
     borderRadius: 12,
     padding: 12,
     color: colors.text,
+    textAlign: "left", // addresses are always left-to-right
+    writingDirection: "ltr",
   };
 
   return (
@@ -75,14 +78,14 @@ export default function SettingsScreen({ navigation }) {
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 18 }}>
           <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: colors.good }} />
           <Text style={{ color: colors.muted, fontSize: 13, flex: 1 }} numberOfLines={1}>
-            Using {now.via === "backup" ? "the backup address" : "the main address"} · {now.active}
+            {now.via === "backup" ? t("Using the backup address") : t("Using the main address")} · {now.active}
           </Text>
         </View>
       ) : null}
 
-      <Text style={{ color: colors.text, fontWeight: "700", fontSize: 15 }}>Server address</Text>
+      <Text style={{ color: colors.text, fontWeight: "700", fontSize: 15 }}>{t("Server address")}</Text>
       <Text style={{ color: colors.muted, fontSize: 12.5, marginTop: 4, marginBottom: 8, lineHeight: 18 }}>
-        Your CrossPaths server's address, starting with https://.
+        {t("Your CrossPaths server's address, starting with https://.")}
       </Text>
       <TextInput
         value={home}
@@ -96,9 +99,9 @@ export default function SettingsScreen({ navigation }) {
       />
       <TestLine r={test && test.home} />
 
-      <Text style={{ color: colors.text, fontWeight: "700", fontSize: 15, marginTop: 22 }}>Backup address (optional)</Text>
+      <Text style={{ color: colors.text, fontWeight: "700", fontSize: 15, marginTop: 22 }}>{t("Backup address (optional)")}</Text>
       <Text style={{ color: colors.muted, fontSize: 12.5, marginTop: 4, marginBottom: 8, lineHeight: 18 }}>
-        Another address of the same server, used when the main one can't be reached.
+        {t("Another address of the same server, used when the main one can't be reached.")}
       </Text>
       <TextInput
         value={alt}
@@ -112,7 +115,7 @@ export default function SettingsScreen({ navigation }) {
       />
       <TestLine r={test && test.alt} />
       {test && test.mismatch ? (
-        <Text style={{ color: colors.bad, fontSize: 12.5, marginTop: 6 }}>These two addresses are different CrossPaths servers.</Text>
+        <Text style={{ color: colors.bad, fontSize: 12.5, marginTop: 6 }}>{t("These two addresses are different CrossPaths servers.")}</Text>
       ) : null}
 
       <View
@@ -130,21 +133,20 @@ export default function SettingsScreen({ navigation }) {
         }}
       >
         <View style={{ flex: 1 }}>
-          <Text style={{ color: colors.text, fontWeight: "700" }}>Switch automatically</Text>
+          <Text style={{ color: colors.text, fontWeight: "700" }}>{t("Switch automatically")}</Text>
           <Text style={{ color: colors.muted, fontSize: 12.5, marginTop: 3, lineHeight: 18 }}>
-            Use the main address when it answers, the backup when it doesn't. Checked when the app opens, when you come back to it, and
-            whenever the server can't be reached.
+            {t("Use the main address when it answers, the backup when it doesn't. Checked when the app opens, when you come back to it, and whenever the server can't be reached.")}
           </Text>
         </View>
         <Switch value={auto && !!alt.trim()} disabled={!alt.trim()} onValueChange={setAuto} trackColor={{ true: colors.accent, false: colors.line }} />
       </View>
       {alt.trim() && !auto ? (
-        <Text style={{ color: colors.muted, fontSize: 12.5, marginTop: 8 }}>Off: the app always uses the main address.</Text>
+        <Text style={{ color: colors.muted, fontSize: 12.5, marginTop: 8 }}>{t("Off: the app always uses the main address.")}</Text>
       ) : null}
 
       <View style={{ flexDirection: "row", gap: 10, marginTop: 24 }}>
-        <Button title="Test" variant="ghost" onPress={runTest} />
-        <Button title="Save" onPress={save} loading={busy} style={{ flex: 1 }} />
+        <Button title={t("Test")} variant="ghost" onPress={runTest} />
+        <Button title={t("Save")} onPress={save} loading={busy} style={{ flex: 1 }} />
       </View>
     </ScrollView>
   );
@@ -152,12 +154,12 @@ export default function SettingsScreen({ navigation }) {
 
 function TestLine({ r }) {
   if (!r) return null;
-  if (r.pending) return <Text style={{ color: colors.muted, fontSize: 12.5, marginTop: 6 }}>Checking…</Text>;
+  if (r.pending) return <Text style={{ color: colors.muted, fontSize: 12.5, marginTop: 6 }}>{t("Checking…")}</Text>;
   if (r.cfg)
     return (
       <Text style={{ color: colors.good, fontSize: 12.5, marginTop: 6 }}>
-        ✓ Reachable · CrossPaths {r.cfg.version} · {r.ms} ms
+        {t("✓ Reachable · CrossPaths {v} · {ms} ms", { v: r.cfg.version, ms: r.ms })}
       </Text>
     );
-  return <Text style={{ color: colors.bad, fontSize: 12.5, marginTop: 6 }}>✗ Not reachable from here ({r.error})</Text>;
+  return <Text style={{ color: colors.bad, fontSize: 12.5, marginTop: 6 }}>{t("✗ Not reachable from here ({error})", { error: r.error })}</Text>;
 }
