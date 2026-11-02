@@ -28,7 +28,7 @@ def _client_keys():
 
 def _server_messages():
     app = open(os.path.join(ROOT, "server", "app.py"), encoding="utf-8").read()
-    msgs = set(re.findall(r'\berr\("([^"{}]+)"\)', app))
+    msgs = set(re.findall(r'\berr\("([^"{}]+)"[,)]', app))   # err("…") and err("…", 403, …)
     spoof = open(os.path.join(ROOT, "crosspaths", "spoofcheck.py"), encoding="utf-8").read()
     for m in re.findall(r'reasons\.append\(f?"([^"]+)"\)', spoof):
         msgs.add(re.sub(r"\{[^}]*\}", "{n}", m))

@@ -974,6 +974,19 @@ const AR_STR = {
   "That's too few location points to compare (at least 20 are needed).": "نقاط الموقع قليلة جدًا للمقارنة (يلزم 20 نقطة على الأقل).",
   "Too many timelines at once (limit 50)": "خطوط زمنية كثيرة دفعة واحدة (الحد 50)",
   "format must be gpx, geojson or csv": "يجب أن تكون الصيغة gpx أو geojson أو csv",
+  "Couldn't load the list of countries from download.geofabrik.de. Check the server's internet access.": "تعذّر تحميل قائمة الدول من download.geofabrik.de. تحقّق من اتصال الخادم بالإنترنت.",
+  "Enter the full number with its country code, for example +966 55 123 4567.": "أدخل الرقم كاملًا مع رمز الدولة، مثل ⁦+966 55 123 4567⁩.",
+  "Google sign-in failed. Try again.": "تعذّر تسجيل الدخول بحساب Google. حاول مرة أخرى.",
+  "One of those timelines has expired or was deleted. Choose it again from the list.": "انتهت صلاحية أحد هذه الخطوط الزمنية أو حُذف. اختره مرة أخرى من القائمة.",
+  "Only the server's admins can do this": "لا يمكن القيام بذلك إلا لمشرفي الخادم",
+  "Sign-in by phone isn't available for this country yet.": "تسجيل الدخول برقم الهاتف غير متاح لهذه الدولة بعد.",
+  "That code is wrong or has expired.": "الرمز غير صحيح أو انتهت صلاحيته.",
+  "That is already used by another account": "هذا مستخدم بالفعل في حساب آخر",
+  "That timeline has expired. Please build it again.": "انتهت صلاحية هذا الخط الزمني. أنشئه مرة أخرى من فضلك.",
+  "This already has an account. Sign in instead.": "يوجد حساب بهذا بالفعل. سجّل الدخول بدلًا من ذلك.",
+  "This sign-up has expired. Start again.": "انتهت مهلة إنشاء الحساب. ابدأ من جديد.",
+  "Too many codes requested. Try again later.": "طلبت رموزًا كثيرة. حاول مرة أخرى لاحقًا.",
+  "We couldn't send a WhatsApp message to this number. Check the number or use another way to sign in.": "تعذّر إرسال رسالة واتساب إلى هذا الرقم. تحقّق من الرقم أو استخدم طريقة أخرى لتسجيل الدخول.",
 /*AR:end*/
 };
 const t = (s, p) => { const r = (RTL && AR_STR[s]) || s; return p ? r.replace(/\{(\w+)\}/g, (m, k) => (p[k] != null ? p[k] : m)) : r; };

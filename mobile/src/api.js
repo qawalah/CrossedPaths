@@ -199,7 +199,8 @@ const TIMEOUT_MS = 12000;
 const UPLOAD_TIMEOUT_MS = 180000;
 
 async function request(path, opts = {}, retried = false) {
-  const { method = "GET", body, form, auth = true, raw = false } = opts;
+  // keepSession: a 401 here means "wrong code / bad Google token", not "signed out".
+  const { method = "GET", body, form, auth = true, raw = false, keepSession = false } = opts;
   if (resolving) await resolving.catch(() => {}); // an address check is running: use its answer
   const base = ACTIVE;
   if (!base) throw new ApiError(t("Server address not set. Open Settings and enter your CrossPaths server URL."), 0);
@@ -249,12 +250,14 @@ async function request(path, opts = {}, retried = false) {
   } catch (e) {
     /* no/invalid body */
   }
-  if (res.status === 401 && auth) {
+  if (res.status === 401 && auth && !keepSession) {
     if (onUnauthorized) onUnauthorized();
     throw new ApiError(t("Your session has expired. Please sign in again."), 401);
   }
   if (!res.ok) {
-    throw new ApiError(json && json.error ? serverMsg(json.error) : t("Request failed ({status})", { status: res.status }), res.status);
+    const e = new ApiError(json && json.error ? serverMsg(json.error) : t("Request failed ({status})", { status: res.status }), res.status);
+    e.reason = json && json.reason;
+    throw e;
   }
   return json;
 }
@@ -264,6 +267,15 @@ export const Api = {
   config: () => request("/api/config", { auth: false }),
   register: (handle, password, invite) => request("/api/register", { method: "POST", body: { handle, password, invite }, auth: false }),
   login: (handle, password) => request("/api/login", { method: "POST", body: { handle, password }, auth: false }),
+  // Phone (code by WhatsApp) and Google. Both answer {token, user} for a known account, or
+  // {needs_signup, signup_token} to finish with authComplete; signed in, they link instead.
+  phoneStart: (phone, lang) => request("/api/auth/phone/start", { method: "POST", body: { phone, lang }, auth: false }),
+  phoneVerify: (phone, code) => request("/api/auth/phone/verify", { method: "POST", body: { phone, code }, auth: false }),
+  googleSignIn: (idToken) => request("/api/auth/google", { method: "POST", body: { id_token: idToken }, auth: false }),
+  authComplete: (signupToken, handle, displayName, invite) =>
+    request("/api/auth/complete", { method: "POST", body: { signup_token: signupToken, handle, display_name: displayName, invite }, auth: false }),
+  linkPhone: (phone, code) => request("/api/auth/phone/verify", { method: "POST", body: { phone, code }, keepSession: true }),
+  linkGoogle: (idToken) => request("/api/auth/google", { method: "POST", body: { id_token: idToken }, keepSession: true }),
   me: () => request("/api/me"),
   updateSettings: (patch) => request("/api/me/settings", { method: "PUT", body: patch }),
 

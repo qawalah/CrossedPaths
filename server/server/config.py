@@ -45,6 +45,21 @@ class Config:
     ROADS_CATALOG_URL = os.environ.get("ROADS_CATALOG_URL", "https://download.geofabrik.de/index-v1-nogeom.json")
     ROADS_MAX_DOWNLOAD_MB = int(os.environ.get("ROADS_MAX_DOWNLOAD_MB", "1500"))
 
+    # Other sign-in methods (password sign-in is always on). See HANDOVER.md "Sign-in methods".
+    AUTH_PHONE = _bool("AUTH_PHONE", False)                              # phone number + code sent by WhatsApp
+    AUTH_GOOGLE = _bool("AUTH_GOOGLE", False)
+    GOOGLE_CLIENT_IDS = os.environ.get("GOOGLE_CLIENT_IDS", "")          # comma list; the first (web client) is sent to apps
+    PHONE_COUNTRIES = os.environ.get("PHONE_COUNTRIES", "")              # optional dial-code allow-list, e.g. "+966,+971"; empty = all
+    OTP_TTL_MINUTES = float(os.environ.get("OTP_TTL_MINUTES", "10"))
+    LIMIT_OTP_PER_PHONE_PER_HOUR = int(os.environ.get("LIMIT_OTP_PER_PHONE_PER_HOUR", "3"))   # 0 = no limit
+    LIMIT_OTP_PER_IP_PER_HOUR = int(os.environ.get("LIMIT_OTP_PER_IP_PER_HOUR", "20"))        # 0 = no limit (use behind a proxy that hides client IPs)
+    LIMIT_OTP_PER_DAY = int(os.environ.get("LIMIT_OTP_PER_DAY", "500"))                       # whole server; caps the messaging bill
+    WHATSAPP_TOKEN = os.environ.get("WHATSAPP_TOKEN", "")
+    WHATSAPP_PHONE_ID = os.environ.get("WHATSAPP_PHONE_ID", "")
+    WHATSAPP_TEMPLATE = os.environ.get("WHATSAPP_TEMPLATE", "")          # an approved *authentication* template
+    WHATSAPP_TEMPLATE_LANGS = os.environ.get("WHATSAPP_TEMPLATE_LANGS", "en,ar")   # languages it's approved in; first = default
+    WHATSAPP_API_VERSION = os.environ.get("WHATSAPP_API_VERSION", "v20.0")
+
     @classmethod
     def load_keys(cls):
         """SECRET_KEY signs login tokens; DATA_KEY encrypts stored timelines. Generated on first run."""
