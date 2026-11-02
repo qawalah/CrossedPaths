@@ -75,7 +75,7 @@ Main features:
 - `applicationId` / namespace: `com.example.crosspaths`. **This must change before Play**: Play
   rejects `com.example.*`. The suggested name is `com.abu.crosspaths`. Changing it makes it a new
   app for anyone with the sideloaded version, so they'll need to install it fresh.
-- `versionCode` **19**, `versionName` **1.14.0** (in `mobile/app.json` and
+- `versionCode` **20**, `versionName` **1.14.1** (in `mobile/app.json` and
   `mobile/android/app/build.gradle`). `package.json` still says 1.0.0; ignore it.
 - **Signing:** there's no own key yet. Release builds are signed with React Native's stock
   **debug keystore** (`android/app/debug.keystore`, alias `androiddebugkey`; deliberately not in
@@ -314,8 +314,13 @@ route files then. Separate workouts close together in place (within 200 m and 6 
   English text is the translation key. Web: `AR_STR` in `index.html`, `t()`/`pl()`/`serverMsg()`.
   Mobile: `src/i18n.js` with the dictionary in `src/i18n.ar.js`. `server/tests/test_i18n.py` fails
   if a string or fixed server message has no Arabic entry. Never name a local variable `t` where
-  `t()` is called. Android applies RTL only at launch, so a language change saves the choice,
-  calls `I18nManager.forceRTL`/`allowRTL` and asks to reopen the app (`src/changeLanguage.js`);
+  `t()` is called. On Android the language is live: `App.js` calls `syncLanguage()` whenever the UI
+  starts or returns to the front (Android can keep the JS running after "closing" the app, so module load
+  is not a safe moment), and a change in Account switches the text at once. Module-level lists of
+  labels are built inside `onLanguage(() => ...)` so they rebuild; never compute translated text or
+  `UI_LOCALE`/`RTL` in a plain module-level `const`. Only the layout direction waits: Android applies
+  RTL when the UI is created, so a change calls `I18nManager.forceRTL`/`allowRTL` and, if the layout
+  no longer matches, asks to reopen the app (`src/changeLanguage.js`);
   `android:supportsRtl="true"` is in the manifest and the config plugin. Time axes (date bar, welcome
   pager, chip rows) are forced `direction: ltr`; back/next icons mirror (`components/Icon.js`).
   Hermes has no `Intl.PluralRules`, so `pl()` writes the rules out.

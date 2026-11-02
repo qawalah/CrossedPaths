@@ -1,15 +1,18 @@
 import * as SecureStore from "expo-secure-store";
 import { useEffect, useState } from "react";
-import { t } from "./i18n";
+import { onLanguage, t } from "./i18n";
 
 // Settings for the date scrubber on My timeline. Saved on the phone only.
 const KEY = "cp_scrubber";
 
-export const ZOOM_GESTURES = [
+export let ZOOM_GESTURES;
+onLanguage(() => {
+  ZOOM_GESTURES = [
   ["pull", t("Slide up / down")],
   ["hold", t("Hold still")],
   ["both", t("Both")],
 ];
+});
 export const DEFAULT_SCRUBBER = { gesture: "pull", holdMs: 600, tutorialSeen: false };
 
 let prefs = { ...DEFAULT_SCRUBBER };

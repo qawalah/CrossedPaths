@@ -1,13 +1,15 @@
 import { Alert, BackHandler } from "react-native";
-import { setLanguage } from "./i18n";
+import { layoutMatches, setLanguage } from "./i18n";
 
-/** Save the language and ask for a restart: Android applies a language (and its layout direction) when the app
- *  starts. Both languages are shown, since the person may not read the one the app is in right now. */
+/** Save the language and switch the text straight away. Android sets the layout direction (right-to-left
+ *  for Arabic) only when the app's screen is created, so if that has to flip, ask to reopen the app.
+ *  Both languages are shown, since the person may not read the one the app was in. */
 export async function changeLanguage(pref) {
   await setLanguage(pref);
+  if (layoutMatches()) return;
   Alert.alert(
-    "Restart · إعادة التشغيل",
-    "The language changes the next time you open CrossPaths. Close it now and open it again.\n\nتتغير اللغة عند فتح CrossPaths في المرة القادمة. أغلقه الآن ثم افتحه من جديد.",
+    "Reopen · إعادة الفتح",
+    "To flip the layout direction, close CrossPaths and open it again.\n\nلقلب اتجاه الواجهة، أغلق CrossPaths ثم افتحه من جديد.",
     [
       { text: "Later · لاحقًا", style: "cancel" },
       { text: "Close app · إغلاق", onPress: () => BackHandler.exitApp() },

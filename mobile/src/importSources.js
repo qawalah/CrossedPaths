@@ -1,9 +1,11 @@
 // Where people can get a location history from, and how to export it.
 // **text** is shown in bold. The web client has the same list (SOURCES in
 // server/server/static/index.html): keep the two in step.
-import { t } from "./i18n";
+import { onLanguage, t } from "./i18n";
 
-export const SOURCES = [
+export let SOURCES;
+onLanguage(() => {
+  SOURCES = [
   {
     id: "google",
     name: t("Google Maps"),
@@ -85,6 +87,7 @@ export const SOURCES = [
     ],
   },
 ];
+});
 
 // The illustrated step-by-step guide for each source (docs/wiki in the repo).
 export const GUIDE_BASE = "https://github.com/qawalah/CrossedPaths/blob/main/docs/wiki/";

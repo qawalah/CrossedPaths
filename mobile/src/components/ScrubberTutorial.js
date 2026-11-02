@@ -3,7 +3,7 @@ import { Animated, Easing, Modal, View } from "react-native";
 import { Text } from "./AppText";
 import Svg, { Circle } from "react-native-svg";
 import Button from "./Button";
-import { RTL, t } from "../i18n";
+import { onLanguage, RTL, t } from "../i18n";
 import { colors, UI_LOCALE } from "../theme";
 
 // Shown the first time someone opens My timeline (and from the "?" next to the date bar).
@@ -11,8 +11,14 @@ import { colors, UI_LOCALE } from "../theme";
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 const LOOP_MS = 7600;
-const BUBBLE = ["2024", new Date(2024, 2, 1).toLocaleDateString(UI_LOCALE, { month: "long", year: "numeric" }), new Date(2024, 2, 14).toLocaleDateString(UI_LOCALE, { weekday: "short", day: "numeric", month: "short" })];
-const LEVEL = [t("Years"), t("Months"), t("Days")];
+let BUBBLE;
+onLanguage(() => {
+  BUBBLE = ["2024", new Date(2024, 2, 1).toLocaleDateString(UI_LOCALE, { month: "long", year: "numeric" }), new Date(2024, 2, 14).toLocaleDateString(UI_LOCALE, { weekday: "short", day: "numeric", month: "short" })];
+});
+let LEVEL;
+onLanguage(() => {
+  LEVEL = [t("Years"), t("Months"), t("Days")];
+});
 // [t, x (0-1 across the bar), lift (0 on the bar, 1 = one zoom step up), finger visible]
 const PATH = [
   [0, 0.2, 0, 0],

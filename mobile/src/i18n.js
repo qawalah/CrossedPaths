@@ -1,7 +1,9 @@
 // English / Arabic. English text is the translation key; i18n.ar.js maps it to Arabic and a missing
-// entry falls back to English. The language (and with it the layout direction) is read once, when the
-// app starts, because Android only applies right-to-left layout at launch: changing it in Settings
-// takes effect the next time the app is opened (see setLanguage).
+// entry falls back to English.
+// The language is live: it is read again whenever the app's UI starts (Android can keep the JS running
+// after the app is "closed", so module load is not a reliable moment), and a change in Account applies
+// to the text at once. Lists of labels built from t() register with onLanguage() so they are rebuilt.
+// Only the layout direction waits for a restart: Android applies right-to-left when the UI is created.
 import * as SecureStore from "expo-secure-store";
 import { I18nManager } from "react-native";
 import AR from "./i18n.ar";
@@ -27,9 +29,11 @@ const deviceIsArabic = (loc) => /^ar\b/i.test(loc);
 const langFor = (pref, loc) => (pref !== "system" ? pref : deviceIsArabic(loc) ? "ar" : "en");
 
 export const DEVICE_LOCALE = deviceLocale();
-export const LANG_PREF = savedPref(); // "system" | "en" | "ar"
-export const LANG = langFor(LANG_PREF, DEVICE_LOCALE);
-export const RTL = LANG === "ar";
+// Live bindings: importers always see the current values.
+export let LANG_PREF = "system"; // "system" | "en" | "ar"
+export let LANG = "en";
+export let RTL = false;
+export let UI_LOCALE = "en-GB";
 
 /** Arabic needs the layout mirrored; English must not be, even on an Arabic phone. Persisted natively, applied at launch. */
 function applyDirection(rtl) {
@@ -45,7 +49,6 @@ function applyDirection(rtl) {
     /* not fatal: the layout just stays as it is */
   }
 }
-if (I18nManager.isRTL !== RTL) applyDirection(RTL);
 
 // English UI: English dates even on an Arabic phone (no Hijri dates or Arabic digits mixed into English
 // sentences). Arabic UI: Arabic month and day names, but Gregorian dates and Western digits.
@@ -58,7 +61,43 @@ function arabicLocale() {
   }
   return "ar";
 }
-export const UI_LOCALE = RTL ? arabicLocale() : /^en\b/i.test(DEVICE_LOCALE) ? DEVICE_LOCALE : "en-GB";
+
+const rebuilders = [];
+const listeners = new Set();
+/** Run fn now and again whenever the language changes: for module-level lists of translated labels. */
+export function onLanguage(fn) {
+  rebuilders.push(fn);
+  fn();
+}
+/** For the app root: called after a language change, so it can re-render everything. */
+export function subscribeLanguage(fn) {
+  listeners.add(fn);
+  return () => listeners.delete(fn);
+}
+
+function applyLanguage(pref) {
+  LANG_PREF = pref;
+  LANG = langFor(pref, DEVICE_LOCALE);
+  RTL = LANG === "ar";
+  UI_LOCALE = RTL ? arabicLocale() : /^en\b/i.test(DEVICE_LOCALE) ? DEVICE_LOCALE : "en-GB";
+  rebuilders.forEach((fn) => fn());
+  listeners.forEach((fn) => fn(LANG));
+}
+
+/** Read the saved choice and apply it if it changed. Returns true when the language changed. */
+export function syncLanguage() {
+  const pref = savedPref();
+  const before = LANG;
+  if (pref !== LANG_PREF || LANG !== langFor(pref, DEVICE_LOCALE)) applyLanguage(pref);
+  // The layout direction for the next time the UI is created (it can't change under a running UI).
+  if (I18nManager.isRTL !== RTL) applyDirection(RTL);
+  return LANG !== before;
+}
+/** Does the layout on screen now match the language? (false until the UI is created again) */
+export const layoutMatches = () => I18nManager.isRTL === RTL;
+
+applyLanguage(savedPref());
+if (I18nManager.isRTL !== RTL) applyDirection(RTL);
 
 /** A username keeps its own direction inside Arabic text. */
 export const H = (h) => `\u2066@${h}\u2069`;
@@ -126,7 +165,7 @@ export function serverMsg(s) {
   return t(s);
 }
 
-/** Save the choice and set the layout direction for the next launch. Returns the language it will be in. */
+/** Save the choice, switch the text now, and set the layout direction for the next launch. */
 export async function setLanguage(pref) {
   try {
     if (pref === "system") await SecureStore.deleteItemAsync(KEY);
@@ -134,7 +173,7 @@ export async function setLanguage(pref) {
   } catch (e) {
     /* the choice just isn't remembered */
   }
-  const next = langFor(pref, DEVICE_LOCALE);
-  applyDirection(next === "ar");
-  return next;
+  applyLanguage(pref);
+  applyDirection(RTL);
+  return LANG;
 }

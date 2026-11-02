@@ -15,9 +15,11 @@ const LIGHT = {
   warnBg: "#fff4dc", warnBorder: "#f1c77a", warnText: "#7a4a00", badBg: "#fdecee", badBorder: "#f3b4bc", badText: "#9f1d2c",
   toast: "#ffffff", activeBg: "#e3f5f2",
 };
-import { DEVICE_LOCALE, RTL, UI_LOCALE, pl, t } from "./i18n";
+import { DEVICE_LOCALE, onLanguage, pl, RTL, t, UI_LOCALE } from "./i18n";
 
-export const ACCENTS = {
+export let ACCENTS;
+onLanguage(() => {
+  ACCENTS = {
   // [accent, text on the accent] in dark and in light
   teal: { name: t("Teal"), dark: ["#2dd4bf", "#04222a"], light: ["#0d9488", "#ffffff"] },
   blue: { name: t("Blue"), dark: ["#60a5fa", "#061a33"], light: ["#2563eb", "#ffffff"] },
@@ -25,11 +27,15 @@ export const ACCENTS = {
   amber: { name: t("Amber"), dark: ["#fbbf24", "#2a1a02"], light: ["#b45309", "#ffffff"] },
   rose: { name: t("Rose"), dark: ["#fb7185", "#33060f"], light: ["#e11d48", "#ffffff"] },
 };
-export const THEME_MODES = [
+});
+export let THEME_MODES;
+onLanguage(() => {
+  THEME_MODES = [
   ["system", t("System")],
   ["dark", t("Dark")],
   ["light", t("Light")],
 ];
+});
 export const DEFAULT_THEME = { mode: "system", accent: "teal" };
 
 export const colors = { ...DARK, accent: ACCENTS.teal.dark[0], onAccent: ACCENTS.teal.dark[1], isDark: true };
@@ -81,11 +87,14 @@ export function localDayKey(d) {
 export const KIND_COLOR = { same_place: "#3987e5", passing: "#d95926", shared_route: "#199e70" };
 
 // [unused, label] - the icon is drawn by components/KindIcon.js
-export const KIND_LABEL = {
+export let KIND_LABEL;
+onLanguage(() => {
+  KIND_LABEL = {
   same_place: ["", t("Same place")],
   passing: ["", t("Crossed paths")],
   shared_route: ["", t("Travelled together")],
 };
+});
 
 /** What each kind means, for the "?" legend. */
 export function kindHelp(kind, radiusM = 100, windowMin = 15) {
@@ -99,7 +108,6 @@ export function kindHelp(kind, radiusM = 100, windowMin = 15) {
 // Language, locale and direction live in i18n.js. English UI: English dates even on an Arabic phone;
 // Arabic UI: Arabic month/day names with Gregorian dates and Western digits.
 export { DEVICE_LOCALE, UI_LOCALE };
-export const PREFERS_ARABIC = RTL; // place names follow the app's language
 
 export function fmtDay(d) {
   return d.toLocaleDateString(UI_LOCALE, { weekday: "short", day: "numeric", month: "short", year: "numeric" });
@@ -156,15 +164,15 @@ export function trustLabel(level) {
 
 // ---------- place names (from the server's offline place database) ----------
 export function placeOf(e) {
-  return (PREFERS_ARABIC && e.place_ar) || e.place || "";
+  return (RTL && e.place_ar) || e.place || "";
 }
 export function markOf(e) {
-  return (PREFERS_ARABIC && e.landmark_ar) || e.landmark || "";
+  return (RTL && e.landmark_ar) || e.landmark || "";
 }
 /** The city part of a place ("Al Murūj, Riyadh" -> "Riyadh"), for the city filter. */
 export function cityOf(e) {
   const p = placeOf(e);
-  const sep = PREFERS_ARABIC && e.place_ar ? "،" : ",";
+  const sep = RTL && e.place_ar ? "،" : ",";
   const i = p.lastIndexOf(sep);
   return (i >= 0 ? p.slice(i + 1) : p).trim();
 }

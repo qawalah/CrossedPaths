@@ -9,7 +9,7 @@ import { useToast } from "../components/Toast";
 import { confirm } from "../components/confirm";
 import { Api } from "../api";
 import { exportTimeline } from "../exportTimeline";
-import { RTL, pl, serverMsg, t } from "../i18n";
+import { onLanguage, pl, RTL, serverMsg, t } from "../i18n";
 import { useAuth } from "../auth";
 import { EASE_OUT, reduceMotion } from "../motion";
 import { colors, dateStr, hoursLeft, keepPhrase, trustLabel, UI_LOCALE } from "../theme";
@@ -135,7 +135,9 @@ function AddOption({ icon, title, text, onPress }) {
  * what you can do about it. `map: true` means it's worth looking at on the map; anything with
  * `add: true` can improve when more of your own data is added.
  */
-const ANOMALIES = [
+let ANOMALIES;
+onLanguage(() => {
+  ANOMALIES = [
   [/impossible jump/i, t("Points far apart only moments apart. Usually a bad GPS fix, or a photo whose saved place is wrong."), { map: true }],
   [/straight long stretch/i, t("Ruler-straight runs over 1.5 km. Often a flight, or a gap the recording app filled in with a straight line."), { map: true }],
   [/constant speed/i, t("Stretches at exactly the same speed, as a route played back by a mock-location app would be."), { map: true }],
@@ -146,6 +148,7 @@ const ANOMALIES = [
   [/different account/i, t("Someone else uploaded the same timeline. Nothing to fix on your side if it's yours."), {}],
   [/too little data/i, t("There are too few points to judge."), { add: true }],
 ];
+});
 
 function explain(reason) {
   const hit = ANOMALIES.find(([re]) => re.test(reason));
