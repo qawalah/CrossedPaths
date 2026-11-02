@@ -99,7 +99,7 @@ export default function RootNavigator() {
           <>
             <Stack.Screen name="Main">{() => <MainTabs data={data} />}</Stack.Screen>
             <Stack.Screen name="NewCheck" options={{ presentation: "modal", animation: "slide_from_bottom" }}>
-              {(props) => <NewCheckModal {...props} uploads={data.uploads} onDone={data.refresh} />}
+              {(props) => <NewCheckModal {...props} uploads={data.uploads} connections={data.connections} onDone={data.refresh} />}
             </Stack.Screen>
             <Stack.Screen name="ReviewCheck" options={{ presentation: "modal", animation: "slide_from_bottom" }}>
               {(props) => <ReviewCheckModal {...props} checks={data.checks} uploads={data.uploads} onDone={data.refresh} />}

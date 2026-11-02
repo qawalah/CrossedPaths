@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { ScrollView, Text, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 import Slider from "@react-native-community/slider";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Button from "../components/Button";
@@ -11,8 +11,14 @@ import UploadPicker from "../components/UploadPicker";
 
 // Shown when I initiate a check with an accepted connection: choosing my own upload,
 // closeness / time-tolerance and (optional) date range implies my consent immediately.
-export default function NewCheckModal({ route, navigation, uploads, onDone }) {
-  const { connectionId, other } = route.params;
+// Opened from People with a connection already chosen, or from Checks with none: then the
+// person is picked here, from everyone I'm connected to (already checked or not).
+export default function NewCheckModal({ route, navigation, uploads, connections = [], onDone }) {
+  const params = (route && route.params) || {};
+  const people = connections.filter((c) => c.status === "accepted");
+  const [connectionId, setConnectionId] = useState(params.connectionId || null);
+  const picked = people.find((c) => c.id === connectionId);
+  const other = params.connectionId ? params.other : picked && picked.other;
   const insets = useSafeAreaInsets();
   const toast = useToast();
   const [uploadId, setUploadId] = useState(uploads[0] && uploads[0].id);
@@ -27,6 +33,10 @@ export default function NewCheckModal({ route, navigation, uploads, onDone }) {
   const [busy, setBusy] = useState(false);
 
   async function send() {
+    if (!connectionId) {
+      toast("Choose who to check with", true);
+      return;
+    }
     if (!uploadId) {
       toast("Choose a timeline first", true);
       return;
@@ -56,11 +66,46 @@ export default function NewCheckModal({ route, navigation, uploads, onDone }) {
       style={{ flex: 1, backgroundColor: colors.panel }}
       contentContainerStyle={{ padding: 20, paddingTop: insets.top + 16, paddingBottom: 40 }}
     >
-      <Text style={{ color: colors.text, fontSize: 20, fontWeight: "800" }}>Check paths with @{other}</Text>
+      <Text style={{ color: colors.text, fontSize: 20, fontWeight: "800" }}>
+        {params.connectionId ? `Check paths with @${other}` : "Run a check"}
+      </Text>
       <Text style={{ color: colors.muted, marginTop: 8, lineHeight: 20 }}>
         They will only see when and roughly where (about 100 m) your paths crossed — never your
         route or full timeline. Your home and work areas are excluded.
       </Text>
+
+      {params.connectionId ? null : (
+        <>
+          <Label>Check with</Label>
+          {people.length ? (
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+              {people.map((c) => {
+                const on = c.id === connectionId;
+                return (
+                  <Pressable
+                    key={c.id}
+                    onPress={() => setConnectionId(c.id)}
+                    accessibilityRole="radio"
+                    accessibilityState={{ selected: on }}
+                    style={{
+                      paddingVertical: 8,
+                      paddingHorizontal: 14,
+                      borderRadius: 20,
+                      borderWidth: 1,
+                      borderColor: on ? colors.accent : colors.line,
+                      backgroundColor: on ? colors.accent : colors.panel2,
+                    }}
+                  >
+                    <Text style={{ color: on ? colors.onAccent : colors.text, fontWeight: "600" }}>@{c.other}</Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          ) : (
+            <Text style={{ color: colors.muted }}>You're not connected to anyone yet. Connect with someone on People first.</Text>
+          )}
+        </>
+      )}
 
       <Label>Your timeline</Label>
       <UploadPicker uploads={uploads} value={uploadId} onChange={setUploadId} />
