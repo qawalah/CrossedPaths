@@ -130,3 +130,23 @@ CREATE TABLE IF NOT EXISTS shakes (
     result      TEXT
 );
 CREATE INDEX IF NOT EXISTS shakes_at_idx ON shakes (at);
+
+-- Other ways to sign in (phone number, Google). subject_hash is a keyed hash of the
+-- number / Google account id: the plain value is never stored.
+CREATE TABLE IF NOT EXISTS auth_identities (
+    provider     TEXT NOT NULL,
+    subject_hash TEXT NOT NULL,
+    user_id      TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    created_at   REAL NOT NULL,
+    PRIMARY KEY (provider, subject_hash)
+);
+CREATE INDEX IF NOT EXISTS auth_identities_user ON auth_identities (user_id);
+
+-- One live sign-in code per phone (hashed), and a log of sends for rate limits.
+CREATE TABLE IF NOT EXISTS otp_codes (
+    phone_hash TEXT PRIMARY KEY, code_hash TEXT NOT NULL, expires_at REAL NOT NULL, tries INTEGER NOT NULL DEFAULT 0
+);
+CREATE TABLE IF NOT EXISTS otp_sends (phone_hash TEXT NOT NULL, ip TEXT, at REAL NOT NULL);
+CREATE INDEX IF NOT EXISTS otp_sends_phone ON otp_sends (phone_hash, at);
+CREATE INDEX IF NOT EXISTS otp_sends_ip ON otp_sends (ip, at);
+CREATE INDEX IF NOT EXISTS otp_sends_at ON otp_sends (at);

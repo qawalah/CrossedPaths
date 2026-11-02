@@ -3,6 +3,7 @@ import hashlib
 import json
 import os
 import re
+import sqlite3
 import threading
 import time
 from functools import wraps
@@ -14,7 +15,7 @@ from crosspaths.importers import Limits, parse_files
 from crosspaths.privacy import detect_anchor_zones
 from crosspaths.spoofcheck import assess
 
-from . import analysis, retention, runner
+from . import analysis, identity, otp, retention, runner, whatsapp
 from .config import Config
 from .notifications import send_expo_push
 from .db import audit, close_db, get_db, init_db, new_id
@@ -34,6 +35,8 @@ def create_app(overrides=None, start_background=True):
     app = Flask(__name__, static_folder=os.path.join(HERE, "static"), static_url_path="/static")
     app.config.from_object(Config)
     app.config.update(overrides)
+    app.config.setdefault("OTP_SENDER", whatsapp.send_whatsapp_code)
+    app.config.setdefault("GOOGLE_VERIFIER", identity.verify_google)
     app.config["MAX_CONTENT_LENGTH"] = app.config["MAX_UPLOAD_MB"] * 1024 * 1024
     app.config["DATA_PATH"] = init_db(app.config["DATA_DIR"])
     app.teardown_appcontext(close_db)
@@ -42,8 +45,8 @@ def create_app(overrides=None, start_background=True):
         runner.start_purge_loop(app)
 
     # ---------------- helpers ----------------
-    def err(msg, code=400):
-        resp = jsonify({"error": msg})
+    def err(msg, code=400, **extra):
+        resp = jsonify({"error": msg, **extra})
         resp.status_code = code
         abort(resp)
 
@@ -76,7 +79,8 @@ def create_app(overrides=None, start_background=True):
 
     def user_dict(u):
         return {"id": u["id"], "handle": u["handle"], "display_name": u["display_name"],
-                "upload_keep_hours": retention.keep_hours(app.config, u)}
+                "upload_keep_hours": retention.keep_hours(app.config, u),
+                "sign_in_methods": identity.methods(get_db(), u)}
 
     def num(v, lo, hi, default):
         try:
@@ -118,6 +122,8 @@ def create_app(overrides=None, start_background=True):
                         # Same value at every address of this server (main, backup, tunnel), different on any
                         # other server: lets the app switch addresses without ever sending its token elsewhere.
                         "instance": hashlib.sha256(("instance:" + c["SECRET_KEY"]).encode()).hexdigest()[:16],
+                        "auth": {"password": True, "phone": bool(c["AUTH_PHONE"]), "google": google_on(),
+                                 "google_client_id": google_ids()[0] if google_on() else ""},
                         "version": c["VERSION"]})
 
     @app.after_request
@@ -133,28 +139,39 @@ def create_app(overrides=None, start_background=True):
         return jsonify({"error": f"File too large (limit {app.config['MAX_UPLOAD_MB']} MB). Trim the export to a shorter date range, or upload only the files with your routes, and try again."}), 413
 
     # ---------------- auth ----------------
-    @app.post("/api/register")
-    def register():
-        c, d = app.config, body()
+    def create_user(d, password=None):
+        """Checks shared by every way of signing up; inserts the user (not committed) and returns it.
+        password=None: an account that signs in by phone/Google only (empty pw_hash never verifies)."""
+        c = app.config
         if not c["ALLOW_REGISTRATION"]:
             err("Registration is closed", 403)
         if c["INVITE_CODE"] and d.get("invite") != c["INVITE_CODE"]:
             err("Invalid invite code", 403)
         handle = str(d.get("handle", "")).strip().lower().lstrip("@")
-        pw = str(d.get("password", ""))
         if not HANDLE_RE.match(handle):
             err("Username must be 3-30 characters: letters, digits, _ or .")
-        if len(pw) < 10:
+        if password is not None and len(password) < 10:
             err("Password must be at least 10 characters")
         db = get_db()
         if db.execute("SELECT 1 FROM users WHERE handle=?", (handle,)).fetchone():
             err("That username is taken", 409)
         uid = new_id()
         db.execute("INSERT INTO users (id, handle, display_name, pw_hash, created_at) VALUES (?,?,?,?,?)",
-                   (uid, handle, (d.get("display_name") or handle)[:40], hash_password(pw), time.time()))
-        audit(db, uid, "register")
+                   (uid, handle, (d.get("display_name") or handle)[:40],
+                    hash_password(password) if password is not None else "", time.time()))
+        return db.execute("SELECT * FROM users WHERE id=?", (uid,)).fetchone()
+
+    def session(u):
+        return {"token": make_token(u["id"], app.config["SECRET_KEY"]), "user": user_dict(u)}
+
+    @app.post("/api/register")
+    def register():
+        d = body()
+        u = create_user(d, str(d.get("password", "")))
+        db = get_db()
+        audit(db, u["id"], "register")
         db.commit()
-        return jsonify({"token": make_token(uid, c["SECRET_KEY"]), "user": {"id": uid, "handle": handle, "display_name": d.get("display_name") or handle}})
+        return jsonify(session(u))
 
     @app.post("/api/login")
     def login():
@@ -168,7 +185,109 @@ def create_app(overrides=None, start_background=True):
             db.execute("INSERT INTO login_failures (handle, at) VALUES (?,?)", (handle, time.time()))
             db.commit()
             err("Wrong username or password", 401)
-        return jsonify({"token": make_token(u["id"], app.config["SECRET_KEY"]), "user": user_dict(u)})
+        return jsonify(session(u))
+
+    # ---------------- other sign-in methods ----------------
+    def google_ids():
+        return [x.strip() for x in app.config["GOOGLE_CLIENT_IDS"].split(",") if x.strip()]
+
+    def google_on():
+        return bool(app.config["AUTH_GOOGLE"] and google_ids())
+
+    def bearer_user():
+        h = request.headers.get("Authorization", "")
+        uid = read_token(h[7:], app.config["SECRET_KEY"]) if h.startswith("Bearer ") else None
+        return get_db().execute("SELECT * FROM users WHERE id=?", (uid,)).fetchone() if uid else None
+
+    def finish_identity(provider, subject_hash):
+        """A proven phone number / Google account: link it, sign in, or start a sign-up."""
+        db = get_db()
+        owner = identity.find_user(db, provider, subject_hash)
+        me = bearer_user()
+        if me:
+            if owner and owner["id"] != me["id"]:
+                db.commit()
+                err("That is already used by another account", 409)
+            if not owner:
+                identity.link(db, me["id"], provider, subject_hash)
+                audit(db, me["id"], "link_" + provider)
+            db.commit()
+            return jsonify({"linked": True, "user": user_dict(me)})
+        db.commit()
+        if owner:
+            return jsonify(session(owner))
+        return jsonify({"needs_signup": True,
+                        "signup_token": identity.make_signup_token(provider, subject_hash, app.config["SECRET_KEY"])})
+
+    def phone_from(d):
+        if not app.config["AUTH_PHONE"]:
+            abort(404)
+        try:
+            phone = otp.normalize_phone(d.get("phone"), otp.parse_prefixes(app.config["PHONE_COUNTRIES"]))
+        except ValueError as e:
+            if str(e) == "country_not_allowed":
+                err("Sign-in by phone isn't available for this country yet.", 400, reason="country_not_allowed")
+            err("Enter the full number with its country code, for example +966 55 123 4567.", 400, reason="bad_number")
+        return phone, otp.keyed_hash(phone, app.config["DATA_KEY"], "phone-v1")
+
+    @app.post("/api/auth/phone/start")
+    def phone_start():
+        d, db, c = body(), get_db(), app.config
+        phone, ph = phone_from(d)
+        try:
+            code = otp.issue_code(db, ph, request.remote_addr or "", c)
+        except otp.OtpLimit:
+            db.rollback()
+            err("Too many codes requested. Try again later.", 429, reason="rate_limited")
+        db.commit()
+        try:
+            c["OTP_SENDER"](phone, code, str(d.get("lang") or ""), c)
+        except whatsapp.DeliveryFailed:
+            otp.discard_code(db, ph)
+            db.commit()
+            err("We couldn't send a WhatsApp message to this number. Check the number or use another way to sign in.",
+                502, reason="delivery_failed")
+        # Same answer whether or not the number has an account.
+        return jsonify({"sent": True, "channel": "whatsapp", "expires_in": int(c["OTP_TTL_MINUTES"] * 60)})
+
+    @app.post("/api/auth/phone/verify")
+    def phone_verify():
+        d, db = body(), get_db()
+        _, ph = phone_from(d)
+        ok = otp.check_code(db, ph, d.get("code"), app.config)
+        db.commit()
+        if not ok:
+            err("That code is wrong or has expired.", 401, reason="bad_code")
+        return finish_identity(identity.PHONE, ph)
+
+    @app.post("/api/auth/google")
+    def google_signin():
+        if not google_on():
+            abort(404)
+        try:
+            sub = app.config["GOOGLE_VERIFIER"](str(body().get("id_token") or ""), google_ids())
+        except ValueError:
+            err("Google sign-in failed. Try again.", 401)
+        return finish_identity(identity.GOOGLE, otp.keyed_hash(sub, app.config["DATA_KEY"], "google-v1"))
+
+    @app.post("/api/auth/complete")
+    def auth_complete():
+        d, db = body(), get_db()
+        got = identity.read_signup_token(d.get("signup_token"), app.config["SECRET_KEY"])
+        if not got:
+            err("This sign-up has expired. Start again.", 401)
+        provider, sh = got
+        if identity.find_user(db, provider, sh):
+            err("This already has an account. Sign in instead.", 409)
+        u = create_user(d)
+        try:
+            identity.link(db, u["id"], provider, sh)
+        except sqlite3.IntegrityError:
+            db.rollback()
+            err("This already has an account. Sign in instead.", 409)
+        audit(db, u["id"], "register", meta={"method": provider})
+        db.commit()
+        return jsonify(session(u))
 
     @app.get("/api/me")
     @auth
