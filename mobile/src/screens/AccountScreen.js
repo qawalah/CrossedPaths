@@ -1,14 +1,17 @@
 import Constants from "expo-constants";
-import React, { useState } from "react";
-import { Alert, Pressable, ScrollView, Text, View } from "react-native";
+import React, { useEffect, useState } from "react";
+import { Alert, Pressable, ScrollView, Switch, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Button from "../components/Button";
 import Card from "../components/Card";
+import PhoneCodeForm from "../components/PhoneCodeForm";
 import ChipScroller from "../components/ChipScroller";
 import { useToast } from "../components/Toast";
 import { Api } from "../api";
 import { useServerState } from "../useServer";
 import { useAuth } from "../auth";
+import * as biometric from "../biometric";
+import { googleIdToken } from "../google";
 import { useTheme } from "../themeContext";
 import { ACCENTS, colors, keepLabel, THEME_MODES } from "../theme";
 
@@ -75,6 +78,8 @@ export default function AccountScreen({ navigation }) {
         ) : null}
         <Button title="Sign out" variant="bad" onPress={confirmLogout} style={{ marginTop: 14 }} />
       </Card>
+
+      <SignInCard />
 
       <Card>
         <Text style={{ color: colors.text, fontWeight: "700", fontSize: 15 }}>Appearance</Text>
@@ -171,6 +176,89 @@ export default function AccountScreen({ navigation }) {
         <Row label="Results are deleted after" value={cfg.results_ttl_days ? `${cfg.results_ttl_days} days` : "—"} />
       </Card>
     </ScrollView>
+  );
+}
+
+// Fingerprint lock, and adding a phone number / Google account as other ways into this account.
+function SignInCard() {
+  const { user, setUser, cfg } = useAuth();
+  const toast = useToast();
+  const [bioAvail, setBioAvail] = useState(false);
+  const [bioOn, setBioOn] = useState(false);
+  const [addingPhone, setAddingPhone] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const methods = cfg.auth || {};
+  const have = (user && user.sign_in_methods) || [];
+
+  useEffect(() => {
+    biometric.isAvailable().then(setBioAvail);
+    biometric.isEnabled().then(setBioOn);
+  }, []);
+
+  async function toggleBio(on) {
+    // Prove it works before turning it on, so nobody locks themselves out.
+    if (on && !(await biometric.unlock("Confirm to turn on the lock"))) return;
+    await biometric.setEnabled(on);
+    setBioOn(on);
+  }
+
+  async function addPhone(phone, code) {
+    const r = await Api.linkPhone(phone, code);
+    setUser(r.user);
+    setAddingPhone(false);
+    toast("Phone number added. You can now sign in with it.");
+  }
+
+  async function addGoogle() {
+    setBusy(true);
+    try {
+      const t = await googleIdToken(methods.google_client_id);
+      if (!t) return;
+      setUser((await Api.linkGoogle(t)).user);
+      toast("Google account added. You can now sign in with it.");
+    } catch (e) {
+      toast(e.message, true);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const offline = !user || user.offline;
+  const phoneRow = methods.phone && !have.includes("phone");
+  const googleRow = methods.google && !have.includes("google");
+  if (!bioAvail && !phoneRow && !googleRow && !have.length) return null;
+
+  return (
+    <Card>
+      <Text style={{ color: colors.text, fontWeight: "700", fontSize: 15 }}>Sign-in</Text>
+      {have.length ? (
+        <Text style={{ color: colors.muted, fontSize: 12.5, marginTop: 6 }}>
+          You can sign in with: {have.map((m) => ({ password: "password", phone: "phone number", google: "Google" }[m] || m)).join(", ")}
+        </Text>
+      ) : null}
+      {bioAvail ? (
+        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 12 }}>
+          <View style={{ flex: 1, paddingRight: 12 }}>
+            <Text style={{ color: colors.text }}>Unlock with fingerprint</Text>
+            <Text style={{ color: colors.muted, fontSize: 12.5, marginTop: 2 }}>Asks when you open the app</Text>
+          </View>
+          <Switch value={bioOn} onValueChange={toggleBio} trackColor={{ true: colors.accent, false: colors.line }} />
+        </View>
+      ) : null}
+      {phoneRow && !offline ? (
+        addingPhone ? (
+          <View style={{ marginTop: 8 }}>
+            <PhoneCodeForm onVerified={addPhone} submitTitle="Add number" />
+            <Text onPress={() => setAddingPhone(false)} style={{ color: colors.accent2, textAlign: "center", marginTop: 14 }}>Cancel</Text>
+          </View>
+        ) : (
+          <Button title="Add a phone number (WhatsApp)" variant="ghost" onPress={() => setAddingPhone(true)} style={{ marginTop: 12 }} />
+        )
+      ) : null}
+      {googleRow && !offline ? (
+        <Button title="Add a Google account" variant="ghost" onPress={addGoogle} loading={busy} style={{ marginTop: 10 }} />
+      ) : null}
+    </Card>
   );
 }
 

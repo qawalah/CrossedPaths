@@ -6,6 +6,7 @@ import { useAuth } from "../auth";
 import { useAppData } from "../useAppData";
 import { registerForPushNotifications } from "../notifications";
 import AuthScreen from "../screens/AuthScreen";
+import LockScreen from "../screens/LockScreen";
 import SettingsScreen from "../screens/SettingsScreen";
 import NewCheckModal from "../screens/NewCheckModal";
 import ReviewCheckModal from "../screens/ReviewCheckModal";
@@ -30,7 +31,7 @@ const navRef = createNavigationContainerRef();
 
 
 export default function RootNavigator() {
-  const { user, ready, cfg } = useAuth();
+  const { user, ready, cfg, locked } = useAuth();
   const appData = useAppData(!!user);
   const data = { ...appData, cfg };
   // A theme change remounts the navigator (every screen reads the new colours) but keeps where you are.
@@ -73,6 +74,9 @@ export default function RootNavigator() {
       </View>
     );
   }
+
+  // navState keeps where the user was, so unlocking puts them back on the same screen.
+  if (locked) return <LockScreen />;
 
   return (
     <NavigationContainer
