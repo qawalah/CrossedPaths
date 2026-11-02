@@ -23,7 +23,7 @@ Server (from `server/`):
 
 ```bash
 pip install -r requirements.txt pytest
-python -m pytest -q                  # 99 tests, no network (PLACE_NAMES=False)
+python -m pytest -q                  # 118 tests, no network (PLACE_NAMES=False)
 DATA_DIR=./data python -c "from server.app import create_app; create_app().run(port=8787)"
 ```
 
@@ -65,16 +65,25 @@ read its log in the Actions tab and fix it.
 - Privacy: nothing is compared without both people's consent; the API never returns the other
   person's track; times rounded to 15 min, places blurred ~100 m; home/work zones excluded;
   uploads encrypted at rest and purged per the user's retention setting.
+- Street maps (journeys drawn along roads) route on the server with Valhalla from OpenStreetMap
+  data an admin downloads (`server/roads.py`, `crosspaths/snap.py`). Display only, never sent to
+  a public router, never used for matching.
 - Place names come from offline GeoNames on the server. Street names are fetched client-side,
   only on tap.
 - Maps are MapLibre + OpenFreeMap on both clients, not Google Maps. In GL JS, never pass
   `padding` to `easeTo`; use `offset`.
 - Server address switching only happens between addresses with the same `instance`, and a
   timed-out POST is never resent.
+- Languages: English and Arabic (RTL) on both clients; English text is the translation key and every
+  new string needs an Arabic entry (`tests/test_i18n.py` fails otherwise). Never name a variable `t`
+  where `t()` is used.
+- Typeface: IBM Plex Sans Arabic, self-hosted (web) / bundled (Android). Mobile text uses
+  `Text`/`TextInput` from `src/components/AppText.js`, never react-native's directly.
 - Mobile theme: `colors` in `src/theme.js` is one mutable object. Don't capture colours in
   `StyleSheet.create`.
 - `mobile/plugins/withCrossPathsAndroid.js` and `expo.useLegacyPackaging` in
   `gradle.properties` both exist on purpose; re-running prebuild without them breaks the build.
-- Deploys bind-mount code read-only, so updates are "copy and restart". Never touch the
+- Deploys run `ghcr.io/qawalah/crosspaths:latest` with the Watchtower label; a version bump on
+  `main` is the deploy. Don't bind-mount code into the container. Never touch the
   server's `data/` folder (it holds `keys.json`; losing it signs everyone out and makes uploads
   unreadable).

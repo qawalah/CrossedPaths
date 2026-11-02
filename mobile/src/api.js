@@ -1,6 +1,7 @@
 import * as SecureStore from "expo-secure-store";
 import Constants from "expo-constants";
 import { AppState } from "react-native";
+import { serverMsg, t } from "./i18n";
 
 // ---------- which address to use: the main address, or the backup when it can't be reached ----------
 // You can give the app two addresses of the same server: a main address and a backup one.
@@ -89,7 +90,7 @@ export function getApiUrl() {
 const PROBE_MS = 2500;
 /** GET /api/config at one address. Resolves to {cfg, ms} or {error}. Never throws. */
 export async function probeServer(base, ms = PROBE_MS) {
-  if (!base) return { error: "not set" };
+  if (!base) return { error: t("not set") };
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), ms);
   const t0 = Date.now();
@@ -97,10 +98,10 @@ export async function probeServer(base, ms = PROBE_MS) {
     const res = await fetch(clean(base) + "/api/config", { signal: ctrl.signal, headers: { Accept: "application/json" } });
     if (!res.ok) return { error: `answered ${res.status}` };
     const cfg = await res.json();
-    if (!cfg || typeof cfg !== "object" || !("version" in cfg)) return { error: "that isn't a CrossPaths server" };
+    if (!cfg || typeof cfg !== "object" || !("version" in cfg)) return { error: t("that isn't a CrossPaths server") };
     return { cfg, ms: Date.now() - t0 };
   } catch (e) {
-    return { error: ctrl.signal.aborted ? "no answer" : "can't connect" };
+    return { error: ctrl.signal.aborted ? t("no answer") : t("can't connect") };
   } finally {
     clearTimeout(timer);
   }
@@ -199,14 +200,14 @@ const UPLOAD_TIMEOUT_MS = 180000;
 
 async function request(path, opts = {}, retried = false) {
   // keepSession: a 401 here means "wrong code / bad Google token", not "signed out".
-  const { method = "GET", body, form, auth = true, keepSession = false } = opts;
+  const { method = "GET", body, form, auth = true, raw = false, keepSession = false } = opts;
   if (resolving) await resolving.catch(() => {}); // an address check is running: use its answer
   const base = ACTIVE;
-  if (!base) throw new ApiError("Server address not set. Open Settings and enter your CrossPaths server URL.", 0);
+  if (!base) throw new ApiError(t("Server address not set. Open Settings and enter your CrossPaths server URL."), 0);
   const headers = {};
   if (auth) {
-    const t = await getToken();
-    if (t) headers.Authorization = "Bearer " + t;
+    const tok = await getToken();
+    if (tok) headers.Authorization = "Bearer " + tok;
   }
   let payload;
   if (form) {
@@ -233,15 +234,16 @@ async function request(path, opts = {}, retried = false) {
     const two = AUTO && ALT_URL;
     throw new ApiError(
       two
-        ? "Couldn't reach your server at either address. Check your connection."
+        ? t("Couldn't reach your server at either address. Check your connection.")
         : timedOut
-        ? "The server didn't answer in time. Check the address and your connection."
-        : "Couldn't reach the server. Check the address and your connection.",
+        ? t("The server didn't answer in time. Check the address and your connection.")
+        : t("Couldn't reach the server. Check the address and your connection."),
       0
     );
   } finally {
     clearTimeout(timer);
   }
+  if (raw && res.ok) return res.text(); // a file download (timeline export)
   let json = null;
   try {
     json = await res.json();
@@ -250,10 +252,10 @@ async function request(path, opts = {}, retried = false) {
   }
   if (res.status === 401 && auth && !keepSession) {
     if (onUnauthorized) onUnauthorized();
-    throw new ApiError("Your session has expired. Please sign in again.", 401);
+    throw new ApiError(t("Your session has expired. Please sign in again."), 401);
   }
   if (!res.ok) {
-    const e = new ApiError((json && json.error) || `Request failed (${res.status})`, res.status);
+    const e = new ApiError(json && json.error ? serverMsg(json.error) : t("Request failed ({status})", { status: res.status }), res.status);
     e.reason = json && json.reason;
     throw e;
   }
@@ -283,12 +285,16 @@ export const Api = {
     form.append("file", { uri: fileUri, name: fileName || "timeline.json", type: "application/json" });
     return request("/api/uploads", { method: "POST", form });
   },
-  // Several files in one upload (GPX, FIT, zips…): the server combines them into one timeline.
-  uploadFiles: (files) => {
+  // One timeline from several sources: files (GPX, FIT, zips, a photo-scan JSON…) and/or your other
+  // timelines (mergeIds). With targetId the sources are added to that timeline instead of a new one.
+  saveTimeline: ({ targetId, files = [], mergeIds = [], removeMerged = false }) => {
     const form = new FormData();
     files.forEach((f) => form.append("file", { uri: f.uri, name: f.name || "location-file", type: f.type || "application/octet-stream" }));
-    return request("/api/uploads", { method: "POST", form });
+    mergeIds.forEach((id) => form.append("merge_ids", id));
+    if (removeMerged) form.append("remove_merged", "1");
+    return request(targetId ? `/api/uploads/${targetId}/sources` : "/api/uploads", { method: "POST", form });
   },
+  exportUpload: (id, format) => request(`/api/uploads/${id}/export?format=${format}`, { raw: true }),
   deleteUpload: (id) => request(`/api/uploads/${id}`, { method: "DELETE" }),
   putZones: (id, zones) => request(`/api/uploads/${id}/zones`, { method: "PUT", body: { zones } }),
   uploadSummary: (id, tz = 0) => request(`/api/uploads/${id}/summary?tz=${tz}`),

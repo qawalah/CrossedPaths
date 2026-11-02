@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ActivityIndicator, Animated, PanResponder, Pressable, ScrollView, SectionList, Text, View } from "react-native";
+import { ActivityIndicator, Animated, PanResponder, Pressable, ScrollView, SectionList, View } from "react-native";
+import { Text } from "../components/AppText";
 import { MapView, Camera, ShapeSource, LineLayer, FillLayer, CircleLayer, HeatmapLayer } from "@maplibre/maplibre-react-native";
 import Slider from "@react-native-community/slider";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -10,7 +11,9 @@ import KindIcon from "../components/KindIcon";
 import { useAuth } from "../auth";
 import { Api } from "../api";
 import { boundsOf, circlePolygon, positionAt, segmentsFeature, segmentsUntil } from "../geo";
-import { colors, DEVICE_LOCALE, fmtDay, fmtTime, KIND_COLOR, KIND_LABEL, localDayKey, MAP_STYLE_FALLBACK, offsetText, whereText } from "../theme";
+import { H, RTL, pl, t } from "../i18n";
+import { colors, DEVICE_LOCALE, fmtDay, fmtTime, KIND_COLOR, KIND_LABEL, localDayKey, MAP_STYLE_FALLBACK, offsetText, UI_LOCALE, whereText } from "../theme";
+import Icon from "../components/Icon";
 
 const PLAY_TICKS = 400; // a full replay takes ~20 s whatever the window length
 const EMPTY_FC = { type: "FeatureCollection", features: [] };
@@ -315,22 +318,22 @@ export default function ResultsScreen({ route, navigation }) {
   async function lookupStreet(e) {
     setStreet((s) => ({ ...s, [e.i]: "…" }));
     try {
-      const lang = encodeURIComponent((DEVICE_LOCALE || "en").split("-")[0]);
+      const lang = encodeURIComponent(RTL ? "ar" : (DEVICE_LOCALE || "en").split("-")[0]);
       const res = await fetch(
         `https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=17&lat=${e.lat}&lon=${e.lon}&accept-language=${lang}`,
         { headers: { Accept: "application/json", "User-Agent": "CrossPaths (self-hosted app)" } }
       );
       if (!res.ok) {
         const busy = res.status === 403 || res.status === 429;
-        setStreet((s) => ({ ...s, [e.i]: busy ? "OpenStreetMap is busy or refused the lookup. Try again later." : "OpenStreetMap couldn't look that up." }));
+        setStreet((s) => ({ ...s, [e.i]: busy ? t("OpenStreetMap is busy or refused the lookup. Try again later.") : t("OpenStreetMap couldn't look that up.") }));
         return;
       }
       const j = await res.json();
       const a = j.address || {};
       const text = [a.road || a.pedestrian || a.footway || a.square, a.neighbourhood || a.suburb || a.quarter].filter(Boolean).join(", ");
-      setStreet((s) => ({ ...s, [e.i]: text || j.display_name || "No street name here" }));
+      setStreet((s) => ({ ...s, [e.i]: text || j.display_name || t("No street name here") }));
     } catch (err) {
-      setStreet((s) => ({ ...s, [e.i]: "Couldn't reach OpenStreetMap right now." }));
+      setStreet((s) => ({ ...s, [e.i]: t("Couldn't reach OpenStreetMap right now.") }));
     }
   }
 
@@ -386,24 +389,24 @@ export default function ResultsScreen({ route, navigation }) {
     <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
       <View style={{ flexDirection: "row", alignItems: "center", padding: 12, gap: 10 }}>
         <Pressable onPress={() => navigation.goBack()} hitSlop={12} style={{ padding: 6 }}>
-          <Text style={{ color: colors.text, fontSize: 20 }}>←</Text>
+          <Icon name="back" size={22} />
         </Pressable>
         <View style={{ flex: 1 }}>
           <Text style={{ color: colors.text, fontWeight: "800", fontSize: 16 }} numberOfLines={1}>
-            Paths crossed with @{check.other}
+            {t("Paths crossed with {who}", { who: H(check.other) })}
           </Text>
           <Text style={{ color: colors.muted, fontSize: 12 }} numberOfLines={1}>
-            {events.length ? `${events.length} crossing${events.length === 1 ? "" : "s"}` : "No crossings"} · {check.radius_m} m · {check.window_min} min
+            {events.length ? pl("crossings", events.length) : t("No crossings")} · {t("{n} m", { n: check.radius_m })} · {t("{n} min", { n: check.window_min })}
           </Text>
         </View>
-        <SmallBtn label="?" onPress={() => setShowLegend(true)} />
+        <SmallBtn icon="help" onPress={() => setShowLegend(true)} />
       </View>
 
       {events.length ? (
         <View style={{ flexDirection: "row", backgroundColor: colors.panel2, borderRadius: 12, padding: 3, marginHorizontal: 14, marginBottom: 8 }}>
           {[
-            ["summary", "Summary"],
-            ["map", "Map & list"],
+            ["summary", t("Summary")],
+            ["map", t("Map & list")],
           ].map(([key, label]) => (
             <Pressable
               key={key}
@@ -500,13 +503,13 @@ export default function ResultsScreen({ route, navigation }) {
         {/* Map controls, above the sheet */}
         {events.length && snap !== S_FULL ? (
           <View style={{ position: "absolute", top: 10, right: 10, alignItems: "flex-end", gap: 8 }}>
-            <MapBtn label="⤢" onPress={() => (selEvent ? frameEvent(selEvent, pts) : frameAll())} />
+            <MapBtn icon="fit" onPress={() => (selEvent ? frameEvent(selEvent, pts) : frameAll())} />
           </View>
         ) : null}
         {events.length && !selEvent && zoom < SELECT_FROM_Z && snap !== S_FULL ? (
           <View pointerEvents="none" style={{ position: "absolute", top: 12, left: 0, right: 0, alignItems: "center" }}>
             <View style={{ backgroundColor: colors.chip, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 99 }}>
-              <Text style={{ color: colors.text, fontSize: 12.5 }}>Tap a hot spot to zoom in</Text>
+              <Text style={{ color: colors.text, fontSize: 12.5 }}>{t("Tap a hot spot to zoom in")}</Text>
             </View>
           </View>
         ) : null}
@@ -543,12 +546,15 @@ export default function ResultsScreen({ route, navigation }) {
               <View style={{ paddingHorizontal: 14, paddingBottom: 10 }}>
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
                   <Pressable onPress={showAll} hitSlop={8} style={{ paddingVertical: 4, paddingRight: 8 }}>
-                    <Text style={{ color: colors.accent2, fontWeight: "700" }}>‹ All crossings</Text>
+                    <View style={{ flexDirection: "row", alignItems: "center", gap: 2 }}>
+                      <Icon name="prev" size={16} color={colors.accent2} strokeWidth={2.2} />
+                      <Text style={{ color: colors.accent2, fontWeight: "700" }}>{t("All crossings")}</Text>
+                    </View>
                   </Pressable>
                   <View style={{ flex: 1 }} />
-                  {selPos >= 0 ? <Text style={{ color: colors.muted, fontSize: 12.5 }}>{`${selPos + 1} of ${view.length}`}</Text> : null}
-                  <SmallBtn label="‹" onPress={() => prev && select(prev.i, false)} disabled={!prev} />
-                  <SmallBtn label="›" onPress={() => next && select(next.i, false)} disabled={!next} />
+                  {selPos >= 0 ? <Text style={{ color: colors.muted, fontSize: 12.5 }}>{t("{a} of {b}", { a: (selPos + 1).toLocaleString(UI_LOCALE), b: view.length.toLocaleString(UI_LOCALE) })}</Text> : null}
+                  <SmallBtn icon="prev" onPress={() => prev && select(prev.i, false)} disabled={!prev} />
+                  <SmallBtn icon="next" onPress={() => next && select(next.i, false)} disabled={!next} />
                 </View>
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 10, marginTop: 6 }}>
                   <KindBadge kind={selEvent.kind} />
@@ -556,19 +562,19 @@ export default function ResultsScreen({ route, navigation }) {
                     <Text style={{ color: colors.text, fontWeight: "800", fontSize: 16 }}>{k[1]}</Text>
                     <Text style={{ color: colors.muted, fontSize: 12.5 }} numberOfLines={1}>
                       {fmtDay(new Date(selEvent.t0 * 1000))} · {fmtTime(new Date(selEvent.t0 * 1000))}–{fmtTime(new Date(selEvent.t1 * 1000))} · ~
-                      {selEvent.duration_min} min
+                      {t("{n} min", { n: selEvent.duration_min })}
                     </Text>
                   </View>
                 </View>
               </View>
             ) : events.length ? (
               <View style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 14, paddingBottom: 10 }}>
-                <SmallBtn label={nActive ? `⚙︎ Filter (${nActive})` : "⚙︎ Filter"} onPress={() => setShowFilter(true)} active={nActive > 0} />
+                <SmallBtn icon="filter" label={nActive ? `${t("Filter")} (${nActive})` : t("Filter")} onPress={() => setShowFilter(true)} active={nActive > 0} />
                 <Text style={{ color: colors.text, fontSize: 13, flex: 1, fontWeight: "600" }} numberOfLines={1}>
-                  {nActive ? `${view.length} of ${events.length}` : `${view.length} crossings`}
-                  <Text style={{ color: colors.muted, fontWeight: "400" }}>{` · ${viewDays} day${viewDays === 1 ? "" : "s"}`}</Text>
+                  {nActive ? t("{a} of {b}", { a: view.length, b: events.length }) : pl("crossings", view.length)}
+                  <Text style={{ color: colors.muted, fontWeight: "400" }}>{` · ${pl("days", viewDays)}`}</Text>
                 </Text>
-                <SmallBtn label={`↕ ${SORTS.find(([key]) => key === f.sort)[1]}`} onPress={cycleSort} />
+                <SmallBtn icon="sort" label={SORTS.find(([key]) => key === f.sort)[1]} onPress={cycleSort} />
               </View>
             ) : null}
           </View>
@@ -590,13 +596,13 @@ export default function ResultsScreen({ route, navigation }) {
                 ) : (
                   <Text style={{ color: colors.muted, fontSize: 13, marginTop: 4, marginLeft: 25 }}>
                     <Text onPress={() => lookupStreet(selEvent)} style={{ color: colors.accent2, fontWeight: "600" }}>
-                      Show street name
+                      {t("Show street name")}
                     </Text>{" "}
-                    (asks OpenStreetMap)
+                    {t("(asks OpenStreetMap)")}
                   </Text>
                 )}
                 <Text style={{ color: colors.muted, fontSize: 12.5, marginTop: 8 }}>
-                  {offsetText(selEvent.offset_min)} · place accurate to about {selEvent.blur_m || 100} m
+                  {offsetText(selEvent.offset_min)} · {t("place accurate to about {m} m", { m: selEvent.blur_m || 100 })}
                 </Text>
 
                 <View style={{ marginTop: 14, padding: 12, borderRadius: 14, backgroundColor: colors.panel2 }}>
@@ -604,10 +610,11 @@ export default function ResultsScreen({ route, navigation }) {
                     <>
                       <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
                         <Text style={{ color: colors.text, fontSize: 13, fontWeight: "600" }}>
-                          Your path{scrubT != null ? ` · ${fmtTime(new Date(scrubT * 1000))}` : ""}
+                          {t("Your path")}{scrubT != null ? ` · ${fmtTime(new Date(scrubT * 1000))}` : ""}
                         </Text>
-                        <Pressable onPress={togglePlay} hitSlop={10}>
-                          <Text style={{ color: colors.accent, fontWeight: "800", fontSize: 13 }}>{playing ? "❚❚ Pause" : "▶ Replay"}</Text>
+                        <Pressable onPress={togglePlay} hitSlop={10} style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
+                          <Icon name={playing ? "pause" : "play"} size={15} color={colors.accent} strokeWidth={2.2} />
+                          <Text style={{ color: colors.accent, fontWeight: "800", fontSize: 13 }}>{playing ? t("Pause") : t("Replay")}</Text>
                         </Pressable>
                       </View>
                       <Slider
@@ -623,15 +630,14 @@ export default function ResultsScreen({ route, navigation }) {
                         maximumTrackTintColor={colors.line}
                         thumbTintColor={colors.accent}
                       />
-                      <Text style={{ color: colors.muted, fontSize: 12 }}>Only your own path is ever shown, never theirs.</Text>
+                      <Text style={{ color: colors.muted, fontSize: 12 }}>{t("Only your own path is ever shown, never theirs.")}</Text>
                     </>
                   ) : legacy ? (
                     <Text style={{ color: colors.muted, fontSize: 13, lineHeight: 18 }}>
-                      This result was saved by an older version, before your own path was kept with it. Run the check again to see
-                      how you got here and where you went.
+                      {t("This result was saved by an older version, before your own path was kept with it. Run the check again to see how you got here and where you went.")}
                     </Text>
                   ) : (
-                    <Text style={{ color: colors.muted, fontSize: 13 }}>No path of yours was recorded in the hours around this crossing.</Text>
+                    <Text style={{ color: colors.muted, fontSize: 13 }}>{t("No path of yours was recorded in the hours around this crossing.")}</Text>
                   )}
                 </View>
               </ScrollView>
@@ -663,9 +669,10 @@ export default function ResultsScreen({ route, navigation }) {
               }}
               ListHeaderComponent={
                 check.their_trust === "low" ? (
-                  <View style={{ marginTop: 10, padding: 10, borderRadius: 12, backgroundColor: colors.warnBg, borderWidth: 1, borderColor: colors.warnBorder }}>
-                    <Text style={{ color: colors.warnText, fontSize: 13 }}>
-                      ⚠️ @{check.other}'s timeline looks unusual (possible fake or edited location data). Treat these results with caution.
+                  <View style={{ marginTop: 10, padding: 10, borderRadius: 12, backgroundColor: colors.warnBg, borderWidth: 1, borderColor: colors.warnBorder, flexDirection: "row", gap: 8 }}>
+                    <Icon name="warning" size={18} color={colors.warnText} />
+                    <Text style={{ color: colors.warnText, fontSize: 13, flex: 1 }}>
+                      {t("{who}'s timeline looks unusual (possible fake or edited location data). Treat these results with caution.", { who: H(check.other) })}
                     </Text>
                   </View>
                 ) : null
@@ -673,9 +680,9 @@ export default function ResultsScreen({ route, navigation }) {
               ListEmptyComponent={
                 events.length ? (
                   <Text style={{ color: colors.muted, textAlign: "center", marginTop: 24 }}>
-                    No crossings match these filters.{" "}
+                    {t("No crossings match these filters.")}{" "}
                     <Text style={{ color: colors.accent2 }} onPress={() => setF({ ...freshFilters(), sort: f.sort })}>
-                      Clear filters
+                      {t("Clear filters")}
                     </Text>
                   </Text>
                 ) : null
@@ -684,7 +691,7 @@ export default function ResultsScreen({ route, navigation }) {
                 section.title ? (
                   <View style={{ backgroundColor: colors.panel, paddingTop: 12, paddingBottom: 4, paddingHorizontal: 4 }}>
                     <Text style={{ color: colors.muted, fontSize: 12.5, fontWeight: "700" }}>
-                      {section.title} · {section.data.length}
+                      {section.title} · {section.data.length.toLocaleString(UI_LOCALE)}
                     </Text>
                   </View>
                 ) : null
@@ -713,14 +720,14 @@ export default function ResultsScreen({ route, navigation }) {
                         </Text>
                         <Text style={{ color: colors.muted, fontSize: 12.5 }}>
                           {f.sort === "long" ? `${fmtDay(new Date(e.t0 * 1000))} · ` : ""}
-                          {fmtTime(new Date(e.t0 * 1000))} · {e.duration_min} min
+                          {fmtTime(new Date(e.t0 * 1000))} · {t("{n} min", { n: e.duration_min })}
                         </Text>
                       </View>
                       <Text style={{ color: colors.muted, fontSize: 13, marginTop: 2 }} numberOfLines={1}>
                         {whereText(e)}
                       </Text>
                     </View>
-                    <Text style={{ color: colors.muted, fontSize: 18 }}>›</Text>
+                    <Text style={{ color: colors.muted, fontSize: 18 }}>{RTL ? "‹" : "›"}</Text>
                   </Pressable>
                 );
               }}
@@ -779,7 +786,7 @@ function KindBadge({ kind, small }) {
   );
 }
 
-function MapBtn({ label, onPress }) {
+function MapBtn({ icon, onPress }) {
   return (
     <Pressable
       onPress={onPress}
@@ -795,12 +802,12 @@ function MapBtn({ label, onPress }) {
         borderColor: colors.line,
       }}
     >
-      <Text style={{ color: colors.text, fontSize: 18, fontWeight: "700" }}>{label}</Text>
+      <Icon name={icon} size={20} />
     </Pressable>
   );
 }
 
-function SmallBtn({ label, onPress, disabled, active }) {
+function SmallBtn({ icon, label, onPress, disabled, active }) {
   return (
     <Pressable
       onPress={onPress}
@@ -813,13 +820,16 @@ function SmallBtn({ label, onPress, disabled, active }) {
         borderRadius: 10,
         alignItems: "center",
         justifyContent: "center",
+        flexDirection: "row",
+        gap: 6,
         backgroundColor: active ? colors.activeBg : colors.panel2,
         borderWidth: 1,
         borderColor: active ? colors.accent : colors.line,
         opacity: disabled ? 0.35 : 1,
       }}
     >
-      <Text style={{ color: colors.text, fontWeight: "700", fontSize: 13 }}>{label}</Text>
+      {icon ? <Icon name={icon} size={17} /> : null}
+      {label ? <Text style={{ color: colors.text, fontWeight: "700", fontSize: 13 }}>{label}</Text> : null}
     </Pressable>
   );
 }

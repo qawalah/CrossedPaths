@@ -7,7 +7,7 @@ migration), MINOR for new features, PATCH for bugfixes. Pre-1.0, expect MINOR bu
 To check what's running on your server, visit `/api/config` — it reports the running
 `version`. That's the number to compare against this file when deciding whether to update.
 
-## 0.13.0
+## 0.20.0 (Android 1.15.0)
 - **Sign in with a phone number or Google.** Both are off until configured (`AUTH_PHONE`,
   `AUTH_GOOGLE`; see HANDOVER.md "Sign-in methods"). Phone sign-in sends a 6-digit code on
   WhatsApp; any country is allowed unless `PHONE_COUNTRIES` is set. A new number or Google
@@ -19,6 +19,124 @@ To check what's running on your server, visit `/api/config` — it reports the r
   `/api/auth/complete`. `/api/config` now has `auth` (which methods are on) and `/api/me` has
   `sign_in_methods`.
 - New dependencies: `requests`, `google-auth`.
+
+## 0.19.0
+- **Arabic.** The web client (and the Android app, 1.14.0) is available in Arabic with a mirrored
+  right-to-left layout. Choose English, Arabic or "System" under Account → Language (or the link
+  on the sign-in screen); "System" follows the browser or phone. Dates use Arabic month and day
+  names but Gregorian dates and Western digits, so Hijri dates never appear. Fixed server
+  messages (errors, trust warnings) are translated by the clients; the API still returns English.
+  Time axes (the My map date bar, the welcome pages) stay left-to-right. Tests keep both Arabic
+  dictionaries complete (`tests/test_i18n.py`).
+- **New typeface: IBM Plex Sans Arabic** for both languages, self-hosted under `/static/fonts`
+  (SIL OFL 1.1, licence alongside), so no font request leaves your server. The service worker
+  keeps the font files cached.
+
+## 0.18.0
+- **Web: the date bar on My map.** The year / month / day buttons are replaced by the same bar as
+  the Android app: drag along it to move through the years, slide up to zoom into months and then
+  days (down to zoom out), or hold still, and let go to open the nearest day with data. Bars show
+  how many points each day has. A short how-to shows the first time, and from the ? button. The
+  zoom gesture and hold time are set on the Account tab.
+- **Web: a tutorial on first start.** Five full-screen cards (the animated crossing, then Import,
+  Connect, Check together and See where you crossed). Shown once per browser; *Account → Show the
+  tutorial again* replays it. The four-step strip under the header is gone, as on Android.
+- **Web: Account shows the server version**, so you can see what is running.
+
+## 0.17.2
+- **Street maps: the region Geofabrik calls "Israel and Palestine" is shown as "Palestine"**
+  (search still finds it by "Israel", Gaza, West Bank and the big cities).
+
+## 0.17.1
+- **Street maps: search finds countries that Geofabrik bundles.** Saudi Arabia, Kuwait, Qatar,
+  Bahrain, Oman and the UAE are one download called "GCC States" (searching "Saudi" found
+  nothing), and Israel and Palestine are one region. The search now also matches those country
+  names and a few big cities, and says what each region covers.
+
+## 0.17.0 (Android 1.12.0)
+- **Android: a tutorial on first start.** Five full-screen cards you swipe through: the animated
+  crossing, then Import, Connect, Check together and See where you crossed, each with its own
+  small animation. Shown once; *Account → Show the tutorial again* brings it back. The four-step
+  strip at the top of the screens is gone, since the tutorial covers it.
+- **Adding a timeline is one thing at a time.** *Import a timeline file* and *Scan my photos*
+  each open only their own screen (no second Files / Photos switch). Adding photos, another file
+  or your other timelines appears only after something is added, under *Add more to this
+  timeline*. Same on the web.
+- **"How to export your timeline"** names the list of apps clearly as guides. Each guide links to
+  the full illustrated guide in the wiki.
+
+## 0.16.0
+- **Street maps: journeys follow the roads.** Sparse histories (Google Timeline above all) keep
+  a trip as a handful of points, so the map drew straight lines through buildings and water.
+  Now, in countries the admin has downloaded, those stretches are drawn along the streets, both
+  on the results replay and in My Timeline. Trains, flights and ferries keep straight lines
+  (Google's travel mode is now read and stored; without it, routes much longer than the straight
+  line are rejected). Matching is unchanged: this only affects how your own path is drawn.
+- **Admins.** New `ADMIN_HANDLES` setting (comma-separated usernames). Admins see *Settings →
+  Server (admin) → Street maps* on the web, where they pick countries or regions from
+  Geofabrik's list. The server downloads the OpenStreetMap extract, prepares routing data in the
+  background (progress shown) into `data/roads/`, and can update or remove it later. Routing runs
+  inside the server with Valhalla (`pyvalhalla`); nobody's path leaves it.
+- New settings: `STREET_SNAP` (default on), `ROADS_MAX_DOWNLOAD_MB` (default 1500),
+  `ROADS_CATALOG_URL`. `mem_limit` in `docker-compose.yml` goes from 900m to 1500m because
+  preparing a map needs more memory for a while.
+- The image is about 260 MB larger (new `pyvalhalla` dependency). Copy the new
+  `docker-compose.yml` settings (`ADMIN_HANDLES`, `mem_limit`) to the NAS folder.
+- Check results from before a map was added keep straight lines until the check is run again.
+
+## 0.15.0 (Android 1.11.0)
+- **Five tabs:** Import · My Map · Checks · People · Account, in the web client and the Android
+  app. Checks is a raised round button in the middle. *Uploads* is now called *Import*.
+- **My Map** is its own tab: your timeline on the map by year, month and day (pick which
+  timeline when you have several). On Android it used to open only from a timeline's card.
+- **Account tab** on the web: theme, accent colour, how long uploads are kept, and Sign out
+  (these used to be in the header).
+- **New Checks page.** It opens with a big animated version of the app icon: the blue and green
+  routes draw in and cross, then the pin drops onto the crossing. Below it is what to do next (run
+  a check, review a request, import, connect), and tapping the crossing does it. Previous checks
+  are listed underneath and open up for details, results and delete.
+
+## 0.14.0 (Android 1.9.0)
+- **A guided path in the web client and the Android app.** A four-step strip under the header (timeline → connect →
+  check → crossings) shows where you are and what to do next, with a button for that step. It
+  fills in as steps are done and disappears once you have a finished check.
+- **"Run a check" invitation.** When you have a timeline and a connection you haven't checked
+  with yet (or someone is waiting for your agreement), the Checks tab icon pulses and the Checks
+  page opens with a card to start the check in one tap.
+- **Motion.** Tabs switch with a sliding indicator and the page slides in from the side of the
+  tab you picked; the results page rises in and out, and its Summary / Map switch slides too.
+  All of it respects the system "reduce motion" setting.
+
+## 0.13.0
+- **Combine sources into one timeline.** A timeline can now be built from several sources at
+  once (app files, a photo scan, and your other timelines) and you can add more sources later.
+  New: `POST /api/uploads/<id>/sources` (same fields as `POST /api/uploads`). Both take `file`
+  (any number) and `merge_ids` (your other timelines); `remove_merged=1` deletes those once they
+  are folded in. Duplicate points are dropped; trust and home/work areas are re-checked, keeping
+  areas you edited. Adding sources restarts the timeline's retention clock.
+- Each timeline lists its sources (`sources`: label, files, points, added_at). The `format`
+  field now reads like "Google Maps, GPX, Photos". Timelines from before this version show one source.
+- **Export:** `GET /api/uploads/<id>/export?format=gpx|geojson|csv` downloads your own timeline,
+  all sources combined. Only ever your own points.
+- Web: the Uploads tab builds a timeline from staged sources (Files / Photos / My timelines),
+  then offers to export a copy. Each timeline has *＋ Add source* and *Export a copy*.
+- Database: new nullable `uploads.sources` column, added automatically at start-up.
+
+## 0.12.2 (Android 1.7.1)
+- **One icon style everywhere.** Emoji and text symbols used as icons (tab bar, Back, Play/Pause,
+  Filter, Sort, Fit, Delete, warnings, Meet in person, Choose file, Scan photos…) are replaced by
+  one set of line icons that matches the app icon, in both the Android app and the web client.
+  The three crossing types are redrawn in the same language: a pin (same place), two routes
+  crossing (crossed paths) and two routes side by side (travelled together). The set lives in
+  `mobile/src/icons.js`, with an identical copy in the web client.
+- Web: the settings button's gear icon is no longer squeezed to half width.
+
+## 0.12.1
+- **Deploy: updates install themselves.** `docker-compose.yml` now runs the published image
+  `ghcr.io/qawalah/crosspaths:latest` with the Watchtower label, instead of building on the
+  host and mounting the code. Only `./data` is mounted. To switch, replace `docker-compose.yml`
+  on the host (keep `.env` and `data/`) and start the project again. The image is
+  `linux/amd64` only; ARM hosts build it themselves. See DEPLOY.md, section 3.
 
 ## 0.12.0
 - **Import from more apps.** Uploads now accept GPX, TCX, FIT, KML/KMZ, GeoJSON and CSV files

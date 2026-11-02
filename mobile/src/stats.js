@@ -1,16 +1,23 @@
 // Summary statistics for a check's crossings - what the results screen leads with.
+import { onLanguage, t } from "./i18n";
 import { cityOf, localDayKey, placeOf, UI_LOCALE } from "./theme";
 
-export const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-export const WEEKDAYS_LONG = ["Sundays", "Mondays", "Tuesdays", "Wednesdays", "Thursdays", "Fridays", "Saturdays"];
+export let WEEKDAYS;
+onLanguage(() => {
+  WEEKDAYS = [t("Sun"), t("Mon"), t("Tue"), t("Wed"), t("Thu"), t("Fri"), t("Sat")];
+});
+export let WEEKDAYS_LONG;
+onLanguage(() => {
+  WEEKDAYS_LONG = [t("Sundays"), t("Mondays"), t("Tuesdays"), t("Wednesdays"), t("Thursdays"), t("Fridays"), t("Saturdays")];
+});
 
 export function fmtHours(min) {
-  if (min < 60) return `${Math.round(min)} min`;
-  if (min < 600) return `${(min / 60).toFixed(1).replace(/\.0$/, "")} h`;
-  return `${Math.round(min / 60).toLocaleString(UI_LOCALE)} h`;
+  if (min < 60) return t("{n} min", { n: Math.round(min) });
+  if (min < 600) return t("{n} h", { n: (min / 60).toFixed(1).replace(/\.0$/, "") });
+  return t("{n} h", { n: Math.round(min / 60).toLocaleString(UI_LOCALE) });
 }
 export function hourLabel(h) {
-  return new Date(2000, 0, 1, h).toLocaleTimeString(UI_LOCALE, { hour: "numeric", minute: "2-digit" }).replace(/:00(?=\s?[AP]M)/i, "");
+  return new Date(2000, 0, 1, h).toLocaleTimeString(UI_LOCALE, { hour: "numeric", minute: "2-digit" }).replace(/:00(?=\s?(?:[AP]M|[صم]))/i, "");
 }
 function monthLabel(y, m, withYear) {
   return new Date(y, m, 1).toLocaleDateString(UI_LOCALE, withYear ? { month: "short", year: "numeric" } : { month: "short" });

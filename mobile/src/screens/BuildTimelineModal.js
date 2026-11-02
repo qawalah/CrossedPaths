@@ -1,0 +1,413 @@
+import * as DocumentPicker from "expo-document-picker";
+import * as FileSystem from "expo-file-system";
+import React, { useState } from "react";
+import { LayoutAnimation, Linking, Platform, Pressable, ScrollView, Switch, UIManager, View } from "react-native";
+import { Text } from "../components/AppText";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import Button from "../components/Button";
+import Card from "../components/Card";
+import DateRangePicker from "../components/DateRangePicker";
+import Icon from "../components/Icon";
+import { useToast } from "../components/Toast";
+import { Api } from "../api";
+import { exportTimeline } from "../exportTimeline";
+import { SOURCES, guideUrl } from "../importSources";
+import { scanPhotoLibrary } from "../photoScan";
+import { pl, RTL, t } from "../i18n";
+import { colors, dateStr, trustLabel, UI_LOCALE } from "../theme";
+
+const ICON = { files: "folder", photos: "photos", upload: "route" };
+
+if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) UIManager.setLayoutAnimationEnabledExperimental(true);
+const sizeStr = (b) => (b < 1048576 ? t("{n} KB", { n: Math.max(1, Math.round(b / 1024)) }) : t("{n} MB", { n: (b / 1048576).toFixed(1) }));
+
+// "**bold**" -> nested bold Text
+function Rich({ text }) {
+  return text.split("**").map((part, i) =>
+    i % 2 ? (
+      <Text key={i} style={{ fontWeight: "700", color: colors.text }}>
+        {part}
+      </Text>
+    ) : (
+      part
+    )
+  );
+}
+
+// Add a timeline one way at a time: from a file exported by another app, or by scanning your photos
+// (route.params.start: "files" | "photos"). Once something is added you can also add the other kind,
+// or fold in your other timelines, and everything is saved as one. With route.params.targetId the
+// sources are added to that timeline.
+export default function BuildTimelineModal({ navigation, route, cfg, uploads, onDone }) {
+  const insets = useSafeAreaInsets();
+  const toast = useToast();
+  const params = (route && route.params) || {};
+  const target = params.targetId ? uploads.find((u) => u.id === params.targetId) : null;
+  const others = uploads.filter((u) => u.id !== params.targetId);
+  const [pane, setPane] = useState(params.start || "files");
+  const [items, setItems] = useState([]);
+  const [src, setSrc] = useState(null); // the export guide that is open
+  const [dateFrom, setDateFrom] = useState(null);
+  const [dateTo, setDateTo] = useState(null);
+  const [progress, setProgress] = useState(null);
+  const [scanning, setScanning] = useState(false);
+  const [removeMerged, setRemoveMerged] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [saved, setSaved] = useState(null);
+  const source = SOURCES.find((s) => s.id === src);
+  const add = (it) => setItems((xs) => [...xs, it]);
+  const remove = (i) => setItems((xs) => xs.filter((_, k) => k !== i));
+  const merging = items.some((i) => i.kind === "upload");
+
+  async function pickFiles() {
+    const res = await DocumentPicker.getDocumentAsync({ type: "*/*", multiple: true, copyToCacheDirectory: true });
+    if (res.canceled || !res.assets || !res.assets.length) return;
+    const files = res.assets.map((f) => ({ uri: f.uri, name: f.name, type: f.mimeType, size: f.size || 0 }));
+    const size = files.reduce((s, f) => s + f.size, 0);
+    const already = items.filter((i) => i.kind === "files").reduce((s, i) => s + i.size, 0);
+    if (cfg.max_upload_mb && size + already > cfg.max_upload_mb * 1048576) {
+      toast(t("That's more than {mb} MB of files for one save. Pick fewer files, or save and add the rest after.", { mb: cfg.max_upload_mb }), true);
+      return;
+    }
+    add({
+      kind: "files",
+      files,
+      size,
+      label: `${source ? source.name + ": " : ""}${pl("files", files.length)}`,
+      detail: files.slice(0, 3).map((f) => f.name).join(", ") + (files.length > 3 ? " " + t("+{n} more", { n: files.length - 3 }) : "") + ` · ${sizeStr(size)}`,
+    });
+  }
+
+  async function scan() {
+    setScanning(true);
+    setProgress({ scanned: 0, total: 0, found: 0 });
+    try {
+      const { points, scanned } = await scanPhotoLibrary({ from: dateFrom, to: dateTo, onProgress: setProgress });
+      if (!points.length) {
+        toast(t("None of those photos carry GPS data. Many apps strip location on save/share — try photos straight from the camera."), true);
+        return;
+      }
+      add({
+        kind: "photos",
+        points,
+        label: `${t("Photos")}: ${pl("places", points.length)}`,
+        detail:
+          t("{photos} with a location, out of {total}", { photos: pl("photos", points.length), total: scanned.toLocaleString(UI_LOCALE) }) +
+          (points.length < 20 ? t(" · combine with another source (at least 20 points are needed)") : ""),
+      });
+    } catch (e) {
+      toast(e.message || t("Couldn't scan your photo library"), true);
+    } finally {
+      setScanning(false);
+      setProgress(null);
+    }
+  }
+
+  function toggleUpload(u) {
+    const at = items.findIndex((i) => i.kind === "upload" && i.id === u.id);
+    if (at >= 0) remove(at);
+    else add({ kind: "upload", id: u.id, label: t("Timeline {range}", { range: `${dateStr(u.from)} ${RTL ? "←" : "→"} ${dateStr(u.to)}` }), detail: `${pl("points", u.points)} · ${u.format}` });
+  }
+
+  async function save() {
+    setBusy(true);
+    try {
+      const files = items.filter((i) => i.kind === "files").flatMap((i) => i.files);
+      for (const p of items.filter((i) => i.kind === "photos")) {
+        const uri = FileSystem.cacheDirectory + `photo-timeline-${Date.now()}-${files.length}.json`;
+        await FileSystem.writeAsStringAsync(uri, JSON.stringify({ photoPoints: p.points }));
+        files.push({ uri, name: "photo-timeline.json", type: "application/json" });
+      }
+      const u = await Api.saveTimeline({
+        targetId: params.targetId,
+        files,
+        mergeIds: items.filter((i) => i.kind === "upload").map((i) => i.id),
+        removeMerged: merging && removeMerged,
+      });
+      const skipped = u.import && u.import.skipped ? t(" · {files} had no locations", { files: pl("files", u.import.skipped) }) : "";
+      toast((params.targetId ? t("Added {points}", { points: pl("newpoints", u.import.added_points || 0) }) : t("Timeline saved")) + " · " + trustLabel(u.trust.level) + skipped);
+      await onDone();
+      setSaved(u);
+    } catch (e) {
+      toast(e.message, true);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  // The buttons live in a footer that stays on screen; only the guides and the list scroll.
+  const wrap = (children, footer) => (
+    <View style={{ flex: 1, backgroundColor: colors.panel }}>
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 20, paddingTop: insets.top + 16, paddingBottom: 24 }} keyboardShouldPersistTaps="handled">
+        {children}
+      </ScrollView>
+      {footer ? (
+        <View
+          style={{
+            paddingHorizontal: 20,
+            paddingTop: 12,
+            paddingBottom: Math.max(insets.bottom, 12),
+            gap: 10,
+            borderTopWidth: 1,
+            borderTopColor: colors.line,
+            backgroundColor: colors.panel,
+          }}
+        >
+          {footer}
+        </View>
+      ) : null}
+    </View>
+  );
+
+  if (saved) {
+    const n = (saved.sources || []).length;
+    return wrap(
+      <>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+          <Icon name="ok" size={24} color={colors.good} />
+          <Text style={{ color: colors.text, fontSize: 20, fontWeight: "800" }}>{t("Timeline saved")}</Text>
+        </View>
+        <Text style={{ color: colors.muted, marginTop: 8, lineHeight: 20 }}>
+          {t("{points} from {sources}: {names}. It's kept on your server as set on the Account tab. Want a copy on this phone too?", {
+            points: pl("points", saved.points),
+            sources: pl("sources", n),
+            names: (saved.sources || []).map((s) => s.label).join(RTL ? "، " : ", "),
+          })}
+        </Text>
+        <Button title={t("Export a copy")} icon="download" variant="ghost" onPress={() => exportTimeline(saved, toast)} style={{ marginTop: 18 }} />
+        <Button title={t("Done")} onPress={() => navigation.goBack()} style={{ marginTop: 10 }} />
+      </>
+    );
+  }
+
+  const openGuide = (id) => {
+    LayoutAnimation.configureNext(LayoutAnimation.create(260, "easeInEaseOut", "opacity"));
+    setSrc((cur) => (cur === id ? null : id));
+  };
+  const switchTo = (k) => {
+    LayoutAnimation.configureNext(LayoutAnimation.create(260, "easeInEaseOut", "opacity"));
+    setPane(k);
+  };
+  const TITLE = {
+    files: target ? t("Add a file") : t("Import a timeline file"),
+    photos: target ? t("Add photos") : t("Scan my photos"),
+    mine: t("Combine my timelines"),
+  };
+  const INTRO = {
+    files: t("Export your location history from the app that recorded it, then choose the file here."),
+    photos: t("CrossPaths reads the GPS location and date saved in your photos, right here on your phone. Only those points are uploaded, never the photos. Photos with no location (screenshots, downloads) are skipped."),
+    mine: t("Pick other timelines of yours to fold into this one."),
+  };
+  // after something is added, the other ways to add more
+  const more = [
+    pane !== "files" && ["files", t("Add a file"), "folder"],
+    pane !== "photos" && ["photos", t("Add photos"), "photos"],
+    pane !== "mine" && others.length && ["mine", t("Combine with my other timelines"), "route"],
+  ].filter(Boolean);
+
+  return wrap(
+    <>
+      <Text style={{ color: colors.text, fontSize: 22, fontWeight: "800" }}>{TITLE[pane]}</Text>
+      {target ? (
+        <Text style={{ color: colors.muted, marginTop: 6, fontSize: 13 }}>
+          {t("Adding to {range} ({points}). ", { range: `${dateStr(target.from)} ${RTL ? "←" : "→"} ${dateStr(target.to)}`, points: pl("points", target.points) }).trim()}
+        </Text>
+      ) : null}
+      <Text style={{ color: colors.muted, marginTop: 8, lineHeight: 20 }}>{INTRO[pane]}</Text>
+
+      {items.length ? (
+        <>
+          <Text style={{ color: colors.muted, fontSize: 13, fontWeight: "700", marginTop: 18, marginBottom: 8 }}>{t("Ready to save")}</Text>
+          <View style={{ gap: 8 }}>
+            {items.map((it, i) => (
+              <View
+                key={i}
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 10,
+                  backgroundColor: colors.panel2,
+                  borderWidth: 1,
+                  borderColor: colors.line,
+                  borderRadius: 12,
+                  padding: 10,
+                }}
+              >
+                <Icon name={ICON[it.kind]} size={22} color={colors.accent} />
+                <View style={{ flex: 1 }}>
+                  <Text style={{ color: colors.text, fontWeight: "700" }}>{it.label}</Text>
+                  <Text style={{ color: colors.muted, fontSize: 12 }} numberOfLines={2}>
+                    {it.detail}
+                  </Text>
+                </View>
+                <Pressable onPress={() => remove(i)} hitSlop={10} accessibilityLabel={t("Remove {name}", { name: it.label })}>
+                  <Icon name="close" size={18} color={colors.muted} />
+                </Pressable>
+              </View>
+            ))}
+          </View>
+        </>
+      ) : null}
+
+      {pane === "files" ? (
+        <>
+          <Text style={{ color: colors.text, fontSize: 16, fontWeight: "800", marginTop: 22 }}>{t("How to export your timeline")}</Text>
+          <Text style={{ color: colors.muted, fontSize: 13, marginTop: 4, marginBottom: 10, lineHeight: 18 }}>
+            {t("Guides for each app. Pick the one that recorded your location to see the steps.")}
+          </Text>
+          <View style={{ borderWidth: 1, borderColor: colors.line, borderRadius: 14, overflow: "hidden" }}>
+            {SOURCES.map((s, i) => {
+              const open = s.id === src;
+              return (
+                <View key={s.id} style={{ borderTopWidth: i ? 1 : 0, borderTopColor: colors.line, backgroundColor: open ? colors.panel2 : colors.panel }}>
+                  <Pressable
+                    onPress={() => openGuide(s.id)}
+                    accessibilityRole="button"
+                    accessibilityState={{ expanded: open }}
+                    accessibilityLabel={t("How to export from {app}", { app: s.name })}
+                    style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 12, paddingHorizontal: 14, opacity: pressed ? 0.7 : 1 })}
+                  >
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ color: colors.text, fontWeight: "700" }}>{s.name}</Text>
+                      <Text style={{ color: colors.muted, fontSize: 12 }}>{s.what}</Text>
+                    </View>
+                    <Icon name="next" size={18} color={colors.muted} style={{ transform: [{ rotate: open ? "-90deg" : "90deg" }] }} />
+                  </Pressable>
+                  {open ? (
+                    <View style={{ paddingHorizontal: 14, paddingBottom: 14 }}>
+                      {s.steps.map((step, k) => (
+                        <View key={k} style={{ flexDirection: "row", marginTop: k ? 8 : 0 }}>
+                          <Text style={{ color: colors.accent, fontWeight: "800", width: 20 }}>{k + 1}.</Text>
+                          <Text style={{ color: colors.muted, flex: 1, lineHeight: 20 }}>
+                            <Rich text={step} />
+                          </Text>
+                        </View>
+                      ))}
+                      <Pressable onPress={() => Linking.openURL(guideUrl(s.id)).catch(() => {})} style={{ marginTop: 12, flexDirection: "row", alignItems: "center", gap: 6 }}>
+                        <Icon name="help" size={16} color={colors.accent2} />
+                        <Text style={{ color: colors.accent2, fontWeight: "700", fontSize: 13 }}>{t("Full guide with pictures")}</Text>
+                      </Pressable>
+                    </View>
+                  ) : null}
+                </View>
+              );
+            })}
+          </View>
+          <Text style={{ color: colors.muted, fontSize: 11.5, marginTop: 12, textAlign: "center" }}>
+            {t("Accepted: GPX · TCX · FIT · KML · GeoJSON · CSV · JSON · ZIP")}
+          </Text>
+        </>
+      ) : null}
+
+      {pane === "photos" ? (
+        <>
+          <Text style={{ color: colors.muted, fontSize: 13, marginTop: 18, marginBottom: 6 }}>{t("Limit to a date range (optional)")}</Text>
+          <DateRangePicker from={dateFrom} to={dateTo} onChangeFrom={setDateFrom} onChangeTo={setDateTo} />
+          {progress ? (
+            <Card style={{ marginTop: 12 }}>
+              <Text style={{ color: colors.muted, fontSize: 12.5 }}>
+                {progress.total ? t("{a} / {b} photos checked", { a: progress.scanned, b: progress.total }) : t("Starting…")} · {t("{n} with location", { n: progress.found })}
+              </Text>
+              <View style={{ height: 6, borderRadius: 3, backgroundColor: colors.line, marginTop: 8, overflow: "hidden" }}>
+                <View
+                  style={{
+                    height: 6,
+                    borderRadius: 3,
+                    backgroundColor: colors.accent,
+                    width: `${progress.total ? Math.round((progress.scanned / progress.total) * 100) : 0}%`,
+                  }}
+                />
+              </View>
+            </Card>
+          ) : null}
+        </>
+      ) : null}
+
+      {pane === "mine" ? (
+        <View style={{ marginTop: 12 }}>
+          {others.map((u) => {
+            const on = items.some((i) => i.kind === "upload" && i.id === u.id);
+            return (
+              <Pressable key={u.id} onPress={() => toggleUpload(u)} style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 10 }}>
+                <View
+                  style={{
+                    width: 20,
+                    height: 20,
+                    borderRadius: 5,
+                    borderWidth: 2,
+                    borderColor: on ? colors.accent : colors.line,
+                    backgroundColor: on ? colors.accent : "transparent",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  {on ? <Icon name="check" size={14} color={colors.onAccent} strokeWidth={2.6} /> : null}
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ color: colors.text, fontWeight: "700" }}>
+                    {dateStr(u.from)} {RTL ? "←" : "→"} {dateStr(u.to)}
+                  </Text>
+                  <Text style={{ color: colors.muted, fontSize: 12 }}>
+                    {pl("points", u.points)} · {u.format}
+                  </Text>
+                </View>
+              </Pressable>
+            );
+          })}
+        </View>
+      ) : null}
+
+      {merging ? (
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 10, marginTop: 14 }}>
+          <Text style={{ color: colors.text, flex: 1, fontSize: 13 }}>{t("Delete the timelines I combine once they're in this one")}</Text>
+          <Switch value={removeMerged} onValueChange={setRemoveMerged} trackColor={{ true: colors.accent }} />
+        </View>
+      ) : null}
+
+      {items.length ? (
+        <>
+          <Text style={{ color: colors.muted, fontSize: 13, marginTop: 20, marginBottom: 4 }}>{t("Add more to this timeline (optional)")}</Text>
+          {more.map(([k, label, ic]) => (
+            <Pressable key={k} onPress={() => switchTo(k)} style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingVertical: 8 }}>
+              <Icon name={ic} size={18} color={colors.accent2} />
+              <Text style={{ color: colors.accent2, fontWeight: "700" }}>{label}</Text>
+            </Pressable>
+          ))}
+        </>
+      ) : null}
+      <Pressable onPress={() => navigation.goBack()} disabled={busy} style={{ marginTop: 14, alignItems: "center" }}>
+        <Text style={{ color: colors.muted, fontSize: 13 }}>{t("Cancel")}</Text>
+      </Pressable>
+    </>,
+    items.length || pane === "files" || pane === "photos" ? (
+    <>
+      {items.length ? (
+        <Button
+          title={
+            busy
+              ? t("Reading and combining…")
+              : target
+              ? t("Add {sources} and save", { sources: pl("sources", items.length) })
+              : items.length > 1
+              ? t("Combine {sources} and save", { sources: pl("sources", items.length) })
+              : t("Save timeline")
+          }
+          onPress={save}
+          loading={busy}
+          disabled={scanning}
+        />
+      ) : null}
+      {pane === "files" ? <Button title={t("Choose file(s)")} icon="folder" variant={items.length ? "ghost" : "primary"} onPress={pickFiles} /> : null}
+      {pane === "photos" ? (
+        <Button
+          title={scanning ? t("Scanning…") : t("Scan photo library")}
+          icon="photos"
+          variant={items.length ? "ghost" : "primary"}
+          onPress={scan}
+          loading={scanning}
+        />
+      ) : null}
+    </>
+    ) : null
+  );
+}

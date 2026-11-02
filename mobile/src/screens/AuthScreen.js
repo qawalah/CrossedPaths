@@ -1,9 +1,12 @@
 import React, { useState } from "react";
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, View } from "react-native";
+import { Text, TextInput } from "../components/AppText";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Button from "../components/Button";
 import PhoneCodeForm from "../components/PhoneCodeForm";
 import { useAuth } from "../auth";
+import { changeLanguage } from "../changeLanguage";
+import { RTL, t } from "../i18n";
 import { colors, keepLabel } from "../theme";
 import { useToast } from "../components/Toast";
 import { registerForPushNotifications } from "../notifications";
@@ -74,40 +77,39 @@ export default function AuthScreen({ navigation }) {
     >
       <ScrollView contentContainerStyle={{ padding: 20, paddingTop: insets.top + 30, paddingBottom: 40 }}>
         <Text style={{ color: colors.text, fontSize: 26, fontWeight: "800", marginBottom: 8 }}>
-          Did our paths ever cross?
+          {t("Did our paths ever cross?")}
         </Text>
         <Text style={{ color: colors.muted, marginBottom: 22, lineHeight: 20 }}>
-          Compare Google Timeline exports with a friend — or a stranger — and see only the places
-          and times you both were there.
+          {t("Compare Google Timeline exports with a friend — or a stranger — and see only the places and times you both were there.")}
         </Text>
 
         {signupToken ? (
           <View>
-            <Text style={{ color: colors.text, fontSize: 18, fontWeight: "700" }}>Choose a username</Text>
+            <Text style={{ color: colors.text, fontSize: 18, fontWeight: "700" }}>{t("Choose a username")}</Text>
             <Text style={{ color: colors.muted, marginTop: 6, lineHeight: 20 }}>
-              This is how friends find you. Your phone number and Google account are never shown to anyone.
+              {t("This is how friends find you. Your phone number and Google account are never shown to anyone.")}
             </Text>
-            <Field label="Username" value={handle} onChangeText={setHandle} autoCapitalize="none" autoCorrect={false} placeholder="e.g. sara.k" />
-            <Field label="Name (optional)" value={displayName} onChangeText={setDisplayName} />
+            <Field label={t("Username")} value={handle} onChangeText={setHandle} autoCapitalize="none" autoCorrect={false} placeholder={t("e.g. sara.k")} />
+            <Field label={t("Name (optional)")} value={displayName} onChangeText={setDisplayName} />
             {cfg.invite_required !== false ? (
               <Field
-                label={cfg.invite_required ? "Invite code" : "Invite code (if your server uses one)"}
+                label={cfg.invite_required ? t("Invite code") : t("Invite code (if your server uses one)")}
                 value={invite}
                 onChangeText={setInvite}
                 autoCapitalize="none"
                 autoCorrect={false}
               />
             ) : null}
-            <Button title="Create account" onPress={finishSignup} loading={busy} style={{ marginTop: 16 }} />
+            <Button title={t("Create account")} onPress={finishSignup} loading={busy} style={{ marginTop: 16 }} />
             <Text onPress={() => setSignupToken(null)} style={{ color: colors.accent2, textAlign: "center", marginTop: 16 }}>
-              Cancel
+              {t("Cancel")}
             </Text>
           </View>
         ) : phoneOpen ? (
           <View>
             <PhoneCodeForm onVerified={async (phone, code) => after(await loginWithPhone(phone, code))} />
             <Text onPress={() => setPhoneOpen(false)} style={{ color: colors.accent2, textAlign: "center", marginTop: 18 }}>
-              Other ways to sign in
+              {t("Other ways to sign in")}
             </Text>
           </View>
         ) : (
@@ -120,15 +122,15 @@ export default function AuthScreen({ navigation }) {
                   style={{ flex: 1, paddingVertical: 11, borderRadius: 10, alignItems: "center", backgroundColor: mode === m ? colors.panel : "transparent" }}
                 >
                   <Text style={{ color: mode === m ? colors.text : colors.muted, fontWeight: "700", fontSize: 15 }}>
-                    {m === "login" ? "Sign in" : "Create account"}
+                    {m === "login" ? t("Sign in") : t("Create account")}
                   </Text>
                 </Pressable>
               ))}
             </View>
 
-            <Field label="Username" value={handle} onChangeText={setHandle} autoCapitalize="none" autoCorrect={false} placeholder="e.g. sara.k" />
+            <Field label={t("Username")} value={handle} onChangeText={setHandle} autoCapitalize="none" autoCorrect={false} placeholder={t("e.g. sara.k")} />
             <Field
-              label={isReg ? "Password (10+ characters)" : "Password"}
+              label={isReg ? t("Password (10+ characters)") : t("Password")}
               value={password}
               onChangeText={setPassword}
               secureTextEntry
@@ -137,7 +139,7 @@ export default function AuthScreen({ navigation }) {
             {/* Shown when the server needs one - or when we couldn't ask it (config didn't load). */}
             {isReg && cfg.invite_required !== false ? (
               <Field
-                label={cfg.invite_required ? "Invite code" : "Invite code (if your server uses one)"}
+                label={cfg.invite_required ? t("Invite code") : t("Invite code (if your server uses one)")}
                 value={invite}
                 onChangeText={setInvite}
                 autoCapitalize="none"
@@ -146,19 +148,19 @@ export default function AuthScreen({ navigation }) {
             ) : null}
 
             <Button
-              title={isReg ? "Create account" : "Sign in"}
+              title={isReg ? t("Create account") : t("Sign in")}
               onPress={submit}
               loading={busy}
               style={{ marginTop: 16 }}
             />
             {methods.phone || methods.google ? (
               <View style={{ marginTop: 22 }}>
-                <Text style={{ color: colors.muted, textAlign: "center", marginBottom: 12 }}>or</Text>
+                <Text style={{ color: colors.muted, textAlign: "center", marginBottom: 12 }}>{t("or")}</Text>
                 {methods.phone ? (
-                  <Button title="Continue with WhatsApp" variant="ghost" onPress={() => setPhoneOpen(true)} disabled={busy} />
+                  <Button title={t("Continue with WhatsApp")} variant="ghost" onPress={() => setPhoneOpen(true)} disabled={busy} />
                 ) : null}
                 {methods.google ? (
-                  <Button title="Continue with Google" variant="ghost" onPress={google} disabled={busy} style={{ marginTop: methods.phone ? 10 : 0 }} />
+                  <Button title={t("Continue with Google")} variant="ghost" onPress={google} disabled={busy} style={{ marginTop: methods.phone ? 10 : 0 }} />
                 ) : null}
               </View>
             ) : null}
@@ -168,11 +170,13 @@ export default function AuthScreen({ navigation }) {
           onPress={() => navigation.navigate("Settings")}
           style={{ color: colors.accent2, textAlign: "center", marginTop: 22 }}
         >
-          Server settings
+          {t("Server settings")}
+        </Text>
+        <Text onPress={() => changeLanguage(RTL ? "en" : "ar")} style={{ color: colors.accent2, textAlign: "center", marginTop: 14 }}>
+          {RTL ? "English" : "العربية"}
         </Text>
         <Text style={{ color: colors.muted, fontSize: 12.5, marginTop: 24, textAlign: "center" }}>
-          Your raw timeline is encrypted, used only for checks you agree to, and - unless you choose to keep it longer -
-          deleted {keepLabel(cfg.upload_ttl_hours || 24)} after you upload it.
+          {t("Your raw timeline is encrypted, used only for checks you agree to, and - unless you choose to keep it longer - deleted {when} after you upload it.", { when: keepLabel(cfg.upload_ttl_hours || 24) })}
         </Text>
       </ScrollView>
     </KeyboardAvoidingView>

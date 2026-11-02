@@ -12,10 +12,13 @@ import NewCheckModal from "../screens/NewCheckModal";
 import ReviewCheckModal from "../screens/ReviewCheckModal";
 import ResultsScreen from "../screens/ResultsScreen";
 import MyTimelineScreen from "../screens/MyTimelineScreen";
-import ImportModal from "../screens/ImportModal";
-import PhotoScanModal from "../screens/PhotoScanModal";
+import BuildTimelineModal from "../screens/BuildTimelineModal";
 import AddNearbyScreen, { codeFrom } from "../screens/AddNearbyScreen";
 import MainTabs from "./MainTabs";
+import WelcomeScreen from "../screens/WelcomeScreen";
+import { fontFor } from "../components/AppText";
+import { t } from "../i18n";
+import { markWelcomeSeen, useWelcomeSeen } from "../welcome";
 import { colors } from "../theme";
 import { useTheme } from "../themeContext";
 
@@ -36,6 +39,7 @@ export default function RootNavigator() {
   const data = { ...appData, cfg };
   // A theme change remounts the navigator (every screen reads the new colours) but keeps where you are.
   const { themeKey } = useTheme();
+  const welcomeSeen = useWelcomeSeen(); // the first-start tutorial, shown once (Account can show it again)
   const navState = useRef(undefined);
   const navTheme = {
     dark: colors.isDark,
@@ -63,17 +67,18 @@ export default function RootNavigator() {
     if (!user || !pendingCode) return;
     const code = pendingCode;
     setPendingCode(null);
-    const t = setTimeout(() => navRef.isReady() && navRef.navigate("AddNearby", { code }), 400);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => navRef.isReady() && navRef.navigate("AddNearby", { code }), 400);
+    return () => clearTimeout(timer);
   }, [user, pendingCode]);
 
-  if (!ready) {
+  if (!ready || welcomeSeen === null) {
     return (
       <View style={{ flex: 1, backgroundColor: colors.bg, alignItems: "center", justifyContent: "center" }}>
         <ActivityIndicator color={colors.accent} />
       </View>
     );
   }
+  if (!welcomeSeen) return <WelcomeScreen onDone={markWelcomeSeen} />;
 
   // navState keeps where the user was, so unlocking puts them back on the same screen.
   if (locked) return <LockScreen />;
@@ -89,32 +94,30 @@ export default function RootNavigator() {
         navState.current = s;
       }}
     >
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
+      {/* pages rise and fade in; sheets slide up from the bottom */}
+      <Stack.Navigator screenOptions={{ headerShown: false, animation: "fade_from_bottom" }}>
         {!user ? (
           <>
             <Stack.Screen name="Auth" component={AuthScreen} />
-            <Stack.Screen name="Settings" component={SettingsScreen} options={{ presentation: "modal", headerShown: true, title: "Server addresses" }} />
+            <Stack.Screen name="Settings" component={SettingsScreen} options={{ presentation: "modal", animation: "slide_from_bottom", headerShown: true, title: t("Server addresses"), headerTitleStyle: { fontFamily: fontFor(600) } }} />
           </>
         ) : (
           <>
             <Stack.Screen name="Main">{() => <MainTabs data={data} />}</Stack.Screen>
-            <Stack.Screen name="NewCheck" options={{ presentation: "modal" }}>
-              {(props) => <NewCheckModal {...props} uploads={data.uploads} onDone={data.refresh} />}
+            <Stack.Screen name="NewCheck" options={{ presentation: "modal", animation: "slide_from_bottom" }}>
+              {(props) => <NewCheckModal {...props} uploads={data.uploads} connections={data.connections} onDone={data.refresh} />}
             </Stack.Screen>
-            <Stack.Screen name="ReviewCheck" options={{ presentation: "modal" }}>
+            <Stack.Screen name="ReviewCheck" options={{ presentation: "modal", animation: "slide_from_bottom" }}>
               {(props) => <ReviewCheckModal {...props} checks={data.checks} uploads={data.uploads} onDone={data.refresh} />}
             </Stack.Screen>
-            <Stack.Screen name="Results" component={ResultsScreen} options={{ animation: "fade" }} />
-            <Stack.Screen name="MyTimeline" component={MyTimelineScreen} options={{ animation: "fade" }} />
-            <Stack.Screen name="Settings" component={SettingsScreen} options={{ presentation: "modal", headerShown: true, title: "Server addresses" }} />
-            <Stack.Screen name="AddNearby" options={{ presentation: "modal" }}>
+            <Stack.Screen name="Results" component={ResultsScreen} />
+            <Stack.Screen name="MyTimeline" component={MyTimelineScreen} />
+            <Stack.Screen name="Settings" component={SettingsScreen} options={{ presentation: "modal", animation: "slide_from_bottom", headerShown: true, title: t("Server addresses"), headerTitleStyle: { fontFamily: fontFor(600) } }} />
+            <Stack.Screen name="AddNearby" options={{ presentation: "modal", animation: "slide_from_bottom" }}>
               {(props) => <AddNearbyScreen {...props} uploads={data.uploads} loaded={data.loaded} onDone={data.refresh} />}
             </Stack.Screen>
-            <Stack.Screen name="Import" options={{ presentation: "modal" }}>
-              {(props) => <ImportModal {...props} cfg={data.cfg} onDone={data.refresh} />}
-            </Stack.Screen>
-            <Stack.Screen name="PhotoScan" options={{ presentation: "modal" }}>
-              {(props) => <PhotoScanModal {...props} cfg={data.cfg} onDone={data.refresh} />}
+            <Stack.Screen name="Build" options={{ presentation: "modal", animation: "slide_from_bottom" }}>
+              {(props) => <BuildTimelineModal {...props} cfg={data.cfg} uploads={data.uploads} onDone={data.refresh} />}
             </Stack.Screen>
           </>
         )}

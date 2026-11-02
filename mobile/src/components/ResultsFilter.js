@@ -1,17 +1,23 @@
 import React, { useMemo } from "react";
-import { Pressable, Switch, Text, TextInput, View } from "react-native";
+import { Pressable, Switch, View } from "react-native";
+import { Text, TextInput } from "./AppText";
 import Button from "./Button";
 import ChipScroller from "./ChipScroller";
 import KindIcon from "./KindIcon";
 import Sheet from "./Sheet";
+import { onLanguage, t } from "../i18n";
 import { cityOf, colors, KIND_COLOR, KIND_LABEL, kindHelp, placeOf } from "../theme";
+import Icon from "./Icon";
 
 export const DUR_STEPS = [0, 5, 15, 30, 60];
-export const SORTS = [
-  ["new", "Newest"],
-  ["old", "Oldest"],
-  ["long", "Longest"],
+export let SORTS;
+onLanguage(() => {
+  SORTS = [
+  ["new", t("Newest")],
+  ["old", t("Oldest")],
+  ["long", t("Longest")],
 ];
+});
 
 export function freshFilters() {
   return { kinds: Object.keys(KIND_LABEL), year: null, city: null, place: null, minDur: 0, q: "", inView: false, sort: "new" };
@@ -51,7 +57,7 @@ export function applyFilters(events, f, bounds) {
   return out;
 }
 
-function Chip({ on, label, onPress, icon, count }) {
+function Chip({ on, label, onPress, icon, count, removable }) {
   const fg = on ? colors.onAccent : colors.text;
   return (
     <Pressable
@@ -72,6 +78,7 @@ function Chip({ on, label, onPress, icon, count }) {
       <Text style={{ color: fg, fontWeight: "700", fontSize: 13 }} numberOfLines={1}>
         {label}
       </Text>
+      {removable ? <Icon name="close" size={14} color={fg} strokeWidth={2.2} /> : null}
       {count != null ? <Text style={{ color: on ? fg : colors.muted, fontSize: 12.5, opacity: on ? 0.8 : 1 }}>{count}</Text> : null}
     </Pressable>
   );
@@ -103,8 +110,8 @@ export function FilterSheet({ visible, onClose, events, f, setF, shown }) {
 
   return (
     <Sheet visible={visible} onClose={onClose}>
-      <Text style={{ color: colors.text, fontSize: 20, fontWeight: "800" }}>Filter crossings</Text>
-      <Label>Type</Label>
+      <Text style={{ color: colors.text, fontSize: 20, fontWeight: "800" }}>{t("Filter crossings")}</Text>
+      <Label>{t("Type")}</Label>
       <Row>
         {Object.entries(KIND_LABEL).map(([k, v]) => (
           <Chip key={k} on={f.kinds.includes(k)} icon={k} label={v[1]} onPress={() => toggleKind(k)} />
@@ -112,9 +119,9 @@ export function FilterSheet({ visible, onClose, events, f, setF, shown }) {
       </Row>
       {years.length > 1 ? (
         <>
-          <Label>Year</Label>
+          <Label>{t("Year")}</Label>
           <Row selected={f.year == null ? 0 : years.indexOf(f.year) + 1}>
-            <Chip on={f.year == null} label="All" onPress={() => set({ year: null })} />
+            <Chip on={f.year == null} label={t("All")} onPress={() => set({ year: null })} />
             {years.map((y) => (
               <Chip key={y} on={f.year === y} label={String(y)} onPress={() => set({ year: y })} />
             ))}
@@ -123,9 +130,9 @@ export function FilterSheet({ visible, onClose, events, f, setF, shown }) {
       ) : null}
       {cities.length > 1 ? (
         <>
-          <Label>City</Label>
+          <Label>{t("City")}</Label>
           <Row selected={f.city == null ? 0 : cities.findIndex(([c]) => c === f.city) + 1}>
-            <Chip on={f.city == null} label="All" onPress={() => set({ city: null })} />
+            <Chip on={f.city == null} label={t("All")} onPress={() => set({ city: null })} />
             {cities.map(([c, n]) => (
               <Chip key={c} on={f.city === c} label={c} count={n} onPress={() => set({ city: c })} />
             ))}
@@ -134,34 +141,34 @@ export function FilterSheet({ visible, onClose, events, f, setF, shown }) {
       ) : null}
       {f.place != null ? (
         <>
-          <Label>Place</Label>
+          <Label>{t("Place")}</Label>
           <Row>
-            <Chip on icon="same_place" label={`${f.place}  ✕`} onPress={() => set({ place: null })} />
+            <Chip on removable icon="same_place" label={f.place} onPress={() => set({ place: null })} />
           </Row>
         </>
       ) : null}
-      <Label>At least</Label>
+      <Label>{t("At least")}</Label>
       <Row selected={DUR_STEPS.indexOf(f.minDur)}>
         {DUR_STEPS.map((m) => (
-          <Chip key={m} on={f.minDur === m} label={m ? `${m}+ min` : "Any"} onPress={() => set({ minDur: m })} />
+          <Chip key={m} on={f.minDur === m} label={m ? t("{n}+ min", { n: m }) : t("Any")} onPress={() => set({ minDur: m })} />
         ))}
       </Row>
-      <Label>Place or landmark contains</Label>
+      <Label>{t("Place or landmark contains")}</Label>
       <TextInput
         value={f.q}
         onChangeText={(q) => set({ q })}
-        placeholder="e.g. Olaya, airport, mall"
+        placeholder={t("e.g. Olaya, airport, mall")}
         placeholderTextColor={colors.muted}
         autoCorrect={false}
         style={{ backgroundColor: colors.panel2, borderWidth: 1, borderColor: colors.line, borderRadius: 12, padding: 11, color: colors.text }}
       />
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 16 }}>
-        <Text style={{ color: colors.text, flex: 1 }}>Only crossings in the visible map area</Text>
+        <Text style={{ color: colors.text, flex: 1 }}>{t("Only crossings in the visible map area")}</Text>
         <Switch value={f.inView} onValueChange={(v) => set({ inView: v })} trackColor={{ true: colors.accent, false: colors.line }} />
       </View>
       <View style={{ flexDirection: "row", gap: 10, marginTop: 20 }}>
-        <Button title="Clear" variant="ghost" onPress={() => setF({ ...freshFilters(), sort: f.sort })} />
-        <Button title={`Show ${shown}`} onPress={onClose} style={{ flex: 1 }} />
+        <Button title={t("Clear")} variant="ghost" onPress={() => setF({ ...freshFilters(), sort: f.sort })} />
+        <Button title={t("Show {n}", { n: shown })} onPress={onClose} style={{ flex: 1 }} />
       </View>
     </Sheet>
   );
@@ -170,7 +177,7 @@ export function FilterSheet({ visible, onClose, events, f, setF, shown }) {
 export function LegendSheet({ visible, onClose, radiusM, windowMin }) {
   return (
     <Sheet visible={visible} onClose={onClose}>
-      <Text style={{ color: colors.text, fontSize: 20, fontWeight: "800", marginBottom: 6 }}>What the types mean</Text>
+      <Text style={{ color: colors.text, fontSize: 20, fontWeight: "800", marginBottom: 6 }}>{t("What the types mean")}</Text>
       {Object.entries(KIND_LABEL).map(([k, v]) => (
         <View key={k} style={{ flexDirection: "row", gap: 12, paddingVertical: 12, borderTopWidth: 1, borderTopColor: colors.line }}>
           <View style={{ width: 36, height: 36, borderRadius: 10, backgroundColor: colors.badge, alignItems: "center", justifyContent: "center" }}>
@@ -183,10 +190,9 @@ export function LegendSheet({ visible, onClose, radiusM, windowMin }) {
         </View>
       ))}
       <Text style={{ color: colors.muted, fontSize: 12.5, marginTop: 8, lineHeight: 18 }}>
-        Places are named from a database on your server (place names © GeoNames, CC BY 4.0; street names © OpenStreetMap
-        contributors). Times are rounded to 15 minutes and places blurred to about 100 m for privacy. Flights are never matched.
+        {t("Places are named from a database on your server (place names © {geonames}, CC BY 4.0; street names © OpenStreetMap contributors). Times are rounded to 15 minutes and places blurred to about {m} m for privacy. Flights are never matched.", { geonames: "GeoNames", m: Math.min(radiusM || 100, 100) })}
       </Text>
-      <Button title="Got it" onPress={onClose} style={{ marginTop: 16 }} />
+      <Button title={t("Got it")} onPress={onClose} style={{ marginTop: 16 }} />
     </Sheet>
   );
 }

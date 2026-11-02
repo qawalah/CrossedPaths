@@ -23,6 +23,9 @@ Main features:
     in time) and a replay of **only your own** path around it;
   - filters (type, year, city, place, minimum length, text, visible map area) and sort (newest,
     oldest, longest).
+- **Street maps:** in countries an admin downloaded, sparse journeys (Google Timeline above
+  all) are drawn along roads instead of straight lines through buildings and water, on the
+  results replay and in My Timeline. Display only: matching is unchanged. See "Street maps" below.
 - **Place names offline** from GeoNames, in English and Arabic. Places far from any town are
   named like "91 km SE of Rumāḩ", and the coordinates are shown when no name is found. Street
   names come from OpenStreetMap, only when the user taps "Show street name".
@@ -31,7 +34,15 @@ Main features:
   check in one step.
 - **My Timeline:** browse your own upload by year, month and day on a map, with replay, and
   search for every visit to a place.
-- **Adding a timeline:** two choices on both clients.
+- **Timelines are built from sources** and can be combined: on both clients you stage any
+  number of sources (files from apps, a photo scan, your other timelines), then save them as one
+  timeline. Each timeline lists its sources and has *Add source* (adds to it, dropping duplicate
+  points) and *Export* (GPX / GeoJSON / CSV of your own points; the app saves through Android's
+  folder picker). Server: `gather_sources` / `save_timeline` in `server/app.py`,
+  `POST /api/uploads`, `POST /api/uploads/<id>/sources`, `GET /api/uploads/<id>/export`.
+  The app's builder is `mobile/src/screens/BuildTimelineModal.js` (photo scanning in
+  `src/photoScan.js`, export in `src/exportTimeline.js`).
+- **Adding a source:** two starting points on both clients.
   - *Import a timeline*: pick a source (Google Maps, Strava, Apple Health, Samsung Health,
     Garmin, Fitbit/Google Fit, Swarm, other apps) to see how to export from it, then choose one
     file, several, or a .zip. `crosspaths/importers.py` recognises each file by content: GPX, TCX,
@@ -45,7 +56,8 @@ Main features:
 - **Settings:**
   - theme: system, dark or light, plus five accent colours;
   - per-user upload retention: 24 h (default), 7 days, 30 days, or until deleted;
-  - two server addresses (main + backup) with automatic switching.
+  - two server addresses (main + backup) with automatic switching;
+  - web only, for usernames in `ADMIN_HANDLES`: *Server (admin) → Street maps*.
 - **Trust:** a heuristic check flags timelines that look fake or edited, shown as a warning on
   results.
 
@@ -63,7 +75,7 @@ Main features:
 - `applicationId` / namespace: `com.example.crosspaths`. **This must change before Play**: Play
   rejects `com.example.*`. The suggested name is `com.abu.crosspaths`. Changing it makes it a new
   app for anyone with the sideloaded version, so they'll need to install it fresh.
-- `versionCode` **10**, `versionName` **1.8.0** (in `mobile/app.json` and
+- `versionCode` **21**, `versionName` **1.15.0** (in `mobile/app.json` and
   `mobile/android/app/build.gradle`). `package.json` still says 1.0.0; ignore it.
 - **Signing:** there's no own key yet. Release builds are signed with React Native's stock
   **debug keystore** (`android/app/debug.keystore`, alias `androiddebugkey`; deliberately not in
@@ -76,27 +88,20 @@ Main features:
 planned), `buildNumber` 4. Waiting on the owner's Apple Developer enrollment; plan was EAS build
 and then TestFlight. `eas.json` exists, but there's no EAS `projectId` yet.
 
-**Server:** version in `server/VERSION`, currently **0.12.0**, reported at `GET /api/config`.
+**Server:** version in `server/VERSION`, currently **0.19.0**, reported at `GET /api/config`.
 Entry point `server/wsgi.py` → `server.app:create_app()`. Run by gunicorn: 1 worker, 8 threads,
 port 8787.
 
 ## How it's built and run
 
 ### Server (Docker)
-```bash
-cd server
-docker compose up -d --build        # first time, or when requirements.txt / Dockerfile change
-```
-`docker-compose.yml` bind-mounts the code read-only:
-- `./server`
-- `./crosspaths`
-- `./wsgi.py`
-- `./VERSION`
+The image is built by `.github/workflows/release.yml` (DevStore) when `server/devstore.json`'s
+version is bumped on `main`, and published as `ghcr.io/qawalah/crosspaths:<version>` and
+`:latest` (linux/amd64, public). `server/docker-compose.yml` runs `:latest` with the Watchtower
+label, so **deploying is: bump the version, push to `main`; Watchtower installs it**. Code is not
+bind-mounted any more; only `./data` is mounted. Never touch `./data`.
 
-So **most updates are "copy those four in, restart the container"**, with no rebuild. Never touch
-`./data`.
-
-Tests (55 passing), from `server/`:
+Tests (66 passing), from `server/`:
 ```bash
 pip install -r requirements.txt pytest
 python -m pytest -q
@@ -149,11 +154,16 @@ cd android
   retention setting by an hourly loop.
 - `places/`: GeoNames cache (`cities500.txt`, about 40 MB, plus small per-country files),
   downloaded on first use.
+- `roads/<region>/`: street maps an admin added: `tiles/` (Valhalla routing data), `meta.json`
+  (state, progress, errors), `coverage.json` (which 0.25° cells it covers); `roads/catalog.json`
+  caches Geofabrik's list for a week. Deleting a region folder just turns snapping off there.
 - Results, including each user's own track windows ±3 h around crossings, expire after
   `RESULTS_TTL_DAYS` (14).
 
 **External services:**
 - `download.geonames.org`: place names, from the server, once.
+- `download.geofabrik.de`: OpenStreetMap country extracts and their list, from the server, only
+  when an admin adds or updates a street map.
 - OpenFreeMap tiles (`MAP_STYLE_URL`, default `https://tiles.openfreemap.org/styles/liberty`):
   map backgrounds, from the clients.
 - `nominatim.openstreetmap.org`: street names, client-side, only on tap. The web needs
@@ -265,6 +275,27 @@ route files then. Separate workouts close together in place (within 200 m and 6 
 - Push a notification when a check finishes.
 - Real phone screenshots for the store.
 
+## Street maps
+
+- `crosspaths/snap.py` (pure, testable): for each pair of neighbouring points more than 150 m
+  and at most 30 min apart, ask a router for the street route and insert its points with times
+  spread by distance. Skipped: hops faster than 70 m/s, travel mode `skip` (train, plane, ferry,
+  boat, ski…), routes longer than 2× the straight line + 200 m (usually a train with no road
+  beside it), and anything where no road is within 300 m. Unknown mode: walking costing below
+  2.5 m/s, car above.
+- Travel mode comes from Google's activity type (`parser.travel_mode`), stored per point in the
+  upload file (`store.py`, `mode` column; older files read as unknown). Other importers don't set it.
+- `server/roads.py`: Geofabrik catalog, download (size cap `ROADS_MAX_DOWNLOAD_MB`, disk check),
+  `valhalla_build_tiles` run as a niced subprocess with `concurrency=1`, built into `tiles.new`
+  then swapped in (so an update keeps the old map working). One job at a time; a restart marks a
+  running job failed. Routing is in-process (`pyvalhalla`, 64 MB tile cache, one lock).
+- Used in `runner.track_windows` when a check finishes (budget 120 s per check) and in
+  `/api/uploads/<id>/day` (budget 6 s, LRU cache of 64 days). Old results aren't re-snapped.
+- Admin endpoints: `/api/admin/roads` (GET status, POST `{region}`), `/api/admin/roads/catalog`,
+  `DELETE /api/admin/roads/<id>`. Admin = `ADMIN_HANDLES`; `/api/me` returns `is_admin`.
+- Only the web client has the admin screen. The mobile app just shows the snapped tracks.
+- Tests use `tests/data/grid.osm.pbf` (a made-up 5×5 street grid) and build real routing data.
+
 ## Important decisions (don't undo these)
 
 **Privacy model**
@@ -284,6 +315,11 @@ route files then. Separate workouts close together in place (within 200 m and 6 
 - A KD-tree finds candidate pairs.
 - Segments faster than 70 m/s (flights) are never matched.
 - A moving crossing is located at its most-simultaneous pair; its kind uses time-weighted speed.
+
+**Street maps**
+- Routing runs **on the server, offline**, from downloaded OpenStreetMap data. Never send
+  people's paths to a public routing service.
+- Snapping is for drawing only; the matcher keeps using the recorded points.
 
 **Place names**
 - Names come from **offline GeoNames on the server**: no third-party reverse-geocoding of
@@ -310,11 +346,30 @@ route files then. Separate workouts close together in place (within 200 m and 6 
 - **Theme:** `colors` in `src/theme.js` is one mutable object. A theme change rewrites it and
   the `NavigationContainer` remounts, keyed on the theme with its nav state preserved. Don't
   capture colours in `StyleSheet.create`.
-- **Dates:** the interface is English and dates use an English locale even on Arabic phones,
-  to avoid Hijri dates mixed into English. Place names still follow the device language
-  (Arabic names from GeoNames).
+- **Language:** English and Arabic (RTL) on both clients, chosen under Account → Language
+  (default "System"). The English UI uses an English locale even on Arabic phones (no Hijri dates
+  mixed into English); the Arabic UI uses `ar-u-ca-gregory-nu-latn` (Arabic month/day names,
+  Gregorian, Western digits). Place names follow the UI language (Arabic names from GeoNames).
+  English text is the translation key. Web: `AR_STR` in `index.html`, `t()`/`pl()`/`serverMsg()`.
+  Mobile: `src/i18n.js` with the dictionary in `src/i18n.ar.js`. `server/tests/test_i18n.py` fails
+  if a string or fixed server message has no Arabic entry. Never name a local variable `t` where
+  `t()` is called. On Android the language is live: `App.js` calls `syncLanguage()` whenever the UI
+  starts or returns to the front (Android can keep the JS running after "closing" the app, so module load
+  is not a safe moment), and a change in Account switches the text at once. Module-level lists of
+  labels are built inside `onLanguage(() => ...)` so they rebuild; never compute translated text or
+  `UI_LOCALE`/`RTL` in a plain module-level `const`. Only the layout direction waits: Android applies
+  RTL when the UI is created, so a change calls `I18nManager.forceRTL`/`allowRTL` and, if the layout
+  no longer matches, asks to reopen the app (`src/changeLanguage.js`);
+  `android:supportsRtl="true"` is in the manifest and the config plugin. Time axes (date bar, welcome
+  pager, chip rows) are forced `direction: ltr`; back/next icons mirror (`components/Icon.js`).
+  Hermes has no `Intl.PluralRules`, so `pl()` writes the rules out.
+- **Typeface:** IBM Plex Sans Arabic everywhere (it has matching Latin), weights 400–700 only.
+  Web: self-hosted woff2 in `server/server/static/fonts/`, never Google's CDN. Mobile: TTFs in
+  `mobile/assets/fonts/`, copied into `android/app/src/main/assets/fonts/` by the config plugin;
+  Android picks a bundled font by file name, so screens use `Text`/`TextInput` from
+  `src/components/AppText.js`, which maps `fontWeight` to the right file.
 
 **Builds and deployment**
 - **APK:** arm64-only, minified, legacy packaging (about 18 MB).
-- **Server updates:** code is bind-mounted read-only so updates are "copy and restart". The
-  `data/` folder holds everything that matters.
+- **Server updates:** DevStore publishes the image to ghcr.io on a version bump; Watchtower
+  installs it. The `data/` folder holds everything that matters.

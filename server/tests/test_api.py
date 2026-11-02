@@ -68,7 +68,8 @@ def wait_done(c, h, cid, timeout=60):
 def test_full_flow_and_privacy():
     app, c, d = make_client()
     ha, hb, ua, ub, conn = setup_pair(c)
-    assert ua["format"] == "on-device" and ub["format"] == "records"
+    assert ua["format"] == "Google Maps" and ub["format"] == "Google Maps"
+    assert ua["sources"][0]["label"] == "Google Maps" and ua["sources"][0]["points"] > 100
     assert ua["trust"]["level"] == "high" and len(ua["zones"]) == 2
 
     # Nothing runs until BOTH consent
@@ -587,10 +588,60 @@ def test_upload_many_files_and_archives():
     r = c.post("/api/uploads", headers=h, data={"file": files}, content_type="multipart/form-data")
     j = r.get_json()
     assert r.status_code == 201, j
-    assert j["format"] in ("fit+gpx (2 files)", "gpx+fit (2 files)") and j["import"]["skipped"] == 1
+    assert j["format"] in ("GPX, FIT", "FIT, GPX") and j["import"]["skipped"] == 1
+    assert sorted((e["label"], e["files"]) for e in j["sources"]) == [("FIT", 1), ("GPX", 1)]
     z = zipped([("activities/a.gpx", gpx(pts[800:1200]))])
     r = c.post("/api/uploads", headers=h, data={"file": (io.BytesIO(z), "export.zip")}, content_type="multipart/form-data")
-    assert r.status_code == 201 and r.get_json()["format"] == "gpx"
+    assert r.status_code == 201 and r.get_json()["format"] == "GPX"
     r = c.post("/api/uploads", headers=h, data={"file": (io.BytesIO(b"hello"), "x.txt")}, content_type="multipart/form-data")
     assert r.status_code == 400 and "GPX" in r.get_json()["error"]
+    shutil.rmtree(d, ignore_errors=True)
+
+
+def test_combine_sources_add_later_and_export():
+    from test_importers import gpx, fit
+    from crosspaths import parse_files
+    app, c, d = make_client()
+    h, other = reg(c, "builder"), reg(c, "someone")
+    pts = synth.raw_points("A", 11)
+    photos = {"photoPoints": [{"t": t, "lat": la, "lon": lo} for t, la, lo, *_ in pts[1200:1300]]}
+    # 1. Build: Strava-like GPX + a photo scan in one go
+    r = c.post("/api/uploads", headers=h, data={"file": [(io.BytesIO(gpx(pts[:600])), "run.gpx"),
+                                                         (io.BytesIO(json.dumps(photos).encode()), "photo-timeline.json")]},
+               content_type="multipart/form-data")
+    j = r.get_json()
+    assert r.status_code == 201, j
+    assert {e["label"] for e in j["sources"]} == {"GPX", "Photos"} and j["format"] in ("GPX, Photos", "Photos, GPX")
+    first, n0 = j["id"], j["points"]
+    # the person edits their home/work areas; adding sources keeps that edit
+    assert c.put(f"/api/uploads/{first}/zones", headers=h, json={"zones": []}).status_code == 200
+    # 2. A separate Google upload, then fold it in later together with a FIT file
+    g2 = upload(c, h, synth.to_records_json(pts[600:1200])).get_json()
+    r = c.post(f"/api/uploads/{first}/sources", headers=h,
+               data={"file": (io.BytesIO(fit(pts[1300:1500])), "ride.fit"), "merge_ids": g2["id"], "remove_merged": "1"},
+               content_type="multipart/form-data")
+    j = r.get_json()
+    assert r.status_code == 200, j
+    assert {e["label"] for e in j["sources"]} == {"GPX", "Photos", "Google Maps", "FIT"}
+    assert j["points"] > n0 + 700 and j["import"]["added_points"] == j["points"] - n0
+    assert j["import"]["removed"] == [g2["id"]]
+    ids = [u["id"] for u in c.get("/api/uploads", headers=h).get_json()]
+    assert ids == [first]                                     # the merged one is gone
+    # adding the same file again adds nothing new (duplicates are dropped)
+    r = c.post(f"/api/uploads/{first}/sources", headers=h, data={"file": (io.BytesIO(fit(pts[1300:1500])), "ride.fit")},
+               content_type="multipart/form-data")
+    assert r.get_json()["import"]["added_points"] == 0 and r.get_json()["points"] == j["points"]
+    # 3. Export in each format; GPX reads back in with the same points
+    for kind, mime in (("gpx", "gpx"), ("geojson", "geo+json"), ("csv", "csv")):
+        e = c.get(f"/api/uploads/{first}/export?format={kind}", headers=h)
+        assert e.status_code == 200 and mime in e.content_type and "attachment" in e.headers["Content-Disposition"]
+        back, _ = parse_files([("x." + kind, e.data)])
+        assert abs(len(back) - j["points"]) <= j["points"] * 0.02, (kind, len(back), j["points"])
+    assert c.get(f"/api/uploads/{first}/export?format=kml", headers=h).status_code == 400
+    # 4. Nobody else can export or merge your timeline
+    assert c.get(f"/api/uploads/{first}/export", headers=other).status_code == 404
+    mine = upload(c, other, synth.spoofed_records_json(200)).get_json()
+    r = c.post(f"/api/uploads/{mine['id']}/sources", headers=other, data={"merge_ids": first}, content_type="multipart/form-data")
+    assert r.status_code == 404
+    assert c.post(f"/api/uploads/{first}/sources", headers=h, data={}, content_type="multipart/form-data").status_code == 400
     shutil.rmtree(d, ignore_errors=True)

@@ -2,6 +2,7 @@
 // Nothing here throws: any native failure reads as "not available" or "not unlocked".
 import * as LocalAuthentication from "expo-local-authentication";
 import * as SecureStore from "expo-secure-store";
+import { t } from "./i18n";
 
 const KEY = "bio_lock";
 
@@ -40,9 +41,9 @@ export async function setEnabled(on) {
   }
 }
 
-export async function unlock(promptMessage = "Unlock CrossPaths") {
+export async function unlock(promptMessage) {
   try {
-    const r = await LocalAuthentication.authenticateAsync({ promptMessage, cancelLabel: "Cancel", disableDeviceFallback: false });
+    const r = await LocalAuthentication.authenticateAsync({ promptMessage: promptMessage || t("Unlock CrossPaths"), cancelLabel: t("Cancel"), disableDeviceFallback: false });
     return !!r.success;
   } catch (e) {
     return false;
