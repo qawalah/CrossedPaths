@@ -23,7 +23,7 @@ Server (from `server/`):
 
 ```bash
 pip install -r requirements.txt pytest
-python -m pytest -q                  # 126 tests, no network (PLACE_NAMES=False)
+python -m pytest -q                  # 130 tests, no network (PLACE_NAMES=False)
 DATA_DIR=./data python -c "from server.app import create_app; create_app().run(port=8787)"
 ```
 
@@ -68,6 +68,8 @@ read its log in the Actions tab and fix it.
 - Street maps (journeys drawn along roads) route on the server with Valhalla from OpenStreetMap
   data an admin downloads (`server/roads.py`, `crosspaths/snap.py`). Used for display and for the
   experimental estimated car routes in exports; never sent to a public router, never used for matching.
+  Admins can upload maps in pieces (prebuilt tiles from `server/tools/build_road_tiles.py`, for servers
+  too small to build them, e.g. the 1 GB Fly machine) and edit the routing options (`SETTINGS` in roads.py).
 - Every check uses the server's `CHECK_RADIUS_M` / `CHECK_WINDOW_MIN`; people don't pick them. Each
   crossing's "how likely you saw each other" grade (`crosspaths/likelihood.py`) is computed once and
   stored, so both people see the same.

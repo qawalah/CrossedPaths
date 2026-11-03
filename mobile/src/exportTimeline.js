@@ -8,6 +8,7 @@ import Button from "./components/Button";
 import Icon from "./components/Icon";
 import Sheet from "./components/Sheet";
 import { Api } from "./api";
+import { useAuth } from "./auth";
 import { colors } from "./theme";
 
 const MIME = { gpx: "application/gpx+xml", geojson: "application/geo+json", csv: "text/csv" };
@@ -49,6 +50,10 @@ async function writeFile(dir, name, format, text) {
  * or as a second file.
  */
 export default function ExportSheet({ upload, onClose, toast }) {
+  const { cfg } = useAuth();
+  // the server admin's default gap rules (Settings → Street maps → Routing options), if it has them
+  const g = (cfg && cfg.gap_rules) || {};
+  const suggested = g.gap_max_min != null ? { max_gap_min: String(g.gap_max_min), max_km: String(g.gap_max_km), min_kmh: String(g.gap_min_kmh) } : SUGGESTED_RULES;
   const [p, setP] = useState(DEFAULTS);
   const [busy, setBusy] = useState(false);
   useEffect(() => {
@@ -61,7 +66,10 @@ export default function ExportSheet({ upload, onClose, toast }) {
       savePrefs(n);
       return n;
     });
-  const setRule = (k, v) => set({ rules: { ...p.rules, [k]: v.replace(/[^0-9.]/g, "") } });
+  // until the person changes a value, follow the server's defaults (and send none: the server applies them)
+  const rules = p.custom ? p.rules : suggested;
+  const sendRules = p.custom ? p.rules : {};
+  const setRule = (k, v) => set({ rules: { ...rules, [k]: v.replace(/[^0-9.]/g, "") }, custom: true });
 
   async function save() {
     if (!upload) return;
@@ -77,12 +85,12 @@ export default function ExportSheet({ upload, onClose, toast }) {
         await writeFile(perm.directoryUri, name, f, await Api.exportUpload(upload.id, f));
         toast(t("Saved {name}", { name: `${name}.${f}` }));
       } else if (!p.separate) {
-        const r = await Api.exportWithEstimates(upload.id, f, "embed", p.rules);
+        const r = await Api.exportWithEstimates(upload.id, f, "embed", sendRules);
         await writeFile(perm.directoryUri, name, f, r.text);
         toast(t("Saved {name}", { name: `${name}.${f}` }) + note(r.headers));
       } else {
         await writeFile(perm.directoryUri, name, f, await Api.exportUpload(upload.id, f));
-        const r = await Api.exportWithEstimates(upload.id, f, "only", p.rules);
+        const r = await Api.exportWithEstimates(upload.id, f, "only", sendRules);
         const n = Number(r.headers.get("X-Estimated-Gaps") || 0);
         if (n > 0) {
           await writeFile(perm.directoryUri, `${name}-estimated`, f, r.text);
@@ -148,11 +156,11 @@ export default function ExportSheet({ upload, onClose, toast }) {
             onChange={(separate) => set({ separate })}
           />
           <Text style={{ color: colors.muted, fontSize: 13, fontWeight: "700", marginTop: 14 }}>{t("Which gaps")}</Text>
-          <Rule label={t("Gap up to")} unit={t("min")} value={p.rules.max_gap_min} onChange={(v) => setRule("max_gap_min", v)} />
-          <Rule label={t("Distance up to")} unit={t("km")} value={p.rules.max_km} onChange={(v) => setRule("max_km", v)} />
-          <Rule label={t("Average speed from")} unit={t("km/h")} value={p.rules.min_kmh} onChange={(v) => setRule("min_kmh", v)} />
+          <Rule label={t("Gap up to")} unit={t("min")} value={rules.max_gap_min} onChange={(v) => setRule("max_gap_min", v)} />
+          <Rule label={t("Distance up to")} unit={t("km")} value={rules.max_km} onChange={(v) => setRule("max_km", v)} />
+          <Rule label={t("Average speed from")} unit={t("km/h")} value={rules.min_kmh} onChange={(v) => setRule("min_kmh", v)} />
           <Text
-            onPress={() => set({ rules: SUGGESTED_RULES })}
+            onPress={() => set({ rules: suggested, custom: false })}
             style={{ color: colors.accent2, fontSize: 13, fontWeight: "600", marginTop: 8, alignSelf: "flex-start", padding: 2 }}
           >
             {t("Use the suggested values")}

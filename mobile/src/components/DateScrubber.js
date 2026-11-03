@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { PanResponder, Pressable, Vibration, View } from "react-native";
-import Svg, { Circle, Rect, Text as SvgText } from "react-native-svg";
+import Svg, { Circle, Line, Path, Rect, Text as SvgText } from "react-native-svg";
 import { onLanguage, pl, RTL, t } from "../i18n";
 import { colors, UI_LOCALE } from "../theme";
 import { Text, fontFor } from "./AppText";
@@ -8,6 +8,9 @@ import { Text, fontFor } from "./AppText";
 // A seek bar for picking a day, like YouTube's on a long video. Drag along it to move through
 // years; zoom into months and then days by sliding the finger up (and back out by sliding down)
 // or by holding still, depending on the `gesture` setting. Bars show how many points each day has.
+// Follows the agreed design (artifact "Timeline Date Scrubber"): ‹ › step between days with points,
+// the bubble sits beside the finger and rises with it, a Years / Months / Days stepper under the
+// bar fills as the next zoom gets close, and a dashed marker shows the day you'll open on release.
 
 const DAY = 864e5;
 let MON;
@@ -38,7 +41,10 @@ const ymd = (i) => {
 const PAD = 4; // days of room at either end of the whole-history view
 const PULL = 48; // px of vertical slide per zoom level
 const EDGE = 26; // px from either edge that keeps scrolling while held
-const BUBBLE_H = 62;
+const BUBBLE_H = 78;
+const BUBBLE_W = 168;
+const GAP = 40; // px between the fingertip and the bubble
+const ABOVE = 58; // room above the bar the bubble may rise into
 const BAR_TOP = 6;
 const BAR_H = 56;
 const LABEL_H = 22;
@@ -97,7 +103,7 @@ export default function DateScrubber({ summary, selected, onPick, onActiveChange
   const S = useRef(null);
   if (!S.current || S.current.data !== data) {
     const c = selected ? dIdx(selected.year, selected.month, selected.day) : data.maxD;
-    S.current = { data, sel: c + 0.5, selTarget: null, committed: c, level: 0, logW: Math.log(data.widths[0]), w0: 0, frac: 0.5, drag: null, trackLeft: 0, raf: null, last: 0 };
+    S.current = { data, sel: c + 0.5, selTarget: null, committed: c, level: 0, logW: Math.log(data.widths[0]), w0: 0, frac: 0.5, drag: null, trackLeft: 0, trackTop: 0, raf: null, last: 0, pop: null };
   }
   const s = S.current;
 
@@ -124,8 +130,10 @@ export default function DateScrubber({ summary, selected, onPick, onActiveChange
   }
   function setLevel(lv) {
     if (lv === s.level) return;
+    const up = lv > s.level;
     s.level = lv;
-    buzz(12);
+    buzz(up ? 16 : 12);
+    s.pop = { up, until: performance.now() + 1000 }; // the "↑ February 2023" announcement
   }
 
   function frame() {
@@ -160,7 +168,7 @@ export default function DateScrubber({ summary, selected, onPick, onActiveChange
     if (Math.abs(target - s.logW) < 0.002) s.logW = target;
     layout();
     redraw();
-    if (dr || s.selTarget != null || s.logW !== target) s.raf = requestAnimationFrame(frame);
+    if (dr || s.selTarget != null || s.logW !== target || (s.pop && now < s.pop.until)) s.raf = requestAnimationFrame(frame);
     else s.raf = null;
   }
   function kick() {
@@ -196,6 +204,7 @@ export default function DateScrubber({ summary, selected, onPick, onActiveChange
         const x = e.nativeEvent.locationX;
         const st = S.current;
         st.trackLeft = e.nativeEvent.pageX - x;
+        st.trackTop = e.nativeEvent.pageY - e.nativeEvent.locationY;
         st.sel = Math.min(st.data.maxD + 0.999, Math.max(st.data.minD, st.w0 + (x / (P.current.tw || 1)) * Math.exp(st.logW)));
         st.selTarget = null;
         st.frac = x / (P.current.tw || 1);
@@ -312,11 +321,35 @@ export default function DateScrubber({ summary, selected, onPick, onActiveChange
   }
 
   const sx = xOf(s.sel);
-  const holdP = dr && gesture !== "pull" && s.level < 2 ? (performance.now() - dr.still - 120) / (holdMs - 120) : 0;
+  const now = performance.now();
   const edgeDir = dr && s.level > 0 ? (dr.x - s.trackLeft < EDGE ? -1 : dr.x - s.trackLeft > TW - EDGE ? 1 : 0) : 0;
 
+  // how close the finger is to the next zoom step, 0-1 (slide distance or hold time, whichever is further)
+  let zoomP = 0;
+  if (dr && s.level < 2) {
+    if (gesture !== "hold") zoomP = Math.max(zoomP, (dr.startY - dr.y - (s.level - dr.base - dr.bumps) * PULL) / PULL);
+    if (gesture !== "pull") zoomP = Math.max(zoomP, (now - dr.still - 120) / (holdMs - 120));
+    zoomP = Math.min(1, Math.max(0, zoomP));
+  }
+
+  // the day you'll open on release, when the finger is on a day with no points
+  const land = dr ? data.nearest(s.sel) : null;
+  const landX = land != null && land !== selDay ? Math.min(TW - 6, Math.max(6, xOf(land + 0.5))) : null;
+
+  const fullDay = (d) => {
+    const [y, m, dd] = ymd(d);
+    return `${WD[toDate(d).getUTCDay()]} ${dd} ${MON[m - 1]} ${y}`;
+  };
+  // the year / month / day under the finger (or the picked day at rest), as words
+  const unitLabel = (l, d, long) => {
+    const [y, m, dd] = ymd(d);
+    if (l === 0) return String(y);
+    if (l === 1) return long ? `${MONL[m - 1]} ${y}` : MONL[m - 1];
+    return `${WD[toDate(d).getUTCDay()]} ${dd}` + (long ? ` ${MON[m - 1]}` : "");
+  };
+
   // bubble text
-  let bBig = "", bSmall = "";
+  let bBig = "", bSmall = "", bLand = "";
   if (dr) {
     const n = data.countAt(selDay);
     if (s.level === 0) {
@@ -329,16 +362,28 @@ export default function DateScrubber({ summary, selected, onPick, onActiveChange
       bSmall = tot ? pl("points", Math.round(tot)) : t("No data this month");
     } else {
       bBig = `${WD[toDate(selDay).getUTCDay()]} ${sd} ${MON[sm - 1]}`;
-      const nd = data.nearest(selDay);
-      const [, nm, ndd] = ymd(nd);
-      bSmall = n ? pl("points", n) : t("No data · goes to {day}", { day: `${ndd} ${MON[nm - 1]}` });
+      bSmall = n ? pl("points", n) : t("No points this day");
     }
+    bLand = land === selDay ? t("Opens {day}", { day: fullDay(land) }) : t("No points · opens {day}", { day: fullDay(land) });
   }
 
-  // The bubble sits mostly left of the finger (the thumb covers the right), and only flips to the
-  // right side when the finger is too near the left edge for it to fit.
-  const BUBBLE_W = 150;
-  const bubbleLeft = Math.min(TW - BUBBLE_W, Math.max(0, sx - BUBBLE_W + 28 >= 0 ? sx - BUBBLE_W + 28 : sx - 28));
+  // The bubble sits beside the finger, never under it: to its left when it fits (a right thumb covers
+  // the right), otherwise to its right. It stays above the bar and rises with the finger when it slides up.
+  let bubbleLeft = 0, bubbleTop = 0;
+  if (dr) {
+    const fx = dr.x - s.trackLeft, fy = dr.y - s.trackTop;
+    bubbleLeft = fx - GAP - BUBBLE_W >= 0 ? fx - GAP - BUBBLE_W : Math.min(TW - BUBBLE_W, fx + GAP);
+    // (no higher than the top of this control: the card around it clips)
+    bubbleTop = Math.max(-ABOVE - 44, Math.min(BAR_TOP - BUBBLE_H + 6, fy - BUBBLE_H / 2));
+  }
+  // "↑ February 2023" when a zoom step happens, fading out over a second
+  let popO = 0, popY = 0, popText = "";
+  if (s.pop && now < s.pop.until) {
+    const k = 1 - (s.pop.until - now) / 1000; // 0 → 1
+    popO = k < 0.15 ? k / 0.15 : k > 0.7 ? Math.max(0, (1 - k) / 0.3) : 1;
+    popY = -10 * k;
+    popText = (s.pop.up ? "↑ " : "↓ ") + unitLabel(s.level, selDay, true);
+  }
 
   const zoomIn = gesture === "hold" ? t("hold still") : gesture === "both" ? t("hold still or slide up") : t("slide up");
   const hint = !dr
@@ -351,26 +396,48 @@ export default function DateScrubber({ summary, selected, onPick, onActiveChange
           ? t("Moving by day · let go to open it")
           : t("Moving by day · slide down to zoom out");
 
+  const committedN = data.countAt(s.committed);
+  const prevD = data.step(s.committed, -1), nextD = data.step(s.committed, 1);
+  function stepDay(dir) {
+    const d = data.step(s.committed, dir);
+    if (d === s.committed) return;
+    // across ten years a one-day step is invisible: zoom to days first
+    if (s.level === 0 && Math.abs(xOf(d + 0.5) - xOf(s.committed + 0.5)) < 2) setLevel(2);
+    buzz(8);
+    pick(d);
+    kick();
+  }
+  function zoomTo(l) {
+    s.sel = s.committed + 0.5;
+    s.selTarget = null;
+    s.frac = 0.5;
+    setLevel(l);
+    kick();
+  }
+  const stepperDay = dr ? selDay : s.committed;
+
   return (
     // The bar is a time axis measured from the left edge: keep it left-to-right in Arabic too.
     <View style={{ direction: "ltr" }}>
-      <View style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 12, gap: 6 }}>
-        <Text style={{ color: colors.text, fontWeight: "700", fontSize: 14 }}>{dr ? SCRUB_LEVELS[s.level] : t("Date bar")}</Text>
-        <View style={{ flex: 1 }} />
-        {onHelp ? (
-          <Pressable onPress={onHelp} hitSlop={8} accessibilityLabel={t("How the date bar works")} style={{ width: 28, height: 28, borderRadius: 14, borderWidth: 1, borderColor: colors.line, alignItems: "center", justifyContent: "center" }}>
-            <Text style={{ color: colors.muted, fontWeight: "800" }}>?</Text>
-          </Pressable>
-        ) : null}
+      {/* the picked day, with ‹ › to step between days that have points */}
+      <View style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 12, gap: 8 }}>
+        <StepBtn label="‹" onPress={() => stepDay(-1)} disabled={prevD === s.committed} a11y={t("Previous day with points")} />
+        <View style={{ flex: 1, alignItems: "center" }}>
+          <Text style={{ color: colors.text, fontWeight: "800", fontSize: 15 }} numberOfLines={1}>
+            {fullDay(s.committed)}
+          </Text>
+          <Text style={{ color: colors.muted, fontSize: 12 }}>{committedN ? pl("points", committedN) : t("No points recorded")}</Text>
+        </View>
+        <StepBtn label="›" onPress={() => stepDay(1)} disabled={nextD === s.committed} a11y={t("Next day with points")} />
       </View>
 
-      <View style={{ height: BUBBLE_H + 6 }} />
+      <View style={{ height: ABOVE }} />
       <View
         onLayout={(e) => {
           setTw(e.nativeEvent.layout.width);
           kick();
         }}
-        style={{ height: TRACK_H }}
+        style={{ height: TRACK_H, zIndex: 2 }}
         accessible
         accessibilityRole="adjustable"
         accessibilityLabel={t("Day")}
@@ -400,7 +467,24 @@ export default function DateScrubber({ summary, selected, onPick, onActiveChange
             <Rect x={Math.round(sx) - 1} y={BAR_TOP - 4} width={2} height={BAR_H + 8} fill={colors.accent} />
             <Circle cx={sx} cy={barBot + 2} r={dr ? 8 : 6} fill={colors.accent} />
             <Circle cx={sx} cy={barBot + 2} r={dr ? 3 : 2.5} fill={colors.panel} />
-            {holdP > 0 ? (
+            {landX != null ? (
+              <>
+                <Line x1={landX} y1={BAR_TOP} x2={landX} y2={barBot} stroke={colors.accent} strokeWidth={2} strokeDasharray={[3, 3]} />
+                <Circle cx={landX} cy={barBot + 2} r={6} fill={colors.panel} stroke={colors.accent} strokeWidth={2} />
+                {Math.abs(landX - sx) > 14 ? (
+                  (() => {
+                    const ay = BAR_TOP + 10, dir = landX > sx ? 1 : -1;
+                    return (
+                      <>
+                        <Path d={`M${sx + dir * 4} ${ay} Q${(sx + landX) / 2} ${ay - 8} ${landX - dir * 5} ${ay}`} stroke={colors.accent} strokeWidth={2} fill="none" />
+                        <Path d={`M${landX - dir * 5} ${ay} L${landX - dir * 11} ${ay - 5} L${landX - dir * 10} ${ay + 3} Z`} fill={colors.accent} />
+                      </>
+                    );
+                  })()
+                ) : null}
+              </>
+            ) : null}
+            {zoomP > 0.02 ? (
               <Circle
                 cx={sx}
                 cy={barBot + 2}
@@ -409,12 +493,16 @@ export default function DateScrubber({ summary, selected, onPick, onActiveChange
                 strokeWidth={2.5}
                 fill="none"
                 strokeLinecap="round"
-                strokeDasharray={[Math.min(1, holdP) * 2 * Math.PI * 13, 2 * Math.PI * 13]}
+                strokeDasharray={[zoomP * 2 * Math.PI * 13, 2 * Math.PI * 13]}
                 transform={`rotate(-90 ${sx} ${barBot + 2})`}
               />
             ) : null}
             {edgeDir ? (
-              <Rect x={edgeDir < 0 ? 0 : TW - 4} y={BAR_TOP} width={4} height={BAR_H} rx={2} fill={colors.accent} opacity={0.8} />
+              <Path
+                d={edgeDir < 0 ? `M8 ${BAR_TOP + BAR_H / 2} L16 ${BAR_TOP + BAR_H / 2 - 8} L16 ${BAR_TOP + BAR_H / 2 + 8} Z` : `M${TW - 8} ${BAR_TOP + BAR_H / 2} L${TW - 16} ${BAR_TOP + BAR_H / 2 - 8} L${TW - 16} ${BAR_TOP + BAR_H / 2 + 8} Z`}
+                fill={colors.accent}
+                opacity={0.9}
+              />
             ) : null}
           </Svg>
         ) : null}
@@ -424,10 +512,12 @@ export default function DateScrubber({ summary, selected, onPick, onActiveChange
             pointerEvents="none"
             style={{
               position: "absolute",
-              bottom: TRACK_H - 2,
+              top: bubbleTop,
               left: bubbleLeft,
-              width: 150,
-              height: BUBBLE_H,
+              width: BUBBLE_W,
+              minHeight: BUBBLE_H,
+              paddingVertical: 7,
+              paddingHorizontal: 10,
               alignItems: "center",
               justifyContent: "center",
               borderRadius: 12,
@@ -435,6 +525,13 @@ export default function DateScrubber({ summary, selected, onPick, onActiveChange
               elevation: 6,
             }}
           >
+            {popO > 0 ? (
+              <View style={{ position: "absolute", bottom: BUBBLE_H + 4, alignSelf: "center", opacity: popO, transform: [{ translateY: popY }], backgroundColor: colors.accent, borderRadius: 99, paddingHorizontal: 11, paddingVertical: 4 }}>
+                <Text style={{ color: colors.onAccent, fontSize: 12, fontWeight: "800" }} numberOfLines={1}>
+                  {popText}
+                </Text>
+              </View>
+            ) : null}
             <Text style={{ color: colors.accent, fontSize: 9.5, fontWeight: "800", letterSpacing: RTL ? 0 : 0.8 }}>{SCRUB_LEVELS[s.level].toLocaleUpperCase()}</Text>
             <Text style={{ color: colors.bg, fontSize: 16, fontWeight: "800" }} numberOfLines={1}>
               {bBig}
@@ -442,10 +539,66 @@ export default function DateScrubber({ summary, selected, onPick, onActiveChange
             <Text style={{ color: colors.line, fontSize: 11 }} numberOfLines={1}>
               {bSmall}
             </Text>
+            <View style={{ alignSelf: "stretch", borderTopWidth: 1, borderTopColor: colors.muted, marginTop: 4, paddingTop: 4 }}>
+              <Text style={{ color: land === selDay ? colors.bg : colors.accent, fontSize: 11, fontWeight: "700", textAlign: "center" }} numberOfLines={2}>
+                {bLand}
+              </Text>
+            </View>
           </View>
         ) : null}
       </View>
-      <Text style={{ color: dr ? colors.accent : colors.muted, fontWeight: dr ? "600" : "400", fontSize: 12, paddingHorizontal: 12, marginTop: 2 }}>{hint}</Text>
+
+      {/* Years ── Months ── Days: lights up as you zoom, the line fills as the next step gets close; tap to jump */}
+      <View style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 12, paddingTop: 2 }}>
+        {[0, 1, 2].map((l) => (
+          <React.Fragment key={l}>
+            <Pressable onPress={() => zoomTo(l)} hitSlop={6} accessibilityRole="button" accessibilityLabel={SCRUB_LEVELS[l]} accessibilityState={{ selected: s.level === l }}>
+              <Text style={{ color: l <= s.level ? colors.text : colors.muted, opacity: l <= s.level ? 1 : 0.55, fontSize: 14, fontWeight: "800", transform: [{ scale: l === s.level ? 1.06 : 1 }] }}>
+                {unitLabel(l, stepperDay)}
+              </Text>
+            </Pressable>
+            {l < 2 ? (
+              <View style={{ flex: 1, minWidth: 14, height: 2, marginHorizontal: 8, borderRadius: 2, backgroundColor: colors.line, overflow: "hidden" }}>
+                <View style={{ height: 2, width: `${l < s.level ? 100 : l === s.level ? zoomP * 100 : 0}%`, backgroundColor: l < s.level ? colors.text : colors.accent }} />
+              </View>
+            ) : null}
+          </React.Fragment>
+        ))}
+      </View>
+
+      <View style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 12, marginTop: 6, gap: 8 }}>
+        <Text style={{ flex: 1, color: dr ? colors.accent : colors.muted, fontWeight: dr ? "600" : "400", fontSize: 12 }}>{hint}</Text>
+        {onHelp ? (
+          <Pressable onPress={onHelp} hitSlop={8} accessibilityLabel={t("How the date bar works")} style={{ width: 26, height: 26, borderRadius: 13, borderWidth: 1, borderColor: colors.line, alignItems: "center", justifyContent: "center" }}>
+            <Text style={{ color: colors.muted, fontWeight: "800" }}>?</Text>
+          </Pressable>
+        ) : null}
+      </View>
     </View>
+  );
+}
+
+function StepBtn({ label, onPress, disabled, a11y }) {
+  return (
+    <Pressable
+      onPress={onPress}
+      disabled={disabled}
+      accessibilityRole="button"
+      accessibilityLabel={a11y}
+      style={({ pressed }) => ({
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        borderWidth: 1,
+        borderColor: colors.line,
+        backgroundColor: pressed ? colors.line : colors.panel2,
+        alignItems: "center",
+        justifyContent: "center",
+        opacity: disabled ? 0.35 : 1,
+        transform: [{ scale: pressed ? 0.92 : 1 }],
+      })}
+    >
+      <Text style={{ color: colors.text, fontSize: 20, lineHeight: 22, fontWeight: "600" }}>{label}</Text>
+    </Pressable>
   );
 }

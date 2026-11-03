@@ -7,6 +7,26 @@ migration), MINOR for new features, PATCH for bugfixes. Pre-1.0, expect MINOR bu
 To check what's running on your server, visit `/api/config` — it reports the running
 `version`. That's the number to compare against this file when deciding whether to update.
 
+## 0.22.0 (Android 1.17.0)
+- **Upload street maps.** Admins can send a map from their own device in pieces (8 MB each, a
+  dropped piece is simply sent again): ready-made Valhalla routing tiles (`.tar` / `.tar.gz`), which
+  need no building on the server, or an `.osm.pbf` the server then builds. Build the tiles on any
+  computer with `server/tools/build_road_tiles.py` (`pip install pyvalhalla`). This is the way to add
+  big regions to a small server: building needs 1-4 GB of memory, and on a 1 GB machine the build
+  was killed and the region showed "Stopped when the server restarted". New routes:
+  `POST /api/admin/roads/uploads`, `PUT /api/admin/roads/uploads/<id>` (raw bytes with `?offset=`,
+  or JSON `{offset, data}` in base64), `POST .../finish`, `DELETE .../<id>`. An upload left idle for
+  30 minutes is dropped. Archives are unpacked safely (only `.gph` files under the tile levels).
+- **Routing options are editable.** Settings → Street maps → Routing options (web) and Account →
+  Server admin → Street maps (Android): which hops are drawn along streets (min/max length, max
+  time gap, walking vs car speed, allowed detour, road search distance) and the default gap rules
+  for estimated car routes in exports. Stored in `DATA_DIR/roads/settings.json`; "Use the suggested
+  values" restores the defaults. `GET/PUT /api/admin/roads/settings`; `/api/config` has
+  `gap_rules` so apps show the server's defaults.
+- Android: the date bar follows the agreed design (‹ › between days with points, the bubble beside
+  the finger rising with it and showing the day it opens, a Years / Months / Days stepper that fills
+  as the next zoom gets close, and a dashed marker for the day you'll land on).
+
 ## 0.21.0 (Android 1.16.0)
 - **How likely you saw each other.** Every crossing now carries a rough, four-step guess (likely,
   possibly, less likely, unlikely) and what it looked like (spent time together, met briefly,
