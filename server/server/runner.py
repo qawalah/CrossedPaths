@@ -70,7 +70,15 @@ SNAP_BUDGET_S = 120          # street routing time per check; past it the rest s
 SNAP_MAX_ROUTES = 6000
 
 
-def track_windows(points, events, route=None):
+def route_options(cfg):
+    """The admin's routing options (Settings → Street maps), or the defaults."""
+    try:
+        return roads_for(cfg).route_options()
+    except Exception:  # noqa: BLE001
+        return None
+
+
+def track_windows(points, events, route=None, opts=None):
     """The person's OWN path, but only around the crossings - replaying six years of history
     on one map is unreadable, and nobody needs it to understand a crossing.
     With a street router (server/roads.py), sparse stretches are drawn along roads."""
@@ -86,7 +94,7 @@ def track_windows(points, events, route=None):
     for a, b in wins:
         sub = pts[bisect.bisect_left(ts, a):bisect.bisect_right(ts, b)]
         if route is not None and time.monotonic() < deadline:
-            sub = snap_points(sub, route, budget_s=deadline - time.monotonic(), max_routes=SNAP_MAX_ROUTES // len(wins) + 20)
+            sub = snap_points(sub, route, budget_s=deadline - time.monotonic(), max_routes=SNAP_MAX_ROUTES // len(wins) + 20, opts=opts)
         out.append({"from": round(a), "to": round(b), "segments": thin_track(sub, max_points=per, min_move_m=15)})
     return out
 
@@ -180,7 +188,7 @@ def _run(app, con, check_id):
     route = street_router(cfg) if res["events"] else None
     for p, pts in zip(parts, tracks):     # each user's OWN path around the crossings, only ever returned to them
         con.execute("UPDATE check_participants SET track_json=? WHERE check_id=? AND user_id=?",
-                    (json.dumps({"v": 2, "windows": track_windows(pts, res["events"], route)}), check_id, p["user_id"]))
+                    (json.dumps({"v": 2, "windows": track_windows(pts, res["events"], route, route_options(cfg) if route else None)}), check_id, p["user_id"]))
     now = time.time()
     con.execute("UPDATE checks SET status='done', finished_at=?, results_expire=? WHERE id=?",
                 (now, now + cfg["RESULTS_TTL_DAYS"] * 86400, check_id))

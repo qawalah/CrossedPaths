@@ -1003,6 +1003,39 @@ const AR_STR = {
   "Travelled the same way": "سلكتما الطريق نفسه",
   "Passed by": "مررتما ببعضكما",
   "estimated must be none, embed or only": "يجب أن تكون قيمة estimated واحدة من none أو embed أو only",
+  "Uploading {a} of {b} MB": "جارٍ رفع {a} من {b} ميغابايت",
+  "Unpacking the map…": "جارٍ فك ضغط الخريطة…",
+  "Upload a map": "رفع خريطة",
+  "For a server that can't download or prepare maps itself (it keeps failing, or has less than 2 GB of memory). Build the routing tiles on a computer with <i>server/tools/build_road_tiles.py</i> and upload the .tar.gz here: nothing is built on the server. An .osm.pbf file also works, but the server then prepares it and needs the memory.": "للخادم الذي لا يستطيع تنزيل الخرائط أو تجهيزها بنفسه (يفشل باستمرار، أو ذاكرته أقل من 2 غيغابايت). جهّز بيانات المسارات على حاسوب باستخدام <i>server/tools/build_road_tiles.py</i> وارفع ملف .tar.gz هنا: لا يُجهَّز شيء على الخادم. يعمل ملف .osm.pbf أيضًا، لكن الخادم سيجهّزه حينها ويحتاج إلى الذاكرة.",
+  "Name, e.g. GCC States": "الاسم، مثلًا دول الخليج",
+  "Upload": "رفع",
+  "Routing options": "خيارات المسارات",
+  "Choose a file first": "اختر ملفًا أولًا",
+  "Uploaded. The server is preparing the map.": "تم الرفع. يجهّز الخادم الخريطة.",
+  "Uploaded. Unpacking the map.": "تم الرفع. جارٍ فك ضغط الخريطة.",
+  "Drawing journeys along streets": "رسم الرحلات على امتداد الشوارع",
+  "Only route hops longer than": "احسب المسار فقط للقفزات الأطول من",
+  "…and shorter than": "…والأقصر من",
+  "km": "كم",
+  "Never join points further apart than": "لا تصل بين نقطتين يفصل بينهما أكثر من",
+  "Slower than this is walking, faster a car": "أبطأ من هذا مشي، وأسرع منه سيارة",
+  "km/h": "كم/س",
+  "Drop a route longer than the straight line ×": "تجاهل المسار الأطول من الخط المستقيم ×",
+  "…plus": "…زائد",
+  "Find a road within": "ابحث عن طريق ضمن",
+  "Estimated car routes in exports (defaults)": "مسارات السيارة التقديرية في التصدير (القيم الافتراضية)",
+  "Gap up to": "فجوة حتى",
+  "Distance up to": "مسافة حتى",
+  "Average speed from": "متوسط سرعة من",
+  "Average speed up to": "متوسط سرعة حتى",
+  "Suggested: {v}": "المقترح: {v}",
+  "Changes apply to days you open and checks run from now on. People can still change the export values for their own export.": "تُطبَّق التغييرات على الأيام التي تفتحها والفحوصات التي تُجرى من الآن. ولا يزال بإمكان المستخدمين تغيير قيم التصدير لتصديرهم الخاص.",
+  "Save": "حفظ",
+  "Use the suggested values": "استخدام القيم المقترحة",
+  "Saved": "تم الحفظ",
+  "Put every routing option back to its suggested value?": "إعادة كل خيارات المسارات إلى قيمها المقترحة؟",
+  "That upload has expired. Start it again.": "انتهت صلاحية هذا الرفع. ابدأه من جديد.",
+  "data must be base64": "يجب أن تكون البيانات بترميز base64",
 /*AR:end*/
 };
 const t = (s, p) => { const r = (RTL && AR_STR[s]) || s; return p ? r.replace(/\{(\w+)\}/g, (m, k) => (p[k] != null ? p[k] : m)) : r; };
@@ -2035,12 +2068,15 @@ function wireSettings(sh) {
 }
 
 /* ---- admin: street maps (countries whose roads journeys are drawn along) ---- */
-const ROADS = { timer: 0, catalog: null, data: null };
+const ROADS = { timer: 0, catalog: null, data: null, sending: null };
+const ROADS_BUSY = ["downloading", "uploading", "building", "installing"];
 function stopRoadsPoll() { clearInterval(ROADS.timer); ROADS.timer = 0; }
 function roadsState(r) {
   const p = r.progress || {}, mins = r.started_at ? Math.max(1, Math.round((Date.now() / 1000 - r.started_at) / 60)) : 0;
   if (r.state === "downloading") return `<span class="spin"></span> ${p.total_mb ? t("Downloading {a} of {b} MB", { a: Math.round(p.done_mb || 0), b: Math.round(p.total_mb) }) : t("Downloading {a} MB", { a: Math.round(p.done_mb || 0) })}`;
   if (r.state === "building") return `<span class="spin"></span> ${t("Preparing map… {n} min so far", { n: mins })}`;
+  if (r.state === "uploading") return `<span class="spin"></span> ${t("Uploading {a} of {b} MB", { a: Math.round(p.done_mb || 0), b: Math.round(p.total_mb || 0) })}`;
+  if (r.state === "installing") return `<span class="spin"></span> ${t("Unpacking the map…")}`;
   const ready = r.state === "ready";
   const info = r.disk_mb != null ? t("{n} MB", { n: r.disk_mb < 1 ? "<1" : Math.round(r.disk_mb).toLocaleString(UI_LOCALE) }) : "";
   const when = r.osm_date ? " · " + t("map data") + " " + new Date(r.osm_date).toLocaleDateString(UI_LOCALE, { day: "numeric", month: "short", year: "numeric" }) : "";
@@ -2048,13 +2084,13 @@ function roadsState(r) {
 }
 function roadsList() {
   const d = ROADS.data; if (!d || !$("#rdlist")) return;
-  const busy = d.regions.some(r => r.state === "downloading" || r.state === "building");
+  const busy = d.regions.some(r => ROADS_BUSY.includes(r.state));
   const warn = !d.supported ? `<p class="small" style="color:var(--bad)">${t("The routing engine (pyvalhalla) isn't installed on this server, so maps can't be prepared. Use the Docker image, or <i>pip install pyvalhalla</i>.")}</p>`
     : !d.enabled ? `<p class="small muted">${t("Street drawing is switched off on this server (STREET_SNAP=false). Maps can still be prepared.")}</p>` : "";
   $("#rdlist").innerHTML = warn + (d.regions.length ? d.regions.map(r => `<div class="zone" style="align-items:flex-start;gap:10px">
       <div class="grow"><b>${esc(r.name || r.id)}</b>${r.parent ? ` <span class="muted small">· ${esc(r.parent)}</span>` : ""}<div class="small muted" style="margin-top:3px">${roadsState(r)}</div></div>
-      ${r.state === "downloading" || r.state === "building" ? "" : `<div class="row" style="gap:6px;flex:none">
-        <button class="btn ghost sm" data-rdup="${esc(r.region_id || "")}" ${busy || !r.region_id ? "disabled" : ""} title="${t("Download fresh map data")}">${r.state === "failed" ? t("Retry") : t("Update")}</button>
+      ${ROADS_BUSY.includes(r.state) ? "" : `<div class="row" style="gap:6px;flex:none">
+        ${r.region_id ? `<button class="btn ghost sm" data-rdup="${esc(r.region_id)}" ${busy ? "disabled" : ""} title="${t("Download fresh map data")}">${r.state === "failed" ? t("Retry") : t("Update")}</button>` : ""}
         <button class="btn ghost sm" data-rdrm="${esc(r.id)}" data-name="${esc(r.name || r.id)}">${t("Remove")}</button></div>`}</div>`).join("")
     : `<p class="muted small">${t("No countries yet. Journeys are drawn as straight lines between recorded points.")}</p>`);
   roadsResults();
@@ -2077,7 +2113,7 @@ function roadsResults() {
   if (!q.trim()) { box.innerHTML = ""; return; }
   if (!ROADS.catalog) { box.innerHTML = `<p class="muted small"><span class="spin"></span> ${t("Loading the list…")}</p>`; return; }
   const ql = q.trim().toLowerCase(), have = new Set((ROADS.data ? ROADS.data.regions : []).map(r => r.region_id));
-  const busy = ROADS.data && ROADS.data.regions.some(r => r.state === "downloading" || r.state === "building");
+  const busy = ROADS.data && ROADS.data.regions.some(r => ROADS_BUSY.includes(r.state));
   const hay = c => (c.name + " " + (ROADS_ALIASES[c.name.toLowerCase()] || "")).toLowerCase();
   const hits = ROADS.catalog.filter(c => hay(c).includes(ql)).sort((a, b) => (b.name.toLowerCase().startsWith(ql)) - (a.name.toLowerCase().startsWith(ql))).slice(0, 25);
   box.innerHTML = hits.length ? hits.map(c => `<div class="zone"><span>${esc(c.name)}${c.parent ? ` <span class="muted small">· ${esc(c.parent)}</span>` : ""}${ROADS_ALIASES[c.name.toLowerCase()] ? `<div class="muted small">${esc(ROADS_COVERS[c.name.toLowerCase()] || "")}</div>` : ""}</span>
@@ -2092,7 +2128,16 @@ async function roadsSheet() {
     <input type="text" id="rdq" placeholder="${t("Search, e.g. Saudi Arabia")}" autocomplete="off">
     <div id="rdres"></div>
     <p class="muted small" style="margin:10px 0 0">${t("Preparing a map takes minutes for a small country and up to an hour or more for a large one, and briefly needs 1–4 GB of memory. If it fails for lack of memory, raise <i>mem_limit</i> in docker-compose.yml. Check results from before a map was added keep straight lines until the check is run again.")}</p>
+    <label style="margin-top:18px">${t("Upload a map")}</label>
+    <p class="muted small" style="margin-top:0">${t("For a server that can't download or prepare maps itself (it keeps failing, or has less than 2 GB of memory). Build the routing tiles on a computer with <i>server/tools/build_road_tiles.py</i> and upload the .tar.gz here: nothing is built on the server. An .osm.pbf file also works, but the server then prepares it and needs the memory.")}</p>
+    <input type="text" id="rdname" placeholder="${t("Name, e.g. GCC States")}" autocomplete="off">
+    <div class="row" style="gap:8px;margin-top:8px"><input type="file" id="rdfile" accept=".tar,.gz,.tgz,.pbf" style="flex:1;min-width:0"><button class="btn ghost sm" id="rdsend">${t("Upload")}</button></div>
+    <div id="rdsending" class="small muted" style="margin-top:6px"></div>
+    <details id="rdopts" style="margin-top:18px"><summary>${t("Routing options")}</summary><div id="rdoptsbody" class="small muted" style="margin-top:8px">${t("Loading…")}</div></details>
     <div class="row" style="margin-top:18px"><button class="btn grow" id="rddone">${t("Done")}</button></div>`);
+  $("#rdfile").onchange = () => { const f = $("#rdfile").files[0]; if (f && !$("#rdname").value.trim()) $("#rdname").value = f.name.replace(/(-latest)?(\.osm)?\.(pbf|tar\.gz|tgz|tar)$/i, "").replace(/[-_]+/g, " "); };
+  $("#rdsend").onclick = () => { const f = $("#rdfile").files[0]; if (!f) return toast(t("Choose a file first"), true); roadsUpload(f, $("#rdname").value.trim() || f.name); };
+  $("#rdopts").addEventListener("toggle", () => { if ($("#rdopts").open) roadsOptions(); });
   $("#rddone").onclick = () => closeSheet();
   const sh = $("#sheet");
   $("#rdq").oninput = async () => {
@@ -2122,6 +2167,75 @@ async function roadsSheet() {
   });
   await roadsRefresh();
   stopRoadsPoll(); ROADS.timer = setInterval(() => { if ($("#rdlist") && !document.hidden) roadsRefresh(); else if (!$("#rdlist")) stopRoadsPoll(); }, 3000);
+}
+
+// Send a map file in pieces, so a slow or dropped connection only repeats one piece.
+async function roadsUpload(file, name) {
+  if (ROADS.sending) return;
+  const kind = /\.pbf$/i.test(file.name) ? "pbf" : "tiles";
+  const out = $("#rdsending"), btn = $("#rdsend");
+  let up;
+  try {
+    up = await api("/api/admin/roads/uploads", { method: "POST", body: { name, kind, size: file.size } });
+    ROADS.sending = up; btn.disabled = true; roadsRefresh();
+    for (let off = 0; off < file.size; off += up.chunk_bytes) {
+      const piece = file.slice(off, off + up.chunk_bytes);
+      for (let tries = 0; ; tries++) {
+        try {
+          const r = await fetch(`/api/admin/roads/uploads/${up.upload_id}?offset=${off}`, { method: "PUT", headers: { Authorization: "Bearer " + state.token, "Content-Type": "application/octet-stream" }, body: piece });
+          if (!r.ok) { let j = null; try { j = await r.json(); } catch (e) { /* none */ } throw Object.assign(new Error(j && j.error ? serverMsg(j.error) : t("Something went wrong ({status})", { status: r.status })), { fatal: r.status < 500 }); }
+          break;
+        } catch (e) { if (e.fatal || tries >= 4) throw e; await new Promise(res => setTimeout(res, 1500 * (tries + 1))); }
+      }
+      if (out) out.textContent = t("Uploading {a} of {b} MB", { a: Math.round(Math.min(file.size, off + up.chunk_bytes) / 1e6), b: Math.round(file.size / 1e6) });
+    }
+    await api(`/api/admin/roads/uploads/${up.upload_id}/finish`, { method: "POST" });
+    if (out) out.textContent = "";
+    toast(kind === "pbf" ? t("Uploaded. The server is preparing the map.") : t("Uploaded. Unpacking the map."));
+    if ($("#rdfile")) $("#rdfile").value = "";
+  } catch (e) {
+    toast(e.message, true);
+    if (up) api(`/api/admin/roads/uploads/${up.upload_id}`, { method: "DELETE" }).catch(() => {});
+    if (out) out.textContent = "";
+  } finally {
+    ROADS.sending = null; if (btn) btn.disabled = false; roadsRefresh();
+  }
+}
+const ROADS_OPTS = [
+  [t("Drawing journeys along streets"), [
+    ["snap_min_hop_m", t("Only route hops longer than"), t("m")],
+    ["snap_max_hop_km", t("…and shorter than"), t("km")],
+    ["snap_max_gap_min", t("Never join points further apart than"), t("min")],
+    ["walk_max_kmh", t("Slower than this is walking, faster a car"), t("km/h")],
+    ["detour", t("Drop a route longer than the straight line ×"), "×"],
+    ["detour_slack_m", t("…plus"), t("m")],
+    ["search_cutoff_m", t("Find a road within"), t("m")],
+  ]],
+  [t("Estimated car routes in exports (defaults)"), [
+    ["gap_max_min", t("Gap up to"), t("min")],
+    ["gap_max_km", t("Distance up to"), t("km")],
+    ["gap_min_kmh", t("Average speed from"), t("km/h")],
+    ["gap_max_kmh", t("Average speed up to"), t("km/h")],
+  ]],
+];
+async function roadsOptions() {
+  const box = $("#rdoptsbody"); if (!box) return;
+  let st;
+  try { st = await api("/api/admin/roads/settings"); } catch (e) { box.textContent = e.message; return; }
+  const field = ([k, label, unit]) => `<div class="row" style="gap:8px;align-items:center;margin:6px 0"><span class="grow" style="color:var(--text)">${label}</span>
+    <input type="number" step="any" data-rk="${k}" value="${st.values[k]}" min="${st.limits[k][0]}" max="${st.limits[k][1]}" style="width:86px;text-align:center"><span style="width:38px">${unit}</span></div>
+    ${st.values[k] !== st.defaults[k] ? `<div class="muted small" style="margin:-4px 0 4px">${t("Suggested: {v}", { v: st.defaults[k] })}</div>` : ""}`;
+  box.innerHTML = ROADS_OPTS.map(([title, fields]) => `<div style="margin-top:10px"><b style="color:var(--text)">${title}</b>${fields.map(field).join("")}</div>`).join("")
+    + `<p class="muted small">${t("Changes apply to days you open and checks run from now on. People can still change the export values for their own export.")}</p>
+    <div class="row" style="gap:8px;margin-top:8px"><button class="btn sm" id="rdosave">${t("Save")}</button><button class="btn ghost sm" id="rdoreset">${t("Use the suggested values")}</button></div>`;
+  $("#rdosave").onclick = () => run(async () => {
+    const body = {}; box.querySelectorAll("[data-rk]").forEach(i => { body[i.dataset.rk] = i.value; });
+    await api("/api/admin/roads/settings", { method: "PUT", body }); toast(t("Saved")); roadsOptions();
+  });
+  $("#rdoreset").onclick = () => run(async () => {
+    if (!confirm(t("Put every routing option back to its suggested value?"))) return;
+    await api("/api/admin/roads/settings", { method: "PUT", body: { reset: true } }); toast(t("Saved")); roadsOptions();
+  });
 }
 
 /* ---- filters ---- */

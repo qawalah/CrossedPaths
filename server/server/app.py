@@ -1,4 +1,5 @@
 """CrossPaths API (Flask). One process, SQLite, encrypted timeline files on disk."""
+import base64
 import hashlib
 import json
 import os
@@ -15,7 +16,7 @@ from crosspaths.geo import haversine_m
 from crosspaths.exporters import FORMATS as EXPORT_FORMATS
 from crosspaths.importers import FRIENDLY, Limits, merge_points, parse_files, sources_of
 from crosspaths.privacy import detect_anchor_zones
-from crosspaths.snap import GapRules, estimate_gaps, snap_points
+from crosspaths.snap import estimate_gaps, snap_points
 from crosspaths.spoofcheck import assess
 
 from . import analysis, identity, otp, retention, runner, whatsapp
@@ -140,7 +141,9 @@ def create_app(overrides=None, start_background=True):
                         "instance": hashlib.sha256(("instance:" + c["SECRET_KEY"]).encode()).hexdigest()[:16],
                         "auth": {"password": True, "phone": bool(c["AUTH_PHONE"]), "google": google_on(),
                                  "google_client_id": google_ids()[0] if google_on() else ""},
-                        "version": c["VERSION"]})
+                        "version": c["VERSION"],
+                        # default gap rules for estimated car routes in exports (an admin can change them)
+                        "gap_rules": roads_for(c).gap_defaults()})
 
     @app.after_request
     def headers(resp):
@@ -521,11 +524,11 @@ def create_app(overrides=None, start_background=True):
         if est == "none":
             body_text = write(pts)
         else:
-            a = request.args
-            rules = GapRules(max_gap_min=num(a.get("gap_max_min"), 1, 180, 30), max_km=num(a.get("gap_max_km"), 0.5, 300, 50),
-                             min_kmh=num(a.get("gap_min_kmh"), 1, 200, 15), max_kmh=num(a.get("gap_max_kmh"), 10, 250, 130))
+            # the admin's default gap rules (Settings → Street maps → Routing options), as changed for this export
+            roads = roads_for(app.config)
+            rules = roads.gap_rules({k: request.args.get(k) for k in ("gap_max_min", "gap_max_km", "gap_min_kmh", "gap_max_kmh")})
             route = runner.street_router(app.config)
-            gaps = estimate_gaps(pts, route, rules) if route else []
+            gaps = estimate_gaps(pts, route, rules, opts=roads.route_options()) if route else []
             body_text = write([] if est == "only" else pts, estimated=gaps)
             headers["X-Estimated-Gaps"] = str(len(gaps))
             headers["X-Street-Maps"] = "1" if route else "0"
@@ -597,7 +600,7 @@ def create_app(overrides=None, start_background=True):
         if segs is None:
             day_pts = analysis.points_in_range(load_points(app.config, upload_id), t0, t1)
             if route is not None:
-                day_pts = snap_points(day_pts, route, budget_s=6, max_routes=600)
+                day_pts = snap_points(day_pts, route, budget_s=6, max_routes=600, opts=runner.route_options(app.config))
             segs = runner.thin_track(day_pts, max_points=2000, min_move_m=15)
             day_cache_put(key, segs)
         return jsonify({"segments": segs, "date": request.args.get("date")})
@@ -909,6 +912,79 @@ def create_app(overrides=None, start_background=True):
         audit(db, g.user["id"], "roads_add", rid)
         db.commit()
         return jsonify({"ok": True, "id": rid})
+
+    @app.get("/api/admin/roads/settings")
+    @auth
+    @admin
+    def roads_settings():
+        return jsonify(roads_for(app.config).settings())
+
+    @app.put("/api/admin/roads/settings")
+    @auth
+    @admin
+    def roads_settings_save():
+        out = roads_for(app.config).save_settings(body())
+        db = get_db()
+        audit(db, g.user["id"], "roads_settings", None, out["values"])
+        db.commit()
+        return jsonify(out)
+
+    # Upload a map from the admin's device, in pieces (each well under MAX_UPLOAD_MB): for servers
+    # that can't download from Geofabrik, or are too small to build a map (send ready-made tiles).
+    @app.post("/api/admin/roads/uploads")
+    @auth
+    @admin
+    def roads_upload_start():
+        d = body()
+        try:
+            out = roads_for(app.config).start_upload(d.get("name"), str(d.get("kind") or ""), d.get("size"))
+        except ValueError as ex:
+            err(str(ex), 409 if "Another map" in str(ex) else 400)
+        db = get_db()
+        audit(db, g.user["id"], "roads_upload", out["id"], {"kind": d.get("kind"), "size": d.get("size")})
+        db.commit()
+        return jsonify(out), 201
+
+    @app.put("/api/admin/roads/uploads/<up>")
+    @auth
+    @admin
+    def roads_upload_chunk(up):
+        """One piece: the raw bytes (application/octet-stream, ?offset=N), or JSON {offset, data: base64}."""
+        if request.mimetype == "application/json":
+            d = body()
+            offset = d.get("offset")
+            try:
+                data = base64.b64decode(str(d.get("data") or ""), validate=True)
+            except (ValueError, TypeError):
+                err("data must be base64")
+        else:
+            offset, data = request.args.get("offset"), request.get_data(cache=False)
+        try:
+            have = roads_for(app.config).write_chunk(up, int(offset), data)
+        except KeyError:
+            err("That upload has expired. Start it again.", 404)
+        except (TypeError, ValueError) as ex:
+            err(str(ex) if str(ex) else "offset is required", 409)
+        return jsonify({"received": have})
+
+    @app.post("/api/admin/roads/uploads/<up>/finish")
+    @auth
+    @admin
+    def roads_upload_finish(up):
+        try:
+            rid = roads_for(app.config).finish_upload(up)
+        except KeyError:
+            err("That upload has expired. Start it again.", 404)
+        except ValueError as ex:
+            err(str(ex), 409)
+        return jsonify({"ok": True, "id": rid})
+
+    @app.delete("/api/admin/roads/uploads/<up>")
+    @auth
+    @admin
+    def roads_upload_cancel(up):
+        roads_for(app.config).cancel_upload(up)
+        return jsonify({"ok": True})
 
     @app.delete("/api/admin/roads/<rid>")
     @auth

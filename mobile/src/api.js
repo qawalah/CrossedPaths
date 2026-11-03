@@ -328,6 +328,13 @@ export const Api = {
   adminRoadsCatalog: () => request("/api/admin/roads/catalog", { timeoutMs: 45000 }),
   adminAddRoads: (region) => request("/api/admin/roads", { method: "POST", body: { region }, timeoutMs: 45000 }),
   adminDeleteRoads: (id) => request(`/api/admin/roads/${encodeURIComponent(id)}`, { method: "DELETE" }),
+  adminRoadsSettings: () => request("/api/admin/roads/settings"),
+  adminSaveRoadsSettings: (patch) => request("/api/admin/roads/settings", { method: "PUT", body: patch }),
+  // Upload a map in pieces: start, send each piece (base64 in JSON), then finish (or cancel).
+  adminUploadStart: (name, kind, size) => request("/api/admin/roads/uploads", { method: "POST", body: { name, kind, size } }),
+  adminUploadPiece: (up, offset, data) => request(`/api/admin/roads/uploads/${up}`, { method: "PUT", body: { offset, data }, timeoutMs: 120000 }),
+  adminUploadFinish: (up) => request(`/api/admin/roads/uploads/${up}/finish`, { method: "POST", timeoutMs: 60000 }),
+  adminUploadCancel: (up) => request(`/api/admin/roads/uploads/${up}`, { method: "DELETE" }),
 
   // Meeting in person: QR code / invite link / shake. Each connects you and, when you both
   // have a timeline, starts the check straight away.

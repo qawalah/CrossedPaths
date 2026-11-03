@@ -9,6 +9,7 @@ Matching never uses this: it only changes how a person's OWN path is drawn for t
 from __future__ import annotations
 
 import time
+from dataclasses import dataclass
 from typing import Callable, Optional
 
 from .geo import haversine_m
@@ -23,20 +24,35 @@ GAP_S = 1800.0          # the map never joins points further apart in time than 
 
 # route((lat, lon), (lat, lon), costing) -> ([(lat, lon), ...], length_m) or None
 Router = Callable[[tuple, tuple, str], Optional[tuple]]
+WALK_MS = 2.5           # unknown mode: slower than this is walking, faster is a car
 
 
-def costing_for(mode: str | None, speed_ms: float) -> str | None:
+@dataclass
+class RouteOptions:
+    """How journeys are drawn along streets. Defaults are the constants above; an admin can change
+    them in Settings → Street maps → Routing options (server/roads.py stores them)."""
+    min_hop_m: float = SPARSE_M
+    max_hop_m: float = MAX_HOP_M
+    max_gap_s: float = GAP_S
+    walk_max_ms: float = WALK_MS
+    detour: float = DETOUR
+    detour_slack_m: float = DETOUR_SLACK_M
+
+
+def costing_for(mode: str | None, speed_ms: float, walk_max_ms: float = WALK_MS) -> str | None:
     """Valhalla costing for a hop, or None to leave it straight."""
     if mode == "skip":
         return None
     if mode in ("road", "foot", "bike"):
         return {"road": "auto", "foot": "pedestrian", "bike": "bicycle"}[mode]
-    return "pedestrian" if speed_ms < 2.5 else "auto"   # unknown: walking pace or not
+    return "pedestrian" if speed_ms < walk_max_ms else "auto"   # unknown: walking pace or not
 
 
-def snap_points(points: list[Point], route: Router, budget_s: float = 30.0, max_routes: int = 2000) -> list[Point]:
+def snap_points(points: list[Point], route: Router, budget_s: float = 30.0, max_routes: int = 2000,
+                opts: RouteOptions | None = None) -> list[Point]:
     """Points (sorted by time) with street routes filled in between sparse neighbours.
     Stops routing (but keeps the points) once the time budget or route count runs out."""
+    o = opts or RouteOptions()
     if len(points) < 2:
         return list(points)
     deadline = time.monotonic() + budget_s
@@ -47,13 +63,13 @@ def snap_points(points: list[Point], route: Router, budget_s: float = 30.0, max_
         if routes >= max_routes or time.monotonic() > deadline:
             continue
         dt = b.t - a.t
-        if dt <= 0 or dt > GAP_S:
+        if dt <= 0 or dt > o.max_gap_s:
             continue
         d = float(haversine_m(a.lat, a.lon, b.lat, b.lon))
-        if d < SPARSE_M or d > MAX_HOP_M or d / dt > MAX_SPEED_MS:
+        if d < o.min_hop_m or d > o.max_hop_m or d / dt > MAX_SPEED_MS:
             continue
         mode = "skip" if "skip" in (a.mode, b.mode) else (a.mode or b.mode)
-        costing = costing_for(mode, d / dt)
+        costing = costing_for(mode, d / dt, o.walk_max_ms)
         if costing is None:
             continue
         routes += 1
@@ -64,7 +80,7 @@ def snap_points(points: list[Point], route: Router, budget_s: float = 30.0, max_
         if not r:
             continue
         shape, length = r
-        if len(shape) < 2 or length > DETOUR * d + DETOUR_SLACK_M or length / dt > MAX_SPEED_MS:
+        if len(shape) < 2 or length > o.detour * d + o.detour_slack_m or length / dt > MAX_SPEED_MS:
             continue
         # Times along the route by distance travelled.
         seg = [float(haversine_m(p[0], p[1], q[0], q[1])) for p, q in zip(shape, shape[1:])]
@@ -126,11 +142,12 @@ class GapRules:
 
 
 def estimate_gaps(points: list[Point], route: Router, rules: GapRules | None = None,
-                  budget_s: float = 40.0, max_routes: int = 3000) -> list[list[Point]]:
+                  budget_s: float = 40.0, max_routes: int = 3000, opts: RouteOptions | None = None) -> list[list[Point]]:
     """Estimated car routes for the gaps that look like car trips: one list of points per gap,
     from the recorded point before the gap to the one after it (both included, with their real
     times), timed evenly along the route. The recorded points themselves are never changed."""
     rules = rules or GapRules()
+    o = opts or RouteOptions()
     pts = sorted(points, key=lambda p: p.t)
     deadline = time.monotonic() + budget_s
     out, routes = [], 0
@@ -149,7 +166,7 @@ def estimate_gaps(points: list[Point], route: Router, rules: GapRules | None = N
         shape, length = r
         d = float(haversine_m(a.lat, a.lon, b.lat, b.lon))
         dt = b.t - a.t
-        if len(shape) < 2 or length > DETOUR * d + DETOUR_SLACK_M or length / dt > rules.max_ms:
+        if len(shape) < 2 or length > o.detour * d + o.detour_slack_m or length / dt > rules.max_ms:
             continue
         seg = [float(haversine_m(p[0], p[1], q[0], q[1])) for p, q in zip(shape, shape[1:])]
         total = sum(seg) or 1.0
