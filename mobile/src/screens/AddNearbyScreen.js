@@ -2,7 +2,8 @@ import { CameraView, useCameraPermissions } from "expo-camera";
 import * as Location from "expo-location";
 import { Accelerometer } from "expo-sensors";
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, Share, Text, TextInput, Vibration, View } from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, Share, Vibration, View } from "react-native";
+import { Text, TextInput } from "../components/AppText";
 import QRCode from "react-native-qrcode-svg";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Button from "../components/Button";
@@ -12,12 +13,16 @@ import { useToast } from "../components/Toast";
 import { Api } from "../api";
 import { colors } from "../theme";
 import Icon from "../components/Icon";
+import { H, onLanguage, pl, serverMsg, t } from "../i18n";
 
-const MODES = [
-  ["show", "Show my code"],
-  ["scan", "Scan"],
-  ["shake", "Shake"],
+let MODES;
+onLanguage(() => {
+  MODES = [
+  ["show", t("Show my code")],
+  ["scan", t("Scan")],
+  ["shake", t("Shake")],
 ];
+});
 
 /** Pull the code out of whatever was scanned or typed: an invite URL (…/pair/CODE),
  * a crosspaths://pair/CODE link, or the bare code. */
@@ -59,15 +64,13 @@ export default function AddNearbyScreen({ route, navigation, uploads, loaded, on
       keyboardShouldPersistTaps="handled"
     >
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-        <Text style={{ color: colors.text, fontSize: 20, fontWeight: "800" }}>Meet in person</Text>
+        <Text style={{ color: colors.text, fontSize: 20, fontWeight: "800" }}>{t("Meet in person")}</Text>
         <Pressable onPress={() => navigation.goBack()} hitSlop={12}>
-          <Text style={{ color: colors.muted, fontSize: 15 }}>Close</Text>
+          <Text style={{ color: colors.muted, fontSize: 15 }}>{t("Close")}</Text>
         </Pressable>
       </View>
       <Text style={{ color: colors.muted, marginTop: 8, lineHeight: 20 }}>
-        Connect with someone next to you and check right away whether your paths have crossed before. Doing this
-        together counts as both of you agreeing to the check - they'll only see when and roughly where you crossed, never
-        your route.
+        {t("Connect with someone next to you and check right away whether your paths have crossed before. Doing this together counts as both of you agreeing to the check - they'll only see when and roughly where you crossed, never your route.")}
       </Text>
 
       {result ? (
@@ -78,13 +81,12 @@ export default function AddNearbyScreen({ route, navigation, uploads, loaded, on
         <ActivityIndicator color={colors.accent} style={{ marginTop: 30 }} />
       ) : (
         <>
-          <Text style={{ color: colors.muted, fontSize: 13, marginTop: 18, marginBottom: 6 }}>Your timeline for the check</Text>
+          <Text style={{ color: colors.muted, fontSize: 13, marginTop: 18, marginBottom: 6 }}>{t("Your timeline for the check")}</Text>
           {uploads.length ? (
             <UploadPicker uploads={uploads} value={uploadId} onChange={setUploadId} />
           ) : (
             <Text style={{ color: colors.warn, fontSize: 13, lineHeight: 18 }}>
-              You haven't uploaded a timeline, so you'll be connected but no check will run. Import one on the Import tab first
-              to check straight away.
+              {t("You haven't uploaded a timeline, so you'll be connected but no check will run. Import one on the Import tab first to check straight away.")}
             </Text>
           )}
 
@@ -153,7 +155,7 @@ function ShowCode({ uploadId, onPaired }) {
     return (
       <Card style={{ marginTop: 16 }}>
         <Text style={{ color: colors.bad }}>{err}</Text>
-        <Button title="Try again" variant="ghost" onPress={make} style={{ marginTop: 10 }} />
+        <Button title={t("Try again")} variant="ghost" onPress={make} style={{ marginTop: 10 }} />
       </Card>
     );
   }
@@ -171,27 +173,27 @@ function ShowCode({ uploadId, onPaired }) {
         {pretty}
       </Text>
       <Text style={{ color: colors.muted, fontSize: 12.5, marginTop: 4 }}>
-        {expired ? "This code expired." : `Ask them to scan it in CrossPaths · valid ${Math.floor(left / 60)}:${String(left % 60).padStart(2, "0")}`}
+        {expired ? t("This code expired.") : t("Ask them to scan it in CrossPaths · valid {time}", { time: `${Math.floor(left / 60)}:${String(left % 60).padStart(2, "0")}` })}
       </Text>
       {expired ? (
-        <Button title="New code" onPress={make} style={{ marginTop: 14, alignSelf: "stretch" }} />
+        <Button title={t("New code")} onPress={make} style={{ marginTop: 14, alignSelf: "stretch" }} />
       ) : (
         <Button
-          title="Share invite link"
+          title={t("Share invite link")}
           variant="ghost"
           style={{ marginTop: 14, alignSelf: "stretch" }}
           onPress={async () => {
             try {
               // The share sheet includes AirDrop on iPhone and Quick Share / Nearby Share on Android.
-              await Share.share({ message: `Connect with me on CrossPaths and check if our paths crossed: ${code.url}` });
+              await Share.share({ message: `${t("Connect with me on CrossPaths and check if our paths crossed:")} ${code.url}` });
             } catch (e) {
-              toast("Couldn't open the share sheet", true);
+              toast(t("Couldn't open the share sheet"), true);
             }
           }}
         />
       )}
       <Text style={{ color: colors.muted, fontSize: 12, marginTop: 10, textAlign: "center", lineHeight: 17 }}>
-        Single use. The link works for someone on the same CrossPaths server as you.
+        {t("Single use. The link works for someone on the same CrossPaths server as you.")}
       </Text>
     </View>
   );
@@ -216,14 +218,14 @@ function ScanCode({ uploadId, initialCode, onPaired }) {
       const code = codeFrom(raw);
       if (!code) {
         reject();
-        toast("That isn't a CrossPaths code", true);
+        toast(t("That isn't a CrossPaths code"), true);
         return;
       }
       scanning.current = false;
       setBusy(true);
       try {
         const p = await Api.pairPreview(code);
-        if (p.mine) throw new Error("That's your own code. The other person needs to scan it.");
+        if (p.mine) throw new Error(t("That's your own code. The other person needs to scan it."));
         setPreview({ ...p, code });
       } catch (e) {
         reject();
@@ -253,17 +255,17 @@ function ScanCode({ uploadId, initialCode, onPaired }) {
   if (preview) {
     return (
       <Card style={{ marginTop: 16 }}>
-        <Text style={{ color: colors.text, fontSize: 17, fontWeight: "800" }}>Connect with @{preview.from}?</Text>
+        <Text style={{ color: colors.text, fontSize: 17, fontWeight: "800" }}>{t("Connect with {who}?", { who: H(preview.from) })}</Text>
         <Text style={{ color: colors.muted, marginTop: 6, lineHeight: 20 }}>
           {preview.they_have_timeline
             ? uploadId
-              ? `You'll be connected and your paths checked right away. They'll only see when and roughly where you crossed.`
-              : "You'll be connected. No check will run until you upload a timeline."
-            : `You'll be connected. @${preview.from} hasn't uploaded a timeline, so no check will run yet.`}
+              ? t("You'll be connected and your paths checked right away. They'll only see when and roughly where you crossed.")
+              : t("You'll be connected. No check will run until you upload a timeline.")
+            : t("You'll be connected. {who} hasn't uploaded a timeline, so no check will run yet.", { who: H(preview.from) })}
         </Text>
         <View style={{ flexDirection: "row", gap: 10, marginTop: 14 }}>
-          <Button title="Cancel" variant="ghost" onPress={() => { setPreview(null); scanning.current = true; }} disabled={busy} />
-          <Button title={preview.they_have_timeline && uploadId ? "Connect & check" : "Connect"} onPress={connect} loading={busy} style={{ flex: 1 }} />
+          <Button title={t("Cancel")} variant="ghost" onPress={() => { setPreview(null); scanning.current = true; }} disabled={busy} />
+          <Button title={preview.they_have_timeline && uploadId ? t("Connect & check") : t("Connect")} onPress={connect} loading={busy} style={{ flex: 1 }} />
         </View>
       </Card>
     );
@@ -275,8 +277,8 @@ function ScanCode({ uploadId, initialCode, onPaired }) {
         <ActivityIndicator color={colors.accent} />
       ) : !perm.granted ? (
         <Card>
-          <Text style={{ color: colors.text }}>CrossPaths needs the camera to scan the other person's code.</Text>
-          <Button title="Allow camera" onPress={requestPerm} style={{ marginTop: 10 }} />
+          <Text style={{ color: colors.text }}>{t("CrossPaths needs the camera to scan the other person's code.")}</Text>
+          <Button title={t("Allow camera")} onPress={requestPerm} style={{ marginTop: 10 }} />
         </Card>
       ) : (
         <View style={{ height: 300, borderRadius: 16, overflow: "hidden", borderWidth: 1, borderColor: colors.line }}>
@@ -295,7 +297,7 @@ function ScanCode({ uploadId, initialCode, onPaired }) {
           ) : null}
         </View>
       )}
-      <Text style={{ color: colors.muted, fontSize: 13, marginTop: 16, marginBottom: 6 }}>Or type their code</Text>
+      <Text style={{ color: colors.muted, fontSize: 13, marginTop: 16, marginBottom: 6 }}>{t("Or type their code")}</Text>
       <View style={{ flexDirection: "row", gap: 8 }}>
         <TextInput
           value={typed}
@@ -307,7 +309,7 @@ function ScanCode({ uploadId, initialCode, onPaired }) {
           onSubmitEditing={() => look(typed)}
           style={{ flex: 1, backgroundColor: colors.panel2, borderWidth: 1, borderColor: colors.line, borderRadius: 12, padding: 11, color: colors.text, letterSpacing: 1.5 }}
         />
-        <Button title="Go" onPress={() => look(typed)} disabled={!typed.trim() || busy} />
+        <Button title={t("Go")} onPress={() => look(typed)} disabled={!typed.trim() || busy} />
       </View>
     </View>
   );
@@ -405,19 +407,18 @@ function ShakeToPair({ uploadId, onPaired }) {
     return (
       <Card style={{ marginTop: 16 }}>
         <Text style={{ color: colors.text, lineHeight: 20 }}>
-          Shaking needs your location, so the server can tell your two phones were together. Allow location for CrossPaths in
-          your phone's settings, or use the QR code instead.
+          {t("Shaking needs your location, so the server can tell your two phones were together. Allow location for CrossPaths in your phone's settings, or use the QR code instead.")}
         </Text>
       </Card>
     );
   }
 
   const status = {
-    ready: fix ? "Hold your phones side by side and shake them together." : "Finding your location…",
-    sending: "Shaken! Looking for the other phone…",
-    waiting: "Looking for the other phone… keep this screen open.",
-    ambiguous: "Several people shook at the same moment nearby. Use the QR code instead, so you connect with the right person.",
-    timeout: "Didn't find the other phone. Shake again at the same moment - or use the QR code.",
+    ready: fix ? t("Hold your phones side by side and shake them together.") : t("Finding your location…"),
+    sending: t("Shaken! Looking for the other phone…"),
+    waiting: t("Looking for the other phone… keep this screen open."),
+    ambiguous: t("Several people shook at the same moment nearby. Use the QR code instead, so you connect with the right person."),
+    timeout: t("Didn't find the other phone. Shake again at the same moment - or use the QR code."),
     error: msg,
   }[state];
 
@@ -427,14 +428,13 @@ function ShakeToPair({ uploadId, onPaired }) {
       <Text style={{ color: colors.text, fontSize: 16, fontWeight: "700", textAlign: "center", marginTop: 12, lineHeight: 22 }}>{status}</Text>
       {state === "waiting" || state === "sending" ? <ActivityIndicator color={colors.accent} style={{ marginTop: 12 }} /> : null}
       {fix ? (
-        <Text style={{ color: colors.muted, fontSize: 12, marginTop: 10 }}>Location ready (±{Math.round(fix.coords.accuracy || 0)} m)</Text>
+        <Text style={{ color: colors.muted, fontSize: 12, marginTop: 10 }}>{t("Location ready (±{n} m)", { n: Math.round(fix.coords.accuracy || 0) })}</Text>
       ) : null}
       {(state === "timeout" || state === "ambiguous" || state === "error") && fix ? (
-        <Button title="I shook - try again" variant="ghost" onPress={() => { setState("ready"); send(); }} style={{ marginTop: 14, alignSelf: "stretch" }} />
+        <Button title={t("I shook - try again")} variant="ghost" onPress={() => { setState("ready"); send(); }} style={{ marginTop: 14, alignSelf: "stretch" }} />
       ) : null}
       <Text style={{ color: colors.muted, fontSize: 12, marginTop: 16, textAlign: "center", lineHeight: 17 }}>
-        Both of you need this screen open and an internet connection to your CrossPaths server. Your location is used only to
-        match the two shakes and is deleted within minutes.
+        {t("Both of you need this screen open and an internet connection to your CrossPaths server. Your location is used only to match the two shakes and is deleted within minutes.")}
       </Text>
     </View>
   );
@@ -462,23 +462,23 @@ function PairResult({ result, navigation, onAgain }) {
     <Card style={{ marginTop: 18 }}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
         <Icon name="ok" size={22} color={colors.good} />
-        <Text style={{ color: colors.text, fontSize: 18, fontWeight: "800", flexShrink: 1 }}>Connected with @{result.other}</Text>
+        <Text style={{ color: colors.text, fontSize: 18, fontWeight: "800", flexShrink: 1 }}>{t("Connected with {who}", { who: H(result.other) })}</Text>
       </View>
-      {result.note ? <Text style={{ color: colors.muted, marginTop: 8, lineHeight: 20 }}>{result.note}</Text> : null}
+      {result.note ? <Text style={{ color: colors.muted, marginTop: 8, lineHeight: 20 }}>{serverMsg(result.note)}</Text> : null}
       {check ? (
         check.status === "running" ? (
           <View style={{ flexDirection: "row", alignItems: "center", gap: 10, marginTop: 12 }}>
             <ActivityIndicator color={colors.accent} />
-            <Text style={{ color: colors.muted }}>Checking where your paths crossed…</Text>
+            <Text style={{ color: colors.muted }}>{t("Checking where your paths crossed…")}</Text>
           </View>
         ) : check.status === "done" ? (
           <>
             <Text style={{ color: colors.text, marginTop: 12, fontSize: 15 }}>
-              {check.events_count ? `${check.events_count} crossing${check.events_count === 1 ? "" : "s"} found` : "Your paths never crossed"}
+              {check.events_count ? t("{c} found", { c: pl("crossings", check.events_count) }) : t("Your paths never crossed")}
             </Text>
             {check.events_count ? (
               <Button
-                title="View crossings"
+                title={t("View crossings")}
                 onPress={() => {
                   navigation.goBack();
                   navigation.navigate("Results", { checkId: check.id });
@@ -488,10 +488,10 @@ function PairResult({ result, navigation, onAgain }) {
             ) : null}
           </>
         ) : (
-          <Text style={{ color: colors.bad, marginTop: 12 }}>{check.error || "The check couldn't run."}</Text>
+          <Text style={{ color: colors.bad, marginTop: 12 }}>{check.error ? serverMsg(check.error) : t("The check couldn't run.")}</Text>
         )
       ) : null}
-      <Button title="Meet someone else" variant="ghost" onPress={onAgain} style={{ marginTop: 12 }} />
+      <Button title={t("Meet someone else")} variant="ghost" onPress={onAgain} style={{ marginTop: 12 }} />
     </Card>
   );
 }

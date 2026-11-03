@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { Pressable, ScrollView, View } from "react-native";
+import { Text } from "../components/AppText";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Button from "../components/Button";
 import { useToast } from "../components/Toast";
 import { Api } from "../api";
-import { colors, dateStr } from "../theme";
+import { H, t } from "../i18n";
+import { colors } from "../theme";
 import DateRangePicker from "../components/DateRangePicker";
 import UploadPicker from "../components/UploadPicker";
 
@@ -31,11 +33,11 @@ export default function NewCheckModal({ route, navigation, uploads, connections 
 
   async function send() {
     if (!connectionId) {
-      toast("Choose who to check with", true);
+      toast(t("Choose who to check with"), true);
       return;
     }
     if (!uploadId) {
-      toast("Choose a timeline first", true);
+      toast(t("Choose a timeline first"), true);
       return;
     }
     setBusy(true);
@@ -46,7 +48,7 @@ export default function NewCheckModal({ route, navigation, uploads, connections 
         date_from: dateFrom ? dateFrom.getTime() / 1000 : null,
         date_to: dateTo ? dateTo.getTime() / 1000 : null,
       });
-      toast("Request sent. It runs once they agree.");
+      toast(t("Request sent. It runs once they agree."));
       await onDone();
       navigation.goBack();
     } catch (e) {
@@ -62,16 +64,15 @@ export default function NewCheckModal({ route, navigation, uploads, connections 
       contentContainerStyle={{ padding: 20, paddingTop: insets.top + 16, paddingBottom: 40 }}
     >
       <Text style={{ color: colors.text, fontSize: 20, fontWeight: "800" }}>
-        {params.connectionId ? `Check paths with @${other}` : "Run a check"}
+        {params.connectionId ? t("Check paths with {who}", { who: H(other) }) : t("Run a check")}
       </Text>
       <Text style={{ color: colors.muted, marginTop: 8, lineHeight: 20 }}>
-        They will only see when and roughly where (about 100 m) your paths crossed — never your
-        route or full timeline. Your home and work areas are excluded.
+        {t("They will only see when and roughly where (about 100 m) your paths crossed — never your route or full timeline. Your home and work areas are excluded.")}
       </Text>
 
       {params.connectionId ? null : (
         <>
-          <Label>Check with</Label>
+          <Label>{t("Check with")}</Label>
           {people.length ? (
             <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
               {people.map((c) => {
@@ -91,24 +92,24 @@ export default function NewCheckModal({ route, navigation, uploads, connections 
                       backgroundColor: on ? colors.accent : colors.panel2,
                     }}
                   >
-                    <Text style={{ color: on ? colors.onAccent : colors.text, fontWeight: "600" }}>@{c.other}</Text>
+                    <Text style={{ color: on ? colors.onAccent : colors.text, fontWeight: "600" }}>{H(c.other)}</Text>
                   </Pressable>
                 );
               })}
             </View>
           ) : (
-            <Text style={{ color: colors.muted }}>You're not connected to anyone yet. Connect with someone on People first.</Text>
+            <Text style={{ color: colors.muted }}>{t("You're not connected to anyone yet. Connect with someone on People first.")}</Text>
           )}
         </>
       )}
 
-      <Label>Your timeline</Label>
+      <Label>{t("Your timeline")}</Label>
       <UploadPicker uploads={uploads} value={uploadId} onChange={setUploadId} />
 
-      <Label>Date range (optional)</Label>
+      <Label>{t("Date range (optional)")}</Label>
       <DateRangePicker from={dateFrom} to={dateTo} onChangeFrom={setDateFrom} onChangeTo={setDateTo} />
 
-      <Button title="Send request & agree" onPress={send} loading={busy} style={{ marginTop: 24 }} />
+      <Button title={t("Send request & agree")} onPress={send} loading={busy} style={{ marginTop: 24 }} />
     </ScrollView>
   );
 }

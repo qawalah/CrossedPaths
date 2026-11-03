@@ -1,4 +1,5 @@
 import * as MediaLibrary from "expo-media-library";
+import { t } from "./i18n";
 
 const BATCH_SIZE = 200; // assets fetched per getAssetsAsync page
 const CONCURRENCY = 16; // getAssetInfoAsync calls in flight at once
@@ -20,7 +21,7 @@ async function mapLimit(items, limit, fn) {
  *  Returns [{t, lat, lon}] sorted by time. Throws if photo access is refused. */
 export async function scanPhotoLibrary({ from, to, onProgress }) {
   const perm = await MediaLibrary.requestPermissionsAsync();
-  if (perm.status !== "granted") throw new Error("Photo library access is needed to scan for geotagged photos");
+  if (perm.status !== "granted") throw new Error(t("Photo library access is needed to scan for geotagged photos"));
   const baseOpts = {
     mediaType: [MediaLibrary.MediaType.photo],
     sortBy: [MediaLibrary.SortBy.creationTime],

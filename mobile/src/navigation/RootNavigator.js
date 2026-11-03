@@ -6,6 +6,7 @@ import { useAuth } from "../auth";
 import { useAppData } from "../useAppData";
 import { registerForPushNotifications } from "../notifications";
 import AuthScreen from "../screens/AuthScreen";
+import LockScreen from "../screens/LockScreen";
 import SettingsScreen from "../screens/SettingsScreen";
 import NewCheckModal from "../screens/NewCheckModal";
 import ReviewCheckModal from "../screens/ReviewCheckModal";
@@ -16,6 +17,8 @@ import AddNearbyScreen, { codeFrom } from "../screens/AddNearbyScreen";
 import MainTabs from "./MainTabs";
 import WelcomeScreen from "../screens/WelcomeScreen";
 import AdminScreen from "../screens/AdminScreen";
+import { fontFor } from "../components/AppText";
+import { t } from "../i18n";
 import { markWelcomeSeen, useWelcomeSeen } from "../welcome";
 import { colors } from "../theme";
 import { useTheme } from "../themeContext";
@@ -32,7 +35,7 @@ const navRef = createNavigationContainerRef();
 
 
 export default function RootNavigator() {
-  const { user, ready, cfg } = useAuth();
+  const { user, ready, cfg, locked } = useAuth();
   const appData = useAppData(!!user);
   const data = { ...appData, cfg };
   // A theme change remounts the navigator (every screen reads the new colours) but keeps where you are.
@@ -65,8 +68,8 @@ export default function RootNavigator() {
     if (!user || !pendingCode) return;
     const code = pendingCode;
     setPendingCode(null);
-    const t = setTimeout(() => navRef.isReady() && navRef.navigate("AddNearby", { code }), 400);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => navRef.isReady() && navRef.navigate("AddNearby", { code }), 400);
+    return () => clearTimeout(timer);
   }, [user, pendingCode]);
 
   if (!ready || welcomeSeen === null) {
@@ -77,6 +80,9 @@ export default function RootNavigator() {
     );
   }
   if (!welcomeSeen) return <WelcomeScreen onDone={markWelcomeSeen} />;
+
+  // navState keeps where the user was, so unlocking puts them back on the same screen.
+  if (locked) return <LockScreen />;
 
   return (
     <NavigationContainer
@@ -94,7 +100,7 @@ export default function RootNavigator() {
         {!user ? (
           <>
             <Stack.Screen name="Auth" component={AuthScreen} />
-            <Stack.Screen name="Settings" component={SettingsScreen} options={{ presentation: "modal", animation: "slide_from_bottom", headerShown: true, title: "Server addresses" }} />
+            <Stack.Screen name="Settings" component={SettingsScreen} options={{ presentation: "modal", animation: "slide_from_bottom", headerShown: true, title: t("Server addresses"), headerTitleStyle: { fontFamily: fontFor(600) } }} />
           </>
         ) : (
           <>
@@ -108,7 +114,7 @@ export default function RootNavigator() {
             <Stack.Screen name="Results" component={ResultsScreen} />
             <Stack.Screen name="MyTimeline" component={MyTimelineScreen} />
             <Stack.Screen name="Admin" component={AdminScreen} />
-            <Stack.Screen name="Settings" component={SettingsScreen} options={{ presentation: "modal", animation: "slide_from_bottom", headerShown: true, title: "Server addresses" }} />
+            <Stack.Screen name="Settings" component={SettingsScreen} options={{ presentation: "modal", animation: "slide_from_bottom", headerShown: true, title: t("Server addresses"), headerTitleStyle: { fontFamily: fontFor(600) } }} />
             <Stack.Screen name="AddNearby" options={{ presentation: "modal", animation: "slide_from_bottom" }}>
               {(props) => <AddNearbyScreen {...props} uploads={data.uploads} loaded={data.loaded} onDone={data.refresh} />}
             </Stack.Screen>

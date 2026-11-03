@@ -1,5 +1,6 @@
 import React from "react";
-import { ActivityIndicator, Pressable, Text } from "react-native";
+import { ActivityIndicator, Pressable } from "react-native";
+import { Text } from "./AppText";
 import { colors } from "../theme";
 import Icon from "./Icon";
 

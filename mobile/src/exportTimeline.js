@@ -1,7 +1,9 @@
 import * as FileSystem from "expo-file-system";
 import * as SecureStore from "expo-secure-store";
 import React, { useEffect, useState } from "react";
-import { Pressable, Text, TextInput, View } from "react-native";
+import { Pressable, View } from "react-native";
+import { Text, TextInput } from "./components/AppText";
+import { t } from "./i18n";
 import Button from "./components/Button";
 import Icon from "./components/Icon";
 import Sheet from "./components/Sheet";
@@ -73,25 +75,25 @@ export default function ExportSheet({ upload, onClose, toast }) {
       const f = p.format;
       if (!p.estimated) {
         await writeFile(perm.directoryUri, name, f, await Api.exportUpload(upload.id, f));
-        toast(`Saved ${name}.${f}`);
+        toast(t("Saved {name}", { name: `${name}.${f}` }));
       } else if (!p.separate) {
         const r = await Api.exportWithEstimates(upload.id, f, "embed", p.rules);
         await writeFile(perm.directoryUri, name, f, r.text);
-        toast(`Saved ${name}.${f}` + note(r.headers));
+        toast(t("Saved {name}", { name: `${name}.${f}` }) + note(r.headers));
       } else {
         await writeFile(perm.directoryUri, name, f, await Api.exportUpload(upload.id, f));
         const r = await Api.exportWithEstimates(upload.id, f, "only", p.rules);
         const n = Number(r.headers.get("X-Estimated-Gaps") || 0);
         if (n > 0) {
           await writeFile(perm.directoryUri, `${name}-estimated`, f, r.text);
-          toast(`Saved ${name}.${f} and ${name}-estimated.${f}` + note(r.headers));
+          toast(t("Saved {name}", { name: `${name}.${f}, ${name}-estimated.${f}` }) + note(r.headers));
         } else {
-          toast(`Saved ${name}.${f}` + note(r.headers));
+          toast(t("Saved {name}", { name: `${name}.${f}` }) + note(r.headers));
         }
       }
       onClose();
     } catch (e) {
-      toast(e.message || "Couldn't save the file", true);
+      toast(e.message || t("Couldn't save the file"), true);
     } finally {
       setBusy(false);
     }
@@ -99,9 +101,9 @@ export default function ExportSheet({ upload, onClose, toast }) {
 
   return (
     <Sheet visible={!!upload} onClose={busy ? () => {} : onClose}>
-      <Text style={{ color: colors.text, fontSize: 20, fontWeight: "800" }}>Export a copy</Text>
+      <Text style={{ color: colors.text, fontSize: 20, fontWeight: "800" }}>{t("Export a copy")}</Text>
       <Text style={{ color: colors.muted, marginTop: 6, lineHeight: 20 }}>
-        Your timeline, all its sources combined. GPX opens in most map and fitness apps.
+        {t("Your timeline, all its sources combined. GPX opens in most map and fitness apps.")}
       </Text>
 
       <Seg items={FORMATS} value={p.format} onChange={(format) => set({ format })} style={{ marginTop: 14 }} />
@@ -128,10 +130,9 @@ export default function ExportSheet({ upload, onClose, toast }) {
           {p.estimated ? <Icon name="check" size={15} color={colors.onAccent} strokeWidth={2.6} /> : null}
         </View>
         <View style={{ flex: 1 }}>
-          <Text style={{ color: colors.text, fontWeight: "700", fontSize: 15 }}>Include estimated points (experimental)</Text>
+          <Text style={{ color: colors.text, fontWeight: "700", fontSize: 15 }}>{t("Include estimated points (experimental)")}</Text>
           <Text style={{ color: colors.muted, fontSize: 12.5, lineHeight: 18, marginTop: 2 }}>
-            Fills gaps that look like car trips with a route from your server's street maps. They're marked as
-            estimated, never mixed with what you recorded, and never used to find crossings.
+            {t("Fills gaps that look like car trips with a route from your server's street maps. They're marked as estimated, never mixed with what you recorded, and never used to find crossings.")}
           </Text>
         </View>
       </Pressable>
@@ -140,34 +141,34 @@ export default function ExportSheet({ upload, onClose, toast }) {
         <View style={{ marginTop: 12, marginLeft: 34 }}>
           <Seg
             items={[
-              [false, "Same file"],
-              [true, "Separate file"],
+              [false, t("Same file")],
+              [true, t("Separate file")],
             ]}
             value={p.separate}
             onChange={(separate) => set({ separate })}
           />
-          <Text style={{ color: colors.muted, fontSize: 13, fontWeight: "700", marginTop: 14 }}>Which gaps</Text>
-          <Rule label="Gap up to" unit="min" value={p.rules.max_gap_min} onChange={(v) => setRule("max_gap_min", v)} />
-          <Rule label="Distance up to" unit="km" value={p.rules.max_km} onChange={(v) => setRule("max_km", v)} />
-          <Rule label="Average speed from" unit="km/h" value={p.rules.min_kmh} onChange={(v) => setRule("min_kmh", v)} />
+          <Text style={{ color: colors.muted, fontSize: 13, fontWeight: "700", marginTop: 14 }}>{t("Which gaps")}</Text>
+          <Rule label={t("Gap up to")} unit={t("min")} value={p.rules.max_gap_min} onChange={(v) => setRule("max_gap_min", v)} />
+          <Rule label={t("Distance up to")} unit={t("km")} value={p.rules.max_km} onChange={(v) => setRule("max_km", v)} />
+          <Rule label={t("Average speed from")} unit={t("km/h")} value={p.rules.min_kmh} onChange={(v) => setRule("min_kmh", v)} />
           <Text
             onPress={() => set({ rules: SUGGESTED_RULES })}
             style={{ color: colors.accent2, fontSize: 13, fontWeight: "600", marginTop: 8, alignSelf: "flex-start", padding: 2 }}
           >
-            Use the suggested values
+            {t("Use the suggested values")}
           </Text>
         </View>
       ) : null}
 
-      <Button title={busy ? "Preparing…" : "Choose a folder and save"} icon="download" onPress={save} loading={busy} style={{ marginTop: 20 }} />
+      <Button title={busy ? t("Preparing…") : t("Choose a folder and save")} icon="download" onPress={save} loading={busy} style={{ marginTop: 20 }} />
     </Sheet>
   );
 }
 
 function note(headers) {
-  if (headers.get("X-Street-Maps") === "0") return ". No estimated points: this server has no street maps yet.";
+  if (headers.get("X-Street-Maps") === "0") return " · " + t("No estimated points: this server has no street maps yet.");
   const n = Number(headers.get("X-Estimated-Gaps") || 0);
-  return n ? ` · ${n} estimated route${n === 1 ? "" : "s"}` : ". No gaps matched, so nothing was estimated.";
+  return " · " + (n ? t("{n} estimated routes", { n }) : t("No gaps matched, so nothing was estimated."));
 }
 
 function Seg({ items, value, onChange, style }) {

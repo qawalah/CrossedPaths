@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ActivityIndicator, FlatList, Pressable, Text, TextInput, View } from "react-native";
+import { ActivityIndicator, FlatList, Pressable, View } from "react-native";
+import { Text, TextInput } from "../components/AppText";
 import { MapView, Camera, ShapeSource, LineLayer, CircleLayer } from "@maplibre/maplibre-react-native";
 import Slider from "@react-native-community/slider";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -12,6 +13,7 @@ import { Api } from "../api";
 import { boundsOf, positionAt, segmentsFeature, segmentsUntil } from "../geo";
 import { colors, fmtDay, fmtTime, MAP_STYLE_FALLBACK, tzOffsetMin } from "../theme";
 import Icon from "../components/Icon";
+import { RTL, t } from "../i18n";
 
 const EMPTY_FC = { type: "FeatureCollection", features: [] };
 
@@ -160,11 +162,11 @@ export default function MyTimelineScreen({ route, navigation }) {
     try {
       const res = await fetch(
         `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(query.trim())}`,
-        { headers: { Accept: "application/json", "Accept-Language": "en" } }
+        { headers: { Accept: "application/json", "Accept-Language": RTL ? "ar" : "en" } }
       );
       const list = await res.json();
       if (!list.length) {
-        toast("No place found with that name", true);
+        toast(t("No place found with that name"), true);
         return;
       }
       const lat = parseFloat(list[0].lat), lon = parseFloat(list[0].lon);
@@ -172,7 +174,7 @@ export default function MyTimelineScreen({ route, navigation }) {
       if (cameraRef.current) cameraRef.current.setCamera({ centerCoordinate: [lon, lat], zoomLevel: 15, animationDuration: 500 });
       await searchVisits(lat, lon, radius);
     } catch (e) {
-      toast("Couldn't search right now. Check your connection.", true);
+      toast(t("Couldn't search right now. Check your connection."), true);
     } finally {
       setSearching(false);
     }
@@ -199,7 +201,7 @@ export default function MyTimelineScreen({ route, navigation }) {
         {inTab ? null : <Pressable onPress={() => navigation.goBack()} style={{ marginTop: 18, padding: 10 }}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
             <Icon name="back" size={18} color={colors.accent} />
-            <Text style={{ color: colors.accent, fontWeight: "700" }}>Back</Text>
+            <Text style={{ color: colors.accent, fontWeight: "700" }}>{t("Back")}</Text>
           </View>
         </Pressable>}
       </View>
@@ -218,10 +220,10 @@ export default function MyTimelineScreen({ route, navigation }) {
         {inTab ? null : <Pressable onPress={() => navigation.goBack()} style={{ marginBottom: 16 }}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
             <Icon name="back" size={20} />
-            <Text style={{ color: colors.text, fontSize: 16, fontWeight: "600" }}>Back</Text>
+            <Text style={{ color: colors.text, fontSize: 16, fontWeight: "600" }}>{t("Back")}</Text>
           </View>
         </Pressable>}
-        <Text style={{ color: colors.muted, textAlign: "center", marginTop: 20 }}>This timeline has no points to show.</Text>
+        <Text style={{ color: colors.muted, textAlign: "center", marginTop: 20 }}>{t("This timeline has no points to show.")}</Text>
       </View>
     );
   }
@@ -235,7 +237,7 @@ export default function MyTimelineScreen({ route, navigation }) {
           </Pressable>
         )}
         <View style={{ flex: 1 }}>
-          <Text style={{ color: colors.text, fontWeight: "800", fontSize: inTab ? 24 : 16 }}>{inTab ? "My map" : "My timeline"}</Text>
+          <Text style={{ color: colors.text, fontWeight: "800", fontSize: inTab ? 24 : 16 }}>{inTab ? t("My map") : t("My timeline")}</Text>
           {uploadLabel ? <Text style={{ color: colors.muted, fontSize: 12 }}>{uploadLabel}</Text> : null}
         </View>
       </View>
@@ -287,12 +289,12 @@ export default function MyTimelineScreen({ route, navigation }) {
               <View style={{ backgroundColor: colors.panel, padding: 12 }}>
                 <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 2 }}>
                   <Text style={{ color: colors.muted, fontSize: 12 }}>
-                    {dayPts.length ? `${dayLabel} · ${fmtTime(new Date((mePos ? mePos.t : tMin) * 1000))}` : dayLabel ? `${dayLabel} · no points recorded` : "Pick a day on the bar below"}
+                    {dayPts.length ? `${dayLabel} · ${fmtTime(new Date((mePos ? mePos.t : tMin) * 1000))}` : dayLabel ? `${dayLabel} · ${t("no points recorded")}` : t("Pick a day on the bar below")}
                   </Text>
                   {dayPts.length ? (
                     <Pressable onPress={togglePlay} hitSlop={10} style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
                       <Icon name={playing ? "pause" : "play"} size={14} color={colors.accent} strokeWidth={2.2} />
-                      <Text style={{ color: colors.accent, fontWeight: "700", fontSize: 12 }}>{playing ? "Pause" : "Play"}</Text>
+                      <Text style={{ color: colors.accent, fontWeight: "700", fontSize: 12 }}>{playing ? t("Pause") : t("Play")}</Text>
                     </Pressable>
                   ) : null}
                 </View>
@@ -327,13 +329,13 @@ export default function MyTimelineScreen({ route, navigation }) {
             </View>
 
             <View style={{ margin: 12, backgroundColor: colors.panel, borderWidth: 1, borderColor: colors.line, borderRadius: 16, padding: 14 }}>
-              <Text style={{ color: colors.text, fontWeight: "800", fontSize: 16, marginBottom: 4 }}>Have I been here?</Text>
-              <Text style={{ color: colors.muted, fontSize: 12.5, marginBottom: 10 }}>Search a place, or tap a point on the map above.</Text>
+              <Text style={{ color: colors.text, fontWeight: "800", fontSize: 16, marginBottom: 4 }}>{t("Have I been here?")}</Text>
+              <Text style={{ color: colors.muted, fontSize: 12.5, marginBottom: 10 }}>{t("Search a place, or tap a point on the map above.")}</Text>
               <View style={{ flexDirection: "row", gap: 8 }}>
                 <TextInput
                   value={query}
                   onChangeText={setQuery}
-                  placeholder="Place name"
+                  placeholder={t("Place name")}
                   placeholderTextColor={colors.muted}
                   onSubmitEditing={runTextSearch}
                   style={{ flex: 1, backgroundColor: colors.panel2, borderWidth: 1, borderColor: colors.line, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8, color: colors.text }}
@@ -343,21 +345,21 @@ export default function MyTimelineScreen({ route, navigation }) {
                   disabled={searching}
                   style={{ paddingHorizontal: 14, justifyContent: "center", borderRadius: 10, backgroundColor: colors.panel2, borderWidth: 1, borderColor: colors.line, opacity: searching ? 0.6 : 1 }}
                 >
-                  {searching ? <ActivityIndicator size="small" color={colors.text} /> : <Text style={{ color: colors.text, fontWeight: "700" }}>Search</Text>}
+                  {searching ? <ActivityIndicator size="small" color={colors.text} /> : <Text style={{ color: colors.text, fontWeight: "700" }}>{t("Search")}</Text>}
                 </Pressable>
               </View>
-              <Text style={{ color: colors.muted, fontSize: 11, marginTop: 4 }}>Place search uses OpenStreetMap and sends your search text there.</Text>
+              <Text style={{ color: colors.muted, fontSize: 11, marginTop: 4 }}>{t("Place search uses OpenStreetMap and sends your search text there.")}</Text>
               <Pressable
                 onPress={() => setPickMode((v) => !v)}
                 style={{ marginTop: 10, padding: 10, borderRadius: 10, backgroundColor: pickMode ? colors.accent : colors.panel2, borderWidth: 1, borderColor: pickMode ? colors.accent : colors.line, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6 }}
               >
                 <Icon name="pin" size={17} color={pickMode ? colors.onAccent : colors.text} />
                 <Text style={{ color: pickMode ? colors.onAccent : colors.text, fontWeight: "700", fontSize: 13 }}>
-                  {pickMode ? "Tap a point on the map above…" : "Or tap a point on the map above"}
+                  {pickMode ? t("Tap a point on the map above…") : t("Or tap a point on the map above")}
                 </Text>
               </Pressable>
               <Text style={{ color: colors.text, marginTop: 12, fontSize: 13 }}>
-                Search radius: <Text style={{ fontWeight: "800" }}>{radius} m</Text>
+                {t("Search radius:")} <Text style={{ fontWeight: "800" }}>{t("{n} m", { n: radius })}</Text>
               </Text>
               <Slider
                 minimumValue={50}
@@ -393,12 +395,12 @@ export default function MyTimelineScreen({ route, navigation }) {
                               {v.end !== v.start ? `–${fmtTime(e)}` : ""}
                             </Text>
                           </View>
-                          <Text style={{ color: colors.muted }}>›</Text>
+                          <Text style={{ color: colors.muted }}>{RTL ? "‹" : "›"}</Text>
                         </Pressable>
                       );
                     })
                 ) : (
-                  <Text style={{ color: colors.muted, fontSize: 12.5, marginTop: 10 }}>No visits found there.</Text>
+                  <Text style={{ color: colors.muted, fontSize: 12.5, marginTop: 10 }}>{t("No visits found there.")}</Text>
                 )
               ) : null}
             </View>

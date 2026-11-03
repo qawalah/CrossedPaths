@@ -1,6 +1,7 @@
 import { useIsFocused } from "@react-navigation/native";
 import React, { useEffect, useRef, useState } from "react";
-import { Animated, FlatList, LayoutAnimation, Platform, Pressable, Text, UIManager, View, useWindowDimensions } from "react-native";
+import { Animated, FlatList, LayoutAnimation, Platform, Pressable, UIManager, View, useWindowDimensions } from "react-native";
+import { Text } from "../components/AppText";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Button from "../components/Button";
 import CrossingHero from "../components/CrossingHero";
@@ -11,7 +12,8 @@ import { confirm } from "../components/confirm";
 import { Api } from "../api";
 import { journey } from "../journey";
 import { EASE_OUT, reduceMotion } from "../motion";
-import { colors, dateStr } from "../theme";
+import { H, pl, serverMsg, t } from "../i18n";
+import { colors, dateStr, statusLabel } from "../theme";
 
 if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) UIManager.setLayoutAnimationEnabledExperimental(true);
 
@@ -21,39 +23,39 @@ function heroState(j, data, navigation) {
   const inc = data.connections.find((c) => c.direction === "incoming" && c.status === "pending");
   if (j.review) {
     const review = go("ReviewCheck", { checkId: j.review.id });
-    return { title: `@${j.review.other} wants to check paths`, text: "Agree, and the check runs straight away. They'll only see when and roughly where you crossed.", actions: [{ title: "Review", go: review }], tap: review };
+    return { title: t("{who} wants to check paths", { who: H(j.review.other) }), text: t("Agree, and the check runs straight away. They'll only see when and roughly where you crossed."), actions: [{ title: t("Review"), go: review }], tap: review };
   }
   // The check button never names anyone: the person is picked on the next screen, from everyone
   // you're connected to, whether or not you've checked with them before.
   const run = go("NewCheck", {});
   if (j.has.upload && j.fresh.length) {
     return {
-      title: "Did your paths ever cross?",
-      text: "Pick who to check with. The check runs once you both agree.",
-      actions: [{ title: "Run a check", go: run }],
+      title: t("Did your paths ever cross?"),
+      text: t("Pick who to check with. The check runs once you both agree."),
+      actions: [{ title: t("Run a check"), go: run }],
       tap: run,
     };
   }
-  if (j.running) return { title: "Checking…", text: `Finding where your paths crossed with @${j.running.other}.`, actions: [{ title: "Run another check", go: run, ghost: true }] };
+  if (j.running) return { title: t("Checking…"), text: t("Finding where your paths crossed with {who}.", { who: H(j.running.other) }), actions: [{ title: t("Run another check"), go: run, ghost: true }] };
   if (!j.has.upload) {
     const imp = go("Build", { start: "files" });
-    return { title: "Import your timeline first", text: "Then connect with someone and see if your paths ever crossed.", actions: [{ title: "Import", go: imp }], tap: imp };
+    return { title: t("Import your timeline first"), text: t("Then connect with someone and see if your paths ever crossed."), actions: [{ title: t("Import"), go: imp }], tap: imp };
   }
   if (!j.has.connect)
     return {
-      title: inc ? `@${inc.other} wants to connect` : "Connect with someone",
-      text: inc ? "Accept their request, then check where your paths crossed." : "Send a request by username or meet in person, then run a check together.",
-      actions: [{ title: inc ? "See request" : "Find people", go: go("People") }],
+      title: inc ? t("{who} wants to connect", { who: H(inc.other) }) : t("Connect with someone"),
+      text: inc ? t("Accept their request, then check where your paths crossed.") : t("Send a request by username or meet in person, then run a check together."),
+      actions: [{ title: inc ? t("See request") : t("Find people"), go: go("People") }],
       tap: go("People"),
     };
   if (j.waiting)
-    return { title: `Waiting for @${j.waiting.other}`, text: "The check runs as soon as they agree.", actions: [{ title: "Run another check", go: run, ghost: true }] };
+    return { title: t("Waiting for {who}", { who: H(j.waiting.other) }), text: t("The check runs as soon as they agree."), actions: [{ title: t("Run another check"), go: run, ghost: true }] };
   return {
-    title: "Did our paths ever cross?",
-    text: "Check again with anyone you're connected to, or connect with someone new.",
+    title: t("Did our paths ever cross?"),
+    text: t("Check again with anyone you're connected to, or connect with someone new."),
     actions: [
-      { title: "Run a check", go: run },
-      { title: "Find people", go: go("People"), ghost: true },
+      { title: t("Run a check"), go: run },
+      { title: t("Find people"), go: go("People"), ghost: true },
     ],
     tap: run,
   };
@@ -90,7 +92,7 @@ export default function ChecksScreen({ navigation, data }) {
   }
 
   async function remove(id) {
-    if (!(await confirm("Delete this check?", "Its results are deleted for both of you."))) return;
+    if (!(await confirm(t("Delete this check?"), t("Its results are deleted for both of you.")))) return;
     try {
       await Api.deleteCheck(id);
       await refresh();
@@ -133,7 +135,7 @@ export default function ChecksScreen({ navigation, data }) {
             ) : null}
           </Animated.View>
           {checks.length ? (
-            <Text style={{ color: colors.muted, fontSize: 14, fontWeight: "700", marginTop: 28, marginBottom: 2, marginLeft: 4 }}>Previous checks</Text>
+            <Text style={{ color: colors.muted, fontSize: 14, fontWeight: "700", marginTop: 28, marginBottom: 2, marginLeft: 4 }}>{t("Previous checks")}</Text>
           ) : null}
         </View>
       }
@@ -162,19 +164,19 @@ function CheckRow({ c, open, onToggle, onReview, onResults, onDelete }) {
   const n = c.events_count;
   const short =
     {
-      awaiting_consent: mine ? "Waiting for you to agree" : "Waiting for them to agree",
-      running: "Checking…",
-      done: n ? `${n} crossing${n > 1 ? "s" : ""}` : "No crossings found",
-      failed: "Didn't run",
-      declined: "Declined",
-    }[c.status] || "Expired";
+      awaiting_consent: mine ? t("Waiting for you to agree") : t("Waiting for them to agree"),
+      running: t("Checking…"),
+      done: n ? pl("crossings", n) : t("No crossings found"),
+      failed: t("Didn't run"),
+      declined: t("Declined"),
+    }[c.status] || t("Expired");
   let more = null;
   if (c.status === "awaiting_consent")
     more = mine
-      ? `@${c.other} wants to check paths with you.`
-      : `Waiting for @${c.other} to agree. The request expires in ${Math.max(1, Math.round((c.expires_at * 1000 - Date.now()) / 86400000))} d.`;
-  else if (c.status === "running") more = "Finding where your paths crossed…";
-  else if (c.status === "failed") more = c.error || "Something went wrong. Import again and retry.";
+      ? t("{who} wants to check paths with you.", { who: H(c.other) })
+      : t("Waiting for {who} to agree. The request expires in {days}.", { who: H(c.other), days: pl("days", Math.max(1, Math.round((c.expires_at * 1000 - Date.now()) / 86400000))) });
+  else if (c.status === "running") more = t("Finding where your paths crossed…");
+  else if (c.status === "failed") more = c.error ? serverMsg(c.error) : t("Something went wrong. Import again and retry.");
 
   const small = { paddingVertical: 8, paddingHorizontal: 12, borderRadius: 10 };
   return (
@@ -192,7 +194,7 @@ function CheckRow({ c, open, onToggle, onReview, onResults, onDelete }) {
         onPress={onToggle}
         accessibilityRole="button"
         accessibilityState={{ expanded: open }}
-        accessibilityLabel={`@${c.other}, ${short}`}
+        accessibilityLabel={`${H(c.other)}, ${short}`}
         style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: 12, padding: 12, backgroundColor: pressed ? colors.pressed : "transparent" })}
       >
         <View
@@ -210,10 +212,10 @@ function CheckRow({ c, open, onToggle, onReview, onResults, onDelete }) {
           <Text style={{ color: colors.accent, fontWeight: "800", fontSize: 15 }}>{c.other.slice(0, 1).toUpperCase()}</Text>
         </View>
         <View style={{ flex: 1 }}>
-          <Text style={{ color: colors.text, fontWeight: "700" }}>@{c.other}</Text>
+          <Text style={{ color: colors.text, fontWeight: "700" }}>{H(c.other)}</Text>
           <Text style={{ color: colors.muted, fontSize: 12.5, marginTop: 1 }}>{short}</Text>
         </View>
-        <Pill label={c.status.replace("_", " ")} level={c.status} />
+        <Pill label={statusLabel(c.status)} level={c.status} />
         <Animated.View style={{ transform: [{ rotate: spin.interpolate({ inputRange: [0, 1], outputRange: ["0deg", "180deg"] }) }] }}>
           <Icon name="next" size={18} color={colors.muted} style={{ transform: [{ rotate: "90deg" }] }} />
         </Animated.View>
@@ -222,15 +224,15 @@ function CheckRow({ c, open, onToggle, onReview, onResults, onDelete }) {
         <View style={{ paddingLeft: 60, paddingRight: 14, paddingBottom: 14, gap: 3 }}>
           {more ? <Text style={{ color: colors.muted, fontSize: 13, lineHeight: 19 }}>{more}</Text> : null}
           <Text style={{ color: colors.muted, fontSize: 13, lineHeight: 19 }}>
-            {c.created_at ? `Started ${dateStr(c.created_at)}` : "Started recently"}
+            {c.created_at ? t("Started {date}", { date: dateStr(c.created_at) }) : t("Started recently")}
           </Text>
           {c.status === "done" && c.results_expire ? (
-            <Text style={{ color: colors.muted, fontSize: 13, lineHeight: 19 }}>Results kept until {dateStr(c.results_expire)}</Text>
+            <Text style={{ color: colors.muted, fontSize: 13, lineHeight: 19 }}>{t("Results kept until {date}", { date: dateStr(c.results_expire) })}</Text>
           ) : null}
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 8 }}>
-            {c.status === "done" ? <Button title="View crossings" onPress={onResults} style={small} /> : null}
-            {mine ? <Button title="Review" onPress={onReview} style={small} /> : null}
-            <Button title="Delete" variant="ghost" onPress={onDelete} style={small} />
+            {c.status === "done" ? <Button title={t("View crossings")} onPress={onResults} style={small} /> : null}
+            {mine ? <Button title={t("Review")} onPress={onReview} style={small} /> : null}
+            <Button title={t("Delete")} variant="ghost" onPress={onDelete} style={small} />
           </View>
         </View>
       ) : null}

@@ -1,6 +1,7 @@
 import React, { useRef, useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
 import Svg, { Defs, LinearGradient, Rect, Stop } from "react-native-svg";
+import { t } from "../i18n";
 import { colors } from "../theme";
 import Icon from "./Icon";
 
@@ -27,7 +28,7 @@ export default function ChipScroller({ children, selected, bg }) {
   }
 
   return (
-    <View onLayout={(e) => setW(e.nativeEvent.layout.width)}>
+    <View onLayout={(e) => setW(e.nativeEvent.layout.width)} style={{ direction: "ltr" }}>
       <ScrollView
         ref={ref}
         horizontal
@@ -61,10 +62,10 @@ function Edge({ side, bg, onPress }) {
   return (
     <View
       pointerEvents="box-none"
-      style={{ position: "absolute", top: 0, bottom: 0, width: 56, [side]: 0, flexDirection: "row", alignItems: "center", justifyContent: left ? "flex-start" : "flex-end" }}
+      style={{ position: "absolute", top: 0, bottom: 0, width: 56, [left ? "start" : "end"]: 0, flexDirection: "row", alignItems: "center", justifyContent: left ? "flex-start" : "flex-end" }}
     >
       {/* the fade is see-through to touches, so a half-hidden chip can still be swiped */}
-      <Svg pointerEvents="none" width={56} height="100%" style={{ position: "absolute", top: 0, bottom: 0, [side]: 0 }}>
+      <Svg pointerEvents="none" width={56} height="100%" style={{ position: "absolute", top: 0, bottom: 0, [left ? "start" : "end"]: 0 }}>
         <Defs>
           <LinearGradient id={id} x1={left ? "0" : "1"} y1="0" x2={left ? "1" : "0"} y2="0">
             <Stop offset="0.35" stopColor={bg} stopOpacity="1" />
@@ -76,7 +77,7 @@ function Edge({ side, bg, onPress }) {
       <Pressable
         onPress={onPress}
         hitSlop={8}
-        accessibilityLabel={left ? "Scroll left" : "Scroll right"}
+        accessibilityLabel={left ? t("Scroll left") : t("Scroll right")}
         style={{
           width: 30,
           height: 30,

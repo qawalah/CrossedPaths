@@ -1,5 +1,6 @@
 import React, { createContext, useCallback, useContext, useRef, useState } from "react";
-import { Animated, Text } from "react-native";
+import { Animated } from "react-native";
+import { Text } from "./AppText";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { colors } from "../theme";
 

@@ -1,16 +1,24 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Animated, Easing, Modal, Text, View } from "react-native";
+import { Animated, Easing, Modal, View } from "react-native";
+import { Text } from "./AppText";
 import Svg, { Circle } from "react-native-svg";
 import Button from "./Button";
-import { colors } from "../theme";
+import { onLanguage, RTL, t } from "../i18n";
+import { colors, UI_LOCALE } from "../theme";
 
 // Shown the first time someone opens My timeline (and from the "?" next to the date bar).
 // A finger plays the gesture on a small copy of the bar, in step with the written steps.
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 const LOOP_MS = 7600;
-const BUBBLE = ["2024", "March 2024", "Thu 14 Mar"];
-const LEVEL = ["Years", "Months", "Days"];
+let BUBBLE;
+onLanguage(() => {
+  BUBBLE = ["2024", new Date(2024, 2, 1).toLocaleDateString(UI_LOCALE, { month: "long", year: "numeric" }), new Date(2024, 2, 14).toLocaleDateString(UI_LOCALE, { weekday: "short", day: "numeric", month: "short" })];
+});
+let LEVEL;
+onLanguage(() => {
+  LEVEL = [t("Years"), t("Months"), t("Days")];
+});
 // [t, x (0-1 across the bar), lift (0 on the bar, 1 = one zoom step up), finger visible]
 const PATH = [
   [0, 0.2, 0, 0],
@@ -37,7 +45,7 @@ function bars(seed, n) {
 }
 
 export default function ScrubberTutorial({ visible, gesture = "pull", onClose }) {
-  const t = useRef(new Animated.Value(0)).current;
+  const clock = useRef(new Animated.Value(0)).current;
   const [w, setW] = useState(0);
   const [level, setLevel] = useState(0);
   const [phase, setPhase] = useState(0); // which written step the finger is on
@@ -46,9 +54,9 @@ export default function ScrubberTutorial({ visible, gesture = "pull", onClose })
 
   useEffect(() => {
     if (!visible) return;
-    t.setValue(0);
-    const anim = Animated.loop(Animated.timing(t, { toValue: 1, duration: LOOP_MS, easing: Easing.linear, useNativeDriver: false }));
-    const id = t.addListener(({ value }) => {
+    clock.setValue(0);
+    const anim = Animated.loop(Animated.timing(clock, { toValue: 1, duration: LOOP_MS, easing: Easing.linear, useNativeDriver: false }));
+    const id = clock.addListener(({ value }) => {
       setLevel(value < ZOOM_AT[0] ? 0 : value < ZOOM_AT[1] ? 1 : 2);
       setPhase(value < 0.26 ? 0 : value > 0.82 ? 2 : 1);
       const k = PATH.findIndex((q) => q[0] >= value);
@@ -59,26 +67,26 @@ export default function ScrubberTutorial({ visible, gesture = "pull", onClose })
     anim.start();
     return () => {
       anim.stop();
-      t.removeListener(id);
+      clock.removeListener(id);
     };
   }, [visible]);
 
   const heights = useMemo(() => [bars(7, 28), bars(31, 24), bars(97, 18)], []);
   const range = PATH.map((p) => p[0]);
-  const x = t.interpolate({ inputRange: range, outputRange: PATH.map((p) => p[1] * Math.max(1, w)) });
-  const lift = t.interpolate({ inputRange: range, outputRange: PATH.map((p) => (hold ? 0 : -p[2] * 26)) });
-  const opacity = t.interpolate({ inputRange: range, outputRange: PATH.map((p) => p[3]) });
+  const x = clock.interpolate({ inputRange: range, outputRange: PATH.map((p) => p[1] * Math.max(1, w)) });
+  const lift = clock.interpolate({ inputRange: range, outputRange: PATH.map((p) => (hold ? 0 : -p[2] * 26)) });
+  const opacity = clock.interpolate({ inputRange: range, outputRange: PATH.map((p) => p[3]) });
   const R = 20, C = 2 * Math.PI * R;
-  const ring = t.interpolate({
+  const ring = clock.interpolate({
     inputRange: [0, HOLD[0][0], HOLD[0][1], HOLD[0][1] + 0.001, HOLD[1][0], HOLD[1][1], HOLD[1][1] + 0.001, 1],
     outputRange: [C, C, 0, C, C, 0, C, C],
   });
 
-  const zoomWord = hold ? "Hold still" : gesture === "both" ? "Slide up (or hold still)" : "Slide your finger up";
+  const zoomWord = hold ? t("Hold still") : gesture === "both" ? t("Slide up (or hold still)") : t("Slide your finger up");
   const steps = [
-    ["Press and drag along the bar", "You move through the years. The bubble shows where you are."],
-    [zoomWord, hold ? "The ring fills and the bar zooms into months, then days." : "Each step up zooms in: months, then days. Slide down to zoom back out."],
-    ["Let go to open that day", "Empty days are skipped. Push against an edge while zoomed in to keep going."],
+    [t("Press and drag along the bar"), t("You move through the years. The bubble shows where you are.")],
+    [zoomWord, hold ? t("The ring fills and the bar zooms into months, then days.") : t("Each step up zooms in: months, then days. Slide down to zoom back out.")],
+    [t("Let go to open that day"), t("Empty days are skipped. Push against an edge while zoomed in to keep going.")],
   ];
   const bh = heights[level];
 
@@ -86,12 +94,12 @@ export default function ScrubberTutorial({ visible, gesture = "pull", onClose })
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose} statusBarTranslucent>
       <View style={{ flex: 1, backgroundColor: colors.scrim, justifyContent: "center", padding: 20 }}>
         <View style={{ backgroundColor: colors.panel, borderRadius: 20, borderWidth: 1, borderColor: colors.line, padding: 18 }}>
-          <Text style={{ color: colors.text, fontSize: 19, fontWeight: "800" }}>Pick a day by scrubbing</Text>
+          <Text style={{ color: colors.text, fontSize: 19, fontWeight: "800" }}>{t("Pick a day by scrubbing")}</Text>
           <Text style={{ color: colors.muted, fontSize: 13, marginTop: 4, lineHeight: 18 }}>
-            The date bar under the map works like the seek bar on a long video.
+            {t("The date bar under the map works like the seek bar on a long video.")}
           </Text>
 
-          <View style={{ marginTop: 18, paddingTop: 70, paddingBottom: 14, paddingHorizontal: 14, borderRadius: 14, backgroundColor: colors.panel2 }}>
+          <View style={{ marginTop: 18, paddingTop: 70, paddingBottom: 14, paddingHorizontal: 14, borderRadius: 14, backgroundColor: colors.panel2, direction: "ltr" }}>
             <View onLayout={(e) => setW(e.nativeEvent.layout.width)} style={{ height: 44 }}>
               <View style={{ flexDirection: "row", alignItems: "flex-end", height: 40, gap: 2 }}>
                 {bh.map((h, i) => {
@@ -110,7 +118,7 @@ export default function ScrubberTutorial({ visible, gesture = "pull", onClose })
               {w > 0 ? (
                 <Animated.View style={{ position: "absolute", left: -22, top: 0, width: 44, height: 44, alignItems: "center", justifyContent: "center", opacity, transform: [{ translateX: x }, { translateY: lift }] }}>
                   <View style={{ position: "absolute", bottom: 50, width: 116, paddingVertical: 5, borderRadius: 10, backgroundColor: colors.text, alignItems: "center" }}>
-                    <Text style={{ color: colors.accent, fontSize: 9, fontWeight: "800", letterSpacing: 0.8 }}>{LEVEL[level].toUpperCase()}</Text>
+                    <Text style={{ color: colors.accent, fontSize: 9, fontWeight: "800", letterSpacing: RTL ? 0 : 0.8 }}>{LEVEL[level].toLocaleUpperCase()}</Text>
                     <Text style={{ color: colors.bg, fontWeight: "800", fontSize: 13.5 }}>{BUBBLE[level]}</Text>
                   </View>
                   {hold || gesture === "both" ? (
@@ -123,7 +131,7 @@ export default function ScrubberTutorial({ visible, gesture = "pull", onClose })
               ) : null}
             </View>
             {!hold ? (
-              <Text style={{ color: colors.muted, fontSize: 11, textAlign: "right", marginTop: 6 }}>{level < 2 ? "↑ slide up to zoom" : "↓ slide down to zoom out"}</Text>
+              <Text style={{ color: colors.muted, fontSize: 11, textAlign: "right", marginTop: 6 }}>{level < 2 ? "↑ " + t("slide up to zoom") : "↓ " + t("slide down to zoom out")}</Text>
             ) : null}
           </View>
 
@@ -144,8 +152,8 @@ export default function ScrubberTutorial({ visible, gesture = "pull", onClose })
             })}
           </View>
 
-          <Text style={{ color: colors.muted, fontSize: 12, marginTop: 16 }}>You can change the zoom gesture in Account → Date bar.</Text>
-          <Button title="Got it" onPress={onClose} style={{ marginTop: 14 }} />
+          <Text style={{ color: colors.muted, fontSize: 12, marginTop: 16 }}>{t("You can change the zoom gesture in Account → Timeline date bar.")}</Text>
+          <Button title={t("Got it")} onPress={onClose} style={{ marginTop: 14 }} />
         </View>
       </View>
     </Modal>

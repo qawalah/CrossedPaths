@@ -2,7 +2,7 @@
   "expo": {
     "name": "CrossPaths",
     "slug": "crosspaths",
-    "version": "1.14.0",
+    "version": "1.16.0",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
     "backgroundColor": "#0b1220",
@@ -43,10 +43,16 @@
         "NOTIFICATIONS"
       ],
       "usesCleartextTraffic": true,
-      "versionCode": 19
+      "versionCode": 22
     },
     "plugins": [
       "expo-secure-store",
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Allow CrossPaths to use Face ID to unlock the app."
+        }
+      ],
       [
         "expo-notifications",
         {

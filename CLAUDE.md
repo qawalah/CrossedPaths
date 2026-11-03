@@ -23,7 +23,7 @@ Server (from `server/`):
 
 ```bash
 pip install -r requirements.txt pytest
-python -m pytest -q                  # 74 tests, no network (PLACE_NAMES=False)
+python -m pytest -q                  # 126 tests, no network (PLACE_NAMES=False)
 DATA_DIR=./data python -c "from server.app import create_app; create_app().run(port=8787)"
 ```
 
@@ -77,6 +77,11 @@ read its log in the Actions tab and fix it.
   `padding` to `easeTo`; use `offset`.
 - Server address switching only happens between addresses with the same `instance`, and a
   timed-out POST is never resent.
+- Languages: English and Arabic (RTL) on both clients; English text is the translation key and every
+  new string needs an Arabic entry (`tests/test_i18n.py` fails otherwise). Never name a variable `t`
+  where `t()` is used.
+- Typeface: IBM Plex Sans Arabic, self-hosted (web) / bundled (Android). Mobile text uses
+  `Text`/`TextInput` from `src/components/AppText.js`, never react-native's directly.
 - Mobile theme: `colors` in `src/theme.js` is one mutable object. Don't capture colours in
   `StyleSheet.create`.
 - `mobile/plugins/withCrossPathsAndroid.js` and `expo.useLegacyPackaging` in

@@ -1,5 +1,7 @@
 import React, { useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, View } from "react-native";
+import { Text } from "./AppText";
+import { t } from "../i18n";
 import Icon from "./Icon";
 import Sheet from "./Sheet";
 import { colors } from "../theme";
@@ -17,7 +19,7 @@ export default function Dropdown({ value, options, onChange, label, disabled }) 
       <Pressable
         onPress={() => !disabled && setOpen(true)}
         accessibilityRole="button"
-        accessibilityLabel={`${label || "Choose"}: ${cur ? cur[1] : ""}`}
+        accessibilityLabel={`${label || t("Choose")}: ${cur ? cur[1] : ""}`}
         style={({ pressed }) => ({
           flexDirection: "row",
           alignItems: "center",
@@ -31,7 +33,7 @@ export default function Dropdown({ value, options, onChange, label, disabled }) 
           opacity: disabled ? 0.6 : 1,
         })}
       >
-        <Text style={{ color: colors.text, fontWeight: "600", fontSize: 14.5, flex: 1 }}>{cur ? cur[1] : "Choose…"}</Text>
+        <Text style={{ color: colors.text, fontWeight: "600", fontSize: 14.5, flex: 1 }}>{cur ? cur[1] : t("Choose…")}</Text>
         <Icon name="next" size={18} color={colors.muted} style={{ transform: [{ rotate: "90deg" }] }} />
       </Pressable>
       <Sheet visible={open} onClose={() => setOpen(false)}>

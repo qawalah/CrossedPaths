@@ -1,12 +1,17 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Animated, Image, Pressable, Text, View } from "react-native";
+import { Animated, Image, Pressable, View } from "react-native";
+import { Text } from "./AppText";
+import { onLanguage, pl, RTL, t } from "../i18n";
 import { colors } from "../theme";
 import { EASE_OUT, reduceMotion, tint } from "../motion";
 import PulseRings from "./PulseRings";
 import Icon from "./Icon";
 
 const ICONS = { Timeline: "upload", MyMap: "map", Checks: "checks", People: "people", Account: "account" };
-const LABELS = { Timeline: "Import", MyMap: "My Map" };
+let LABELS;
+onLanguage(() => {
+  LABELS = { Timeline: t("Import"), MyMap: t("My Map"), Checks: t("Checks"), People: t("People"), Account: t("Account") };
+});
 const MID = "Checks"; // the main action sits in the middle as a raised round button
 
 const PILL_W = 60;
@@ -68,7 +73,7 @@ export default function TabBar({ state, navigation, insets, badges = {}, invite 
             backgroundColor: tint(colors.accent, 0.17),
             opacity: pillOn,
             transform: [
-              { translateX: pos.interpolate({ inputRange: [0, n - 1], outputRange: [0, tabW * (n - 1)] }) },
+              { translateX: pos.interpolate({ inputRange: [0, n - 1], outputRange: [0, (RTL ? -1 : 1) * tabW * (n - 1)] }) }, // a right-to-left row starts on the right
               { scaleX: stretch.interpolate({ inputRange: [0, 1], outputRange: [1, 1.35] }) },
               { scaleY: stretch.interpolate({ inputRange: [0, 1], outputRange: [1, 0.82] }) },
             ],
@@ -139,7 +144,7 @@ function Tab({ name, mid, focused, badge, invite, onPress }) {
       onPress={onPress}
       accessibilityRole="tab"
       accessibilityState={{ selected: focused }}
-      accessibilityLabel={invite ? `${label}, a check is ready to run` : badge ? `${label}, ${badge} waiting for you` : label}
+      accessibilityLabel={invite ? t("{tab}, a check is ready to run", { tab: label }) : badge ? t("{tab}, {n} waiting for you", { tab: label, n: badge }) : label}
       style={({ pressed }) => ({ flex: 1, alignItems: "center", gap: 4, transform: [{ scale: mid && pressed ? 0.94 : 1 }] })}
     >
       {/* the raised button keeps the same footprint as the other icons, so the labels line up */}

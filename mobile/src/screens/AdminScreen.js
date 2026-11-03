@@ -1,5 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, FlatList, Pressable, Text, TextInput, View } from "react-native";
+import { ActivityIndicator, FlatList, Pressable, View } from "react-native";
+import { Text, TextInput } from "../components/AppText";
+import { t } from "../i18n";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Button from "../components/Button";
 import Card from "../components/Card";
@@ -10,12 +12,12 @@ import { confirm } from "../components/confirm";
 import { Api } from "../api";
 import { colors, dateStr } from "../theme";
 
-const STATE = {
-  downloading: ["Downloading", "running"],
-  building: ["Preparing", "running"],
-  ready: ["Ready", "done"],
-  failed: ["Failed", "failed"],
-};
+const STATE = () => ({
+  downloading: [t("Downloading"), "running"],
+  building: [t("Preparing"), "running"],
+  ready: [t("Ready"), "done"],
+  failed: [t("Failed"), "failed"],
+});
 
 /**
  * Server admin settings (only for usernames in the server's ADMIN_HANDLES): street maps, used to
@@ -61,20 +63,20 @@ export default function AdminScreen({ navigation }) {
   }
 
   async function add(c) {
-    if (!(await confirm(`Add ${c.name}?`, "The server downloads its map from Geofabrik and prepares it in the background. Big countries take a while.", "Add"))) return;
+    if (!(await confirm(t("Add {name}?", { name: c.name }), t("The server downloads its map from Geofabrik and prepares it in the background. Big countries take a while."), t("Add")))) return;
     try {
       await Api.adminAddRoads(c.id);
       setCatalog(null);
       setQ("");
       await load();
-      toast(`Preparing ${c.name}`);
+      toast(t("Preparing {name}", { name: c.name }));
     } catch (e) {
       toast(e.message, true);
     }
   }
 
   async function remove(r) {
-    if (!(await confirm(`Remove ${r.name}?`, "Journeys there are drawn as straight lines again, and exports can't estimate routes there."))) return;
+    if (!(await confirm(t("Remove {name}?", { name: r.name }), t("Journeys there are drawn as straight lines again, and exports can't estimate routes there.")))) return;
     try {
       await Api.adminDeleteRoads(r.id);
       await load();
@@ -94,36 +96,35 @@ export default function AdminScreen({ navigation }) {
     <View>
       <Pressable onPress={() => navigation.goBack()} hitSlop={12} style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 12 }}>
         <Icon name="back" size={20} color={colors.accent2} />
-        <Text style={{ color: colors.accent2, fontWeight: "700" }}>Account</Text>
+        <Text style={{ color: colors.accent2, fontWeight: "700" }}>{t("Account")}</Text>
       </Pressable>
-      <Text style={{ color: colors.text, fontSize: 24, fontWeight: "800" }}>Street maps</Text>
+      <Text style={{ color: colors.text, fontSize: 24, fontWeight: "800" }}>{t("Street maps")}</Text>
       <Text style={{ color: colors.muted, marginTop: 6, lineHeight: 20 }}>
-        Countries whose roads the server knows. Journeys there are drawn along streets, and exports can estimate car routes for
-        gaps. Routing stays on your server; only the map files are downloaded.
+        {t("Countries whose roads the server knows. Journeys there are drawn along streets, and exports can estimate car routes for gaps. Routing stays on your server; only the map files are downloaded.")}
       </Text>
       {!status ? (
         <ActivityIndicator color={colors.accent} style={{ marginTop: 24 }} />
       ) : (
         <>
           {!status.supported ? (
-            <Note>The server is missing the routing package (pyvalhalla), so maps can't be prepared. The Docker image includes it.</Note>
+            <Note>{t("The server is missing the routing package (pyvalhalla), so maps can't be prepared. The Docker image includes it.")}</Note>
           ) : null}
           {status.supported && !status.enabled ? (
-            <Note>Drawing along streets is switched off on the server (STREET_SNAP). Maps can still be prepared.</Note>
+            <Note>{t("Drawing along streets is switched off on the server (STREET_SNAP). Maps can still be prepared.")}</Note>
           ) : null}
           <Text style={{ color: colors.muted, fontSize: 14, fontWeight: "700", marginTop: 20, marginBottom: 4, marginLeft: 4 }}>
-            Installed ({status.regions.length})
+            {t("Installed ({n})", { n: status.regions.length })}
           </Text>
-          {status.regions.length ? null : <Text style={{ color: colors.muted, marginLeft: 4 }}>None yet.</Text>}
+          {status.regions.length ? null : <Text style={{ color: colors.muted, marginLeft: 4 }}>{t("None yet.")}</Text>}
           {status.regions.map((r) => (
             <Region key={r.id} r={r} onRemove={() => remove(r)} />
           ))}
-          <Text style={{ color: colors.muted, fontSize: 14, fontWeight: "700", marginTop: 20, marginBottom: 8, marginLeft: 4 }}>Add a country</Text>
+          <Text style={{ color: colors.muted, fontSize: 14, fontWeight: "700", marginTop: 20, marginBottom: 8, marginLeft: 4 }}>{t("Add a country")}</Text>
           {catalog ? (
             <TextInput
               value={q}
               onChangeText={setQ}
-              placeholder="Search, e.g. Saudi Arabia"
+              placeholder={t("Search, e.g. Saudi Arabia")}
               placeholderTextColor={colors.muted}
               autoCorrect={false}
               style={{
@@ -139,7 +140,7 @@ export default function AdminScreen({ navigation }) {
             />
           ) : (
             <Button
-              title="Choose a country"
+              title={t("Choose a country")}
               icon="plus"
               variant="ghost"
               onPress={openCatalog}
@@ -149,7 +150,7 @@ export default function AdminScreen({ navigation }) {
           )}
           {status.max_download_mb ? (
             <Text style={{ color: colors.muted, fontSize: 12, marginTop: 6, marginLeft: 4 }}>
-              Downloads are limited to {status.max_download_mb.toLocaleString()} MB per region.
+              {t("Downloads are limited to {mb} MB per region.", { mb: status.max_download_mb })}
             </Text>
           ) : null}
         </>
@@ -185,13 +186,13 @@ export default function AdminScreen({ navigation }) {
 }
 
 function Region({ r, onRemove }) {
-  const [label, level] = STATE[r.state] || [r.state, "expired"];
+  const [label, level] = STATE()[r.state] || [r.state, "expired"];
   const p = r.progress;
   const busy = r.state === "downloading" || r.state === "building";
   let detail = "";
-  if (r.state === "downloading" && p) detail = p.total_mb ? `${p.done_mb} of ${p.total_mb} MB` : `${p.done_mb} MB`;
-  else if (r.state === "building") detail = "Building the routing data. This can take a while.";
-  else if (r.state === "ready") detail = [r.disk_mb ? `${r.disk_mb} MB` : null, r.finished_at ? `ready ${dateStr(r.finished_at)}` : null].filter(Boolean).join(" · ");
+  if (r.state === "downloading" && p) detail = p.total_mb ? t("{a} of {b} MB", { a: p.done_mb, b: p.total_mb }) : t("{n} MB", { n: p.done_mb });
+  else if (r.state === "building") detail = t("Building the routing data. This can take a while.");
+  else if (r.state === "ready") detail = [r.disk_mb ? t("{n} MB", { n: r.disk_mb }) : null, r.finished_at ? t("ready {date}", { date: dateStr(r.finished_at) }) : null].filter(Boolean).join(" · ");
   return (
     <Card>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
@@ -206,7 +207,7 @@ function Region({ r, onRemove }) {
       {r.error ? <Text style={{ color: colors.bad, fontSize: 12.5, marginTop: 6, lineHeight: 18 }}>{r.error}</Text> : null}
       {busy ? null : (
         <Text onPress={onRemove} style={{ color: colors.bad, fontSize: 13, fontWeight: "600", marginTop: 10, alignSelf: "flex-start", padding: 2 }}>
-          Remove
+          {t("Remove")}
         </Text>
       )}
     </Card>

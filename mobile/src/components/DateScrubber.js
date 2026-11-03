@@ -1,24 +1,38 @@
 import React, { useEffect, useMemo, useReducer, useRef, useState } from "react";
-import { PanResponder, Pressable, Text, Vibration, View } from "react-native";
+import { PanResponder, Pressable, Vibration, View } from "react-native";
 import Svg, { Circle, Rect, Text as SvgText } from "react-native-svg";
-import { colors } from "../theme";
+import { onLanguage, pl, RTL, t } from "../i18n";
+import { colors, UI_LOCALE } from "../theme";
+import { Text, fontFor } from "./AppText";
 
 // A seek bar for picking a day, like YouTube's on a long video. Drag along it to move through
 // years; zoom into months and then days by sliding the finger up (and back out by sliding down)
 // or by holding still, depending on the `gesture` setting. Bars show how many points each day has.
 
 const DAY = 864e5;
-const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-const MONL = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-const WD = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-export const SCRUB_LEVELS = ["Years", "Months", "Days"];
+let MON;
+onLanguage(() => {
+  MON = Array.from({ length: 12 }, (_, i) => new Date(2000, i, 1).toLocaleDateString(UI_LOCALE, { month: "short" }));
+});
+let MONL;
+onLanguage(() => {
+  MONL = Array.from({ length: 12 }, (_, i) => new Date(2000, i, 1).toLocaleDateString(UI_LOCALE, { month: "long" }));
+});
+let WD;
+onLanguage(() => {
+  WD = Array.from({ length: 7 }, (_, i) => new Date(2000, 0, 2 + i).toLocaleDateString(UI_LOCALE, { weekday: "short" }));
+}); // 2 Jan 2000 was a Sunday
+export let SCRUB_LEVELS;
+onLanguage(() => {
+  SCRUB_LEVELS = [t("Years"), t("Months"), t("Days")];
+});
 
 // Calendar days as whole numbers (UTC is used only as a calendar, so no DST jumps).
 const dIdx = (y, m, d) => Math.round(Date.UTC(y, m - 1, d) / DAY); // m is 1-12
 const toDate = (i) => new Date(i * DAY);
 const ymd = (i) => {
-  const t = toDate(i);
-  return [t.getUTCFullYear(), t.getUTCMonth() + 1, t.getUTCDate()];
+  const dt = toDate(i);
+  return [dt.getUTCFullYear(), dt.getUTCMonth() + 1, dt.getUTCDate()];
 };
 
 const PAD = 4; // days of room at either end of the whole-history view
@@ -263,8 +277,8 @@ export default function DateScrubber({ summary, selected, onPick, onActiveChange
     } else {
       const every = ppd < 14 ? 5 : ppd < 22 ? 2 : 1;
       for (let d = d0; d <= d1; d++) {
-        const t = toDate(d), dd = t.getUTCDate();
-        if (dd === 1) tick(d, true, MON[t.getUTCMonth()] + (t.getUTCMonth() === 0 ? " " + t.getUTCFullYear() : ""), true);
+        const dt = toDate(d), dd = dt.getUTCDate();
+        if (dd === 1) tick(d, true, MON[dt.getUTCMonth()] + (dt.getUTCMonth() === 0 ? " " + dt.getUTCFullYear() : ""), true);
         else if (dd % every === 0 && ppd * every > 14) tick(d, false, String(dd), false);
       }
     }
@@ -308,16 +322,16 @@ export default function DateScrubber({ summary, selected, onPick, onActiveChange
     if (s.level === 0) {
       const tot = data.sumRange(dIdx(sy, 1, 1), dIdx(sy + 1, 1, 1));
       bBig = String(sy);
-      bSmall = tot ? `${Math.round(tot).toLocaleString()} points` : "No data this year";
+      bSmall = tot ? pl("points", Math.round(tot)) : t("No data this year");
     } else if (s.level === 1) {
       const tot = data.sumRange(dIdx(sy, sm, 1), dIdx(sy, sm + 1, 1));
       bBig = `${MONL[sm - 1]} ${sy}`;
-      bSmall = tot ? `${Math.round(tot).toLocaleString()} points` : "No data this month";
+      bSmall = tot ? pl("points", Math.round(tot)) : t("No data this month");
     } else {
       bBig = `${WD[toDate(selDay).getUTCDay()]} ${sd} ${MON[sm - 1]}`;
       const nd = data.nearest(selDay);
       const [, nm, ndd] = ymd(nd);
-      bSmall = n ? `${n.toLocaleString()} points` : `No data · goes to ${ndd} ${MON[nm - 1]}`;
+      bSmall = n ? pl("points", n) : t("No data · goes to {day}", { day: `${ndd} ${MON[nm - 1]}` });
     }
   }
 
@@ -326,24 +340,25 @@ export default function DateScrubber({ summary, selected, onPick, onActiveChange
   const BUBBLE_W = 150;
   const bubbleLeft = Math.min(TW - BUBBLE_W, Math.max(0, sx - BUBBLE_W + 28 >= 0 ? sx - BUBBLE_W + 28 : sx - 28));
 
-  const zoomIn = gesture === "hold" ? "hold still" : gesture === "both" ? "hold still or slide up" : "slide up";
+  const zoomIn = gesture === "hold" ? t("hold still") : gesture === "both" ? t("hold still or slide up") : t("slide up");
   const hint = !dr
-    ? `Drag to pick a day · ${zoomIn} to zoom in`
+    ? t("Drag to pick a day · {how} to zoom in", { how: zoomIn })
     : s.level === 0
-      ? `Moving by year · ${zoomIn} for months`
+      ? t("Moving by year · {how} for months", { how: zoomIn })
       : s.level === 1
-        ? `Moving by month · ${zoomIn} for days`
+        ? t("Moving by month · {how} for days", { how: zoomIn })
         : gesture === "hold"
-          ? "Moving by day · let go to open it"
-          : "Moving by day · slide down to zoom out";
+          ? t("Moving by day · let go to open it")
+          : t("Moving by day · slide down to zoom out");
 
   return (
-    <View>
+    // The bar is a time axis measured from the left edge: keep it left-to-right in Arabic too.
+    <View style={{ direction: "ltr" }}>
       <View style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 12, gap: 6 }}>
-        <Text style={{ color: colors.text, fontWeight: "700", fontSize: 14 }}>{dr ? SCRUB_LEVELS[s.level] : "Date bar"}</Text>
+        <Text style={{ color: colors.text, fontWeight: "700", fontSize: 14 }}>{dr ? SCRUB_LEVELS[s.level] : t("Date bar")}</Text>
         <View style={{ flex: 1 }} />
         {onHelp ? (
-          <Pressable onPress={onHelp} hitSlop={8} accessibilityLabel="How the date bar works" style={{ width: 28, height: 28, borderRadius: 14, borderWidth: 1, borderColor: colors.line, alignItems: "center", justifyContent: "center" }}>
+          <Pressable onPress={onHelp} hitSlop={8} accessibilityLabel={t("How the date bar works")} style={{ width: 28, height: 28, borderRadius: 14, borderWidth: 1, borderColor: colors.line, alignItems: "center", justifyContent: "center" }}>
             <Text style={{ color: colors.muted, fontWeight: "800" }}>?</Text>
           </Pressable>
         ) : null}
@@ -358,7 +373,7 @@ export default function DateScrubber({ summary, selected, onPick, onActiveChange
         style={{ height: TRACK_H }}
         accessible
         accessibilityRole="adjustable"
-        accessibilityLabel="Day"
+        accessibilityLabel={t("Day")}
         accessibilityValue={{ text: (() => { const [y, m, d] = ymd(s.committed); return `${d} ${MONL[m - 1]} ${y}`; })() }}
         accessibilityActions={[{ name: "increment" }, { name: "decrement" }]}
         onAccessibilityAction={(e) => {
@@ -369,13 +384,13 @@ export default function DateScrubber({ summary, selected, onPick, onActiveChange
       >
         {TW > 0 ? (
           <Svg width={TW} height={TRACK_H} pointerEvents="none">
-            {ticks.map((t, i) => (
-              <Rect key={"t" + i} x={t.x} y={BAR_TOP} width={1} height={BAR_H + (t.major ? 6 : 2)} fill={t.major ? colors.line : colors.panel2} />
+            {ticks.map((tk, i) => (
+              <Rect key={"t" + i} x={tk.x} y={BAR_TOP} width={1} height={BAR_H + (tk.major ? 6 : 2)} fill={tk.major ? colors.line : colors.panel2} />
             ))}
-            {ticks.map((t, i) =>
-              t.label ? (
-                <SvgText key={"l" + i} x={t.x + 3} y={barBot + 18} fontSize={11} fontWeight="600" fill={t.strong ? colors.text : colors.muted}>
-                  {t.label}
+            {ticks.map((tk, i) =>
+              tk.label ? (
+                <SvgText key={"l" + i} x={tk.x + 3} y={barBot + 18} fontSize={11} fontFamily={fontFor(600)} fill={tk.strong ? colors.text : colors.muted}>
+                  {tk.label}
                 </SvgText>
               ) : null
             )}
@@ -420,7 +435,7 @@ export default function DateScrubber({ summary, selected, onPick, onActiveChange
               elevation: 6,
             }}
           >
-            <Text style={{ color: colors.accent, fontSize: 9.5, fontWeight: "800", letterSpacing: 0.8 }}>{SCRUB_LEVELS[s.level].toUpperCase()}</Text>
+            <Text style={{ color: colors.accent, fontSize: 9.5, fontWeight: "800", letterSpacing: RTL ? 0 : 0.8 }}>{SCRUB_LEVELS[s.level].toLocaleUpperCase()}</Text>
             <Text style={{ color: colors.bg, fontSize: 16, fontWeight: "800" }} numberOfLines={1}>
               {bBig}
             </Text>

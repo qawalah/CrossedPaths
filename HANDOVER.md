@@ -75,7 +75,7 @@ Main features:
 - `applicationId` / namespace: `com.example.crosspaths`. **This must change before Play**: Play
   rejects `com.example.*`. The suggested name is `com.abu.crosspaths`. Changing it makes it a new
   app for anyone with the sideloaded version, so they'll need to install it fresh.
-- `versionCode` **11**, `versionName` **1.8.0** (in `mobile/app.json` and
+- `versionCode` **21**, `versionName` **1.15.0** (in `mobile/app.json` and
   `mobile/android/app/build.gradle`). `package.json` still says 1.0.0; ignore it.
 - **Signing:** there's no own key yet. Release builds are signed with React Native's stock
   **debug keystore** (`android/app/debug.keystore`, alias `androiddebugkey`; deliberately not in
@@ -88,7 +88,7 @@ Main features:
 planned), `buildNumber` 4. Waiting on the owner's Apple Developer enrollment; plan was EAS build
 and then TestFlight. `eas.json` exists, but there's no EAS `projectId` yet.
 
-**Server:** version in `server/VERSION`, currently **0.16.0**, reported at `GET /api/config`.
+**Server:** version in `server/VERSION`, currently **0.19.0**, reported at `GET /api/config`.
 Entry point `server/wsgi.py` → `server.app:create_app()`. Run by gunicorn: 1 worker, 8 threads,
 port 8787.
 
@@ -170,10 +170,13 @@ cd android
   `referrerPolicy: "origin"`; mobile sends a User-Agent.
 - unpkg (MapLibre GL JS 4.7.1) and cdnjs (qrcode-generator): loaded by the web client.
 - Expo push service: notifications are skipped when there's no EAS `projectId`.
+- WhatsApp Business Cloud API (`graph.facebook.com`): sends phone sign-in codes, from the
+  server, only when `AUTH_PHONE` is on. Google's token-signing keys (`googleapis.com`): fetched
+  by the server to check Google sign-ins, only when `AUTH_GOOGLE` is on.
 
 **Mobile, on the device:**
 - SecureStore holds: the token, the main and backup server URLs, the auto-switch flag, the
-  last active URL, the server `instance` and the theme.
+  last active URL, the server `instance`, the theme and whether the fingerprint lock is on.
 - Nothing else is stored on the device.
 
 ## Secrets
@@ -182,11 +185,47 @@ cd android
   - `SECRET_KEY` (JWT signing) and `DATA_KEY` (Fernet key for uploads): set in the environment,
     or auto-generated into `data/keys.json`.
   - `INVITE_CODE` (optional, required at sign-up when set).
+  - `WHATSAPP_TOKEN` (Meta system-user token) for phone sign-in. Google sign-in needs no secret,
+    only the public client IDs in `GOOGLE_CLIENT_IDS`.
   - All other environment variables are plain settings; see `server/.env.example` and
     `server/server/config.py`.
 - **Mobile:** none built in. A release keystore and passwords will be needed (names to use in
   CI: e.g. `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`,
   `ANDROID_KEY_PASSWORD`).
+
+## Sign-in methods
+
+Username + password is always on. Two more are off until configured:
+
+- **Phone number, code by WhatsApp** (`AUTH_PHONE=true`). Needs a Meta Business account, a
+  WhatsApp sender number (`WHATSAPP_PHONE_ID`), a permanent system-user token
+  (`WHATSAPP_TOKEN`) and an approved **authentication** template with a copy-code button
+  (`WHATSAPP_TEMPLATE`, approved in the languages in `WHATSAPP_TEMPLATE_LANGS`, default `en,ar`).
+  Any country works; `PHONE_COUNTRIES=+966,+971` would restrict it. Cost guard:
+  `LIMIT_OTP_PER_PHONE_PER_HOUR` (3), `LIMIT_OTP_PER_IP_PER_HOUR` (20; set 0 if a proxy hides
+  client IPs, or every user shares one limit), `LIMIT_OTP_PER_DAY` (500, whole server).
+- **Google** (`AUTH_GOOGLE=true`, `GOOGLE_CLIENT_IDS=<web client id>[,<more>]`). In one Google
+  Cloud project create a *Web* OAuth client (its ID goes first in `GOOGLE_CLIENT_IDS` and is
+  handed to the app via `/api/config`) and an *Android* client for `com.example.crosspaths`
+  with the SHA-1 of the key that signs the released APK (the DevStore key). Changing the
+  package name or signing key means a new Android client.
+- **Fingerprint lock** (mobile only). It guards the stored token on the phone: asked at start and
+  after 5 minutes in the background, with Sign out as the way past it.
+
+How it fits together: phone numbers and Google account IDs are stored only as HMACs keyed from
+`DATA_KEY` (table `auth_identities`), so a changed `DATA_KEY` also breaks these sign-ins. A new
+identity gets a 15-minute signup token (signed with a key derived from `SECRET_KEY`, never valid
+as a session) that `/api/auth/complete` trades for an account once a username is chosen.
+Accounts made this way have an empty `pw_hash` and cannot sign in by password. A signed-in user
+calling the same routes links the number / Google account instead.
+
+**SMS fallback (not built).** Most likely Firebase phone auth: the app verifies the number with
+Firebase and the server checks the Firebase ID token. Add one route that ends in
+`finish_identity(identity.PHONE, keyed_hash(phone, DATA_KEY, "phone-v1"))` and it lands on the
+same account as the WhatsApp route. A server-side SMS provider (Twilio, Vonage) would instead
+plug in next to `OTP_SENDER`.
+
+The web client (`index.html`) has only username + password so far.
 
 ## Known bugs, unfinished work, next ideas
 
@@ -307,9 +346,28 @@ route files then. Separate workouts close together in place (within 200 m and 6 
 - **Theme:** `colors` in `src/theme.js` is one mutable object. A theme change rewrites it and
   the `NavigationContainer` remounts, keyed on the theme with its nav state preserved. Don't
   capture colours in `StyleSheet.create`.
-- **Dates:** the interface is English and dates use an English locale even on Arabic phones,
-  to avoid Hijri dates mixed into English. Place names still follow the device language
-  (Arabic names from GeoNames).
+- **Language:** English and Arabic (RTL) on both clients, chosen under Account → Language
+  (default "System"). The English UI uses an English locale even on Arabic phones (no Hijri dates
+  mixed into English); the Arabic UI uses `ar-u-ca-gregory-nu-latn` (Arabic month/day names,
+  Gregorian, Western digits). Place names follow the UI language (Arabic names from GeoNames).
+  English text is the translation key. Web: `AR_STR` in `index.html`, `t()`/`pl()`/`serverMsg()`.
+  Mobile: `src/i18n.js` with the dictionary in `src/i18n.ar.js`. `server/tests/test_i18n.py` fails
+  if a string or fixed server message has no Arabic entry. Never name a local variable `t` where
+  `t()` is called. On Android the language is live: `App.js` calls `syncLanguage()` whenever the UI
+  starts or returns to the front (Android can keep the JS running after "closing" the app, so module load
+  is not a safe moment), and a change in Account switches the text at once. Module-level lists of
+  labels are built inside `onLanguage(() => ...)` so they rebuild; never compute translated text or
+  `UI_LOCALE`/`RTL` in a plain module-level `const`. Only the layout direction waits: Android applies
+  RTL when the UI is created, so a change calls `I18nManager.forceRTL`/`allowRTL` and, if the layout
+  no longer matches, asks to reopen the app (`src/changeLanguage.js`);
+  `android:supportsRtl="true"` is in the manifest and the config plugin. Time axes (date bar, welcome
+  pager, chip rows) are forced `direction: ltr`; back/next icons mirror (`components/Icon.js`).
+  Hermes has no `Intl.PluralRules`, so `pl()` writes the rules out.
+- **Typeface:** IBM Plex Sans Arabic everywhere (it has matching Latin), weights 400–700 only.
+  Web: self-hosted woff2 in `server/server/static/fonts/`, never Google's CDN. Mobile: TTFs in
+  `mobile/assets/fonts/`, copied into `android/app/src/main/assets/fonts/` by the config plugin;
+  Android picks a bundled font by file name, so screens use `Text`/`TextInput` from
+  `src/components/AppText.js`, which maps `fontWeight` to the right file.
 
 **Builds and deployment**
 - **APK:** arm64-only, minified, legacy packaging (about 18 MB).

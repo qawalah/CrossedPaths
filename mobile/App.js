@@ -1,6 +1,6 @@
 import { StatusBar } from "expo-status-bar";
-import React, { useEffect } from "react";
-import { I18nManager } from "react-native";
+import React, { useEffect, useState } from "react";
+import { AppState } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { AuthProvider } from "./src/auth";
@@ -9,23 +9,27 @@ import RootNavigator from "./src/navigation/RootNavigator";
 import { ToastProvider } from "./src/components/Toast";
 import { ThemeProvider, useTheme } from "./src/themeContext";
 import { colors } from "./src/theme";
+import { subscribeLanguage, syncLanguage } from "./src/i18n";
 
 function ThemedStatusBar() {
   useTheme(); // re-render when the theme changes
   return <StatusBar style={colors.isDark ? "light" : "dark"} backgroundColor={colors.bg} />;
 }
 
-// Layout never follows the text direction: the tab order, cards and buttons stay put when the
-// language switches between Arabic and English (the text itself still reads in its own direction).
-try {
-  I18nManager.allowRTL(false);
-  I18nManager.forceRTL(false);
-} catch (e) {
-  /* not fatal */
-}
-
 export default function App() {
   const [urlLoaded, setUrlLoaded] = React.useState(false);
+  // Android may keep the JS running after the app is closed, so read the language every time the UI
+  // starts (and when it comes back to the front), not only when the code first loads.
+  useState(() => syncLanguage());
+  const [lang, setLang] = useState(0);
+  useEffect(() => {
+    const off = subscribeLanguage(() => setLang((n) => n + 1)); // a change re-renders the whole app in it
+    const sub = AppState.addEventListener("change", (s) => s === "active" && syncLanguage());
+    return () => {
+      off();
+      sub.remove();
+    };
+  }, []);
 
   useEffect(() => {
     loadStoredApiUrl().finally(() => setUrlLoaded(true));
@@ -34,7 +38,7 @@ export default function App() {
   if (!urlLoaded) return null; // brief splash while the stored server URL loads
 
   return (
-    <GestureHandlerRootView style={{ flex: 1, direction: "ltr" }}>
+    <GestureHandlerRootView style={{ flex: 1 }} key={lang}>
       <SafeAreaProvider>
         <ThemeProvider>
           <ToastProvider>

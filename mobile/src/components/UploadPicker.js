@@ -1,10 +1,12 @@
 import React from "react";
-import { Pressable, ScrollView, Text } from "react-native";
-import { colors, dateStr } from "../theme";
+import { Pressable, ScrollView } from "react-native";
+import { Text } from "./AppText";
+import { RTL, t } from "../i18n";
+import { colors, dateStr, UI_LOCALE } from "../theme";
 
 export default function UploadPicker({ uploads, value, onChange }) {
   if (!uploads.length) {
-    return <Text style={{ color: colors.muted }}>No timeline uploaded yet.</Text>;
+    return <Text style={{ color: colors.muted }}>{t("No timeline uploaded yet.")}</Text>;
   }
   return (
     <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -25,10 +27,10 @@ export default function UploadPicker({ uploads, value, onChange }) {
             }}
           >
             <Text style={{ color: colors.text, fontWeight: "700", fontSize: 13 }}>
-              {dateStr(u.from)} → {dateStr(u.to)}
+              {dateStr(u.from)} {RTL ? "←" : "→"} {dateStr(u.to)}
             </Text>
             <Text style={{ color: colors.muted, fontSize: 11.5, marginTop: 2 }}>
-              {u.points.toLocaleString()} pts
+              {t("{n} pts", { n: u.points.toLocaleString(UI_LOCALE) })}
             </Text>
           </Pressable>
         );
