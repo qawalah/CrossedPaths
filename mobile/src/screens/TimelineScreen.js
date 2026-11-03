@@ -8,7 +8,7 @@ import Pill from "../components/Pill";
 import { useToast } from "../components/Toast";
 import { confirm } from "../components/confirm";
 import { Api } from "../api";
-import { exportTimeline } from "../exportTimeline";
+import ExportSheet from "../exportTimeline";
 import { onLanguage, pl, RTL, serverMsg, t } from "../i18n";
 import { useAuth } from "../auth";
 import { EASE_OUT, reduceMotion } from "../motion";
@@ -22,6 +22,7 @@ export default function TimelineScreen({ data, navigation }) {
   const { user } = useAuth();
   const insets = useSafeAreaInsets();
   const toast = useToast();
+  const [exporting, setExporting] = useState(null);
 
   async function removeZone(upload, i) {
     if (!(await confirm(t("Include this area?"), t("Crossings inside it will no longer be hidden from future checks."), t("Include")))) return;
@@ -46,6 +47,7 @@ export default function TimelineScreen({ data, navigation }) {
   }
 
   return (
+    <>
     <FlatList
       style={{ flex: 1, backgroundColor: colors.bg }}
       contentContainerStyle={{ padding: 16, paddingTop: insets.top + 16, paddingBottom: 100 }}
@@ -95,11 +97,13 @@ export default function TimelineScreen({ data, navigation }) {
           onDelete={deleteUpload}
           onAddFile={() => navigation.navigate("Build", { start: "files", targetId: item.id })}
           onAddPhotos={() => navigation.navigate("Build", { start: "photos", targetId: item.id })}
-          onExport={() => exportTimeline(item, toast)}
+          onExport={() => setExporting(item)}
           onView={() => navigation.navigate("MyTimeline", { uploadId: item.id, uploadLabel: `${dateStr(item.from)} ${RTL ? "←" : "→"} ${dateStr(item.to)}` })}
         />
       )}
     />
+    <ExportSheet upload={exporting} onClose={() => setExporting(null)} toast={toast} />
+    </>
   );
 }
 

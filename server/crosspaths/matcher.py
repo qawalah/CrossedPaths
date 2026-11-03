@@ -43,6 +43,8 @@ class Samples:
     lat: np.ndarray
     lon: np.ndarray
     speed: np.ndarray
+    gap: np.ndarray | None = None   # seconds between the two real fixes this sample was interpolated from
+                                    # (0 while standing still, where in-between positions are no guess)
 
     def __len__(self):
         return len(self.t)
@@ -61,6 +63,7 @@ class Crossing:
     spread_m: float
     mean_speed_ms: float
     kind: str              # same_place | passing | shared_route
+    filled_s: float = 0.0  # typical gap (s) the matched positions were filled in across; 0 = real fixes
 
     @property
     def duration_s(self) -> float:
@@ -69,7 +72,7 @@ class Crossing:
 
 def _empty() -> Samples:
     z = np.array([], dtype=float)
-    return Samples(z, z, z, z)
+    return Samples(z, z, z, z, z)
 
 
 def resample(points, p: Params) -> Samples:
@@ -101,13 +104,14 @@ def resample(points, p: Params) -> Samples:
     s_lat = lat[idx] + f * (lat[idx + 1] - lat[idx])
     s_lon = ((lon[idx] + f * dlon + 180) % 360) - 180
     s_sp = d[idx] / safe_dt[idx]
+    s_gap = np.where(still[idx], 0.0, dt[idx])
 
     keep = np.ones(total, bool)
     if p.t_from is not None:
         keep &= s_t >= p.t_from
     if p.t_to is not None:
         keep &= s_t <= p.t_to
-    return Samples(s_t[keep], s_lat[keep], s_lon[keep], s_sp[keep])
+    return Samples(s_t[keep], s_lat[keep], s_lon[keep], s_sp[keep], s_gap[keep])
 
 
 def find_crossings(a_points, b_points, p: Params = Params()) -> list[Crossing]:
@@ -190,5 +194,6 @@ def find_crossings(a_points, b_points, p: Params = Params()) -> list[Crossing]:
             min_dist_m=float(dd.min()),
             time_offset_s=float(np.median(B.t[b_i] - A.t[a_i])),
             spread_m=spread, mean_speed_ms=speed, kind=kind,
+            filled_s=float(np.median(np.maximum(A.gap[a_i], B.gap[b_i]))),
         ))
     return events

@@ -15,7 +15,7 @@ from crosspaths.geo import haversine_m
 from crosspaths.exporters import FORMATS as EXPORT_FORMATS
 from crosspaths.importers import FRIENDLY, Limits, merge_points, parse_files, sources_of
 from crosspaths.privacy import detect_anchor_zones
-from crosspaths.snap import snap_points
+from crosspaths.snap import GapRules, estimate_gaps, snap_points
 from crosspaths.spoofcheck import assess
 
 from . import analysis, identity, otp, retention, runner, whatsapp
@@ -498,20 +498,40 @@ def create_app(overrides=None, start_background=True):
     @app.get("/api/uploads/<upload_id>/export")
     @auth
     def export_upload(upload_id):
-        """Download your own timeline (all its sources combined) as GPX, GeoJSON or CSV."""
+        """Download your own timeline (all its sources combined) as GPX, GeoJSON or CSV.
+
+        Experimental: estimated=embed adds estimated car routes for gaps that look like car trips
+        (kept apart from the recorded points: their own GPX track, flagged GeoJSON lines, or an
+        "estimated" CSV column); estimated=only returns just those routes, as a second file.
+        gap_max_min, gap_max_km, gap_min_kmh and gap_max_kmh change which gaps count. Routes come
+        from the server's own street maps; nothing is sent to an outside router."""
         u = own_upload(upload_id)
         if u["purged_at"] is not None:
             err("That upload has expired. Please upload your timeline again.", 410)
         kind = (request.args.get("format") or "gpx").lower()
         if kind not in EXPORT_FORMATS:
             err("format must be gpx, geojson or csv")
+        est = (request.args.get("estimated") or "none").lower()
+        if est not in ("none", "embed", "only"):
+            err("estimated must be none, embed or only")
         write, mime = EXPORT_FORMATS[kind]
         pts = load_points(app.config, upload_id)
         day = time.strftime("%Y-%m-%d", time.gmtime(u["ts_min"] or 0))
-        audit(get_db(), g.user["id"], "export", upload_id, {"format": kind})
+        headers = {"Content-Disposition": f'attachment; filename="crosspaths-timeline-{day}{"-estimated" if est == "only" else ""}.{kind}"'}
+        if est == "none":
+            body_text = write(pts)
+        else:
+            a = request.args
+            rules = GapRules(max_gap_min=num(a.get("gap_max_min"), 1, 180, 30), max_km=num(a.get("gap_max_km"), 0.5, 300, 50),
+                             min_kmh=num(a.get("gap_min_kmh"), 1, 200, 15), max_kmh=num(a.get("gap_max_kmh"), 10, 250, 130))
+            route = runner.street_router(app.config)
+            gaps = estimate_gaps(pts, route, rules) if route else []
+            body_text = write([] if est == "only" else pts, estimated=gaps)
+            headers["X-Estimated-Gaps"] = str(len(gaps))
+            headers["X-Street-Maps"] = "1" if route else "0"
+        audit(get_db(), g.user["id"], "export", upload_id, {"format": kind, "estimated": est})
         get_db().commit()
-        return Response(write(pts), mimetype=mime,
-                        headers={"Content-Disposition": f'attachment; filename="crosspaths-timeline-{day}.{kind}"'})
+        return Response(body_text, mimetype=mime, headers=headers)
 
     @app.get("/api/uploads")
     @auth
@@ -754,7 +774,7 @@ def create_app(overrides=None, start_background=True):
             err("There is already an open check with this person", 409)
         cid, now = new_id(), time.time()
         db.execute("INSERT INTO checks (id, connection_id, initiated_by, radius_m, window_s, status, created_at, expires_at) VALUES (?,?,?,?,?,'awaiting_consent',?,?)",
-                   (cid, c["id"], me_id, int(num(d.get("radius_m"), 25, 500, 100)), int(num(d.get("window_min"), 1, 240, 15) * 60),
+                   (cid, c["id"], me_id, *pair_settings(d),
                     now, now + app.config["CHECK_INVITE_DAYS"] * 86400))
         db.execute("INSERT INTO check_participants (check_id, user_id) VALUES (?,?), (?,?)", (cid, me_id, cid, other_id))
         claim_participant(db, cid, me_id, upload, d)
@@ -819,7 +839,8 @@ def create_app(overrides=None, start_background=True):
             out["events"] = [{"id": i + 1, "start": e["starts_at"], "end": e["ends_at"], "lat": e["lat"], "lon": e["lon"],
                               "blur_m": e["blur_m"], "kind": e["kind"], "duration_min": e["duration_min"], "offset_min": e["offset_min"],
                               "place": e["place"] or "", "place_ar": e["place_ar"] or "",
-                              "landmark": e["landmark"] or "", "landmark_ar": e["landmark_ar"] or ""}
+                              "landmark": e["landmark"] or "", "landmark_ar": e["landmark_ar"] or "",
+                              "seen": e["seen"], "how": e["how"]}
                              for i, e in enumerate(ev)]
         return jsonify(out)
 
@@ -979,8 +1000,9 @@ def create_app(overrides=None, start_background=True):
         return {"other": handle_of(other_id), "connection_id": conn_id, "note": note,
                 "check": check_summary(my_check(check_id)) if check_id else None}
 
-    def pair_settings(d):
-        return int(num(d.get("radius_m"), 25, 500, 100)), int(num(d.get("window_min"), 1, 240, 15) * 60)
+    def pair_settings(_d=None):
+        """Closeness and time tolerance for a new check: the server's defaults, whatever the app sends."""
+        return int(app.config["CHECK_RADIUS_M"]), int(app.config["CHECK_WINDOW_MIN"]) * 60
 
     @app.post("/api/pair/code")
     @auth

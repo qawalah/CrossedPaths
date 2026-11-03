@@ -96,6 +96,25 @@ onLanguage(() => {
 };
 });
 
+/** How likely the two saw each other at a crossing (server: crosspaths/likelihood.py), 0-3. */
+export let SEEN_LABEL, SEEN_SHORT, HOW_LABEL;
+export function seenColor(tier) {
+  return [colors.muted, colors.warn, colors.accent2, colors.good][tier] || colors.muted;
+}
+onLanguage(() => {
+  SEEN_LABEL = [t("Unlikely you saw each other"), t("Less likely you saw each other"), t("Possibly saw each other"), t("Likely saw each other")];
+  SEEN_SHORT = [t("Unlikely"), t("Less likely"), t("Possibly"), t("Likely")];
+  /** What the crossing looked like: the reason behind the grade. */
+  HOW_LABEL = {
+    spent_time: t("Spent time together"),
+    met_briefly: t("Met briefly"),
+    walked_together: t("Walked together"),
+    travelled_same_way: t("Travelled the same way"),
+    crossed_paths: t("Crossed paths"),
+    passed_by: t("Passed by"),
+  };
+});
+
 /** What each kind means, for the "?" legend. */
 export function kindHelp(kind, radiusM = 100, windowMin = 15) {
   return {

@@ -25,9 +25,11 @@ def init_db(data_dir):
         con.executescript(f.read())
     # Columns added after 0.7.0: CREATE TABLE IF NOT EXISTS doesn't add them to old databases.
     have = {r[1] for r in con.execute("PRAGMA table_info(crossing_events)")}
-    for col in ("place", "place_ar", "landmark", "landmark_ar"):
+    for col in ("place", "place_ar", "landmark", "landmark_ar", "how"):
         if col not in have:
             con.execute(f"ALTER TABLE crossing_events ADD COLUMN {col} TEXT")
+    if "seen" not in have:
+        con.execute("ALTER TABLE crossing_events ADD COLUMN seen INTEGER")
     # user_version 1: crossings that got no name before "35 km NE of <town>" existed are
     # re-named the next time their result is opened.
     if "sources" not in {r[1] for r in con.execute("PRAGMA table_info(uploads)")}:

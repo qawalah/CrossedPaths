@@ -5,6 +5,7 @@ import { Text } from "../components/AppText";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Button from "../components/Button";
 import Card from "../components/Card";
+import Dropdown from "../components/Dropdown";
 import PhoneCodeForm from "../components/PhoneCodeForm";
 import ChipScroller from "../components/ChipScroller";
 import { useToast } from "../components/Toast";
@@ -92,7 +93,7 @@ export default function AccountScreen({ navigation }) {
             {t("Can't reach the server right now. Everything will refresh once it's reachable.")}
           </Text>
         ) : null}
-        <Button title={t("Show the tutorial again")} icon="help" variant="ghost" onPress={showWelcomeAgain} style={{ marginTop: 14 }} />
+        <Button title={t("Replay the tutorial")} icon="help" variant="ghost" onPress={showWelcomeAgain} style={{ marginTop: 14 }} />
         <Button title={t("Sign out")} variant="bad" onPress={confirmLogout} style={{ marginTop: 10 }} />
       </Card>
 
@@ -146,7 +147,7 @@ export default function AccountScreen({ navigation }) {
       </Card>
 
       <Card>
-        <Text style={{ color: colors.text, fontWeight: "700", fontSize: 15 }}>{t("Timeline date bar")}</Text>
+        <Text style={{ color: colors.text, fontWeight: "700", fontSize: 15 }}>{t("Date bar")}</Text>
         <Text style={{ color: colors.muted, fontSize: 12.5, marginTop: 4, lineHeight: 18 }}>
           {t("How to zoom from years into months and days while dragging along the date bar in My timeline.")}
         </Text>
@@ -187,7 +188,7 @@ export default function AccountScreen({ navigation }) {
           </View>
         ) : null}
         <Button
-          title={t("Show the tutorial again")}
+          title={t("Replay the date bar tutorial")}
           variant="ghost"
           onPress={() => {
             setScrubberPrefs({ tutorialSeen: false });
@@ -198,29 +199,9 @@ export default function AccountScreen({ navigation }) {
       </Card>
 
       <Card>
-        <Text style={{ color: colors.text, fontWeight: "700", fontSize: 15 }}>{t("Keep my uploaded timelines")}</Text>
-        <View style={{ marginTop: 12, opacity: saving ? 0.6 : 1 }}>
-          <ChipScroller selected={keepOptions.indexOf(keep)}>
-            {keepOptions.map((h) => {
-              const on = h === keep;
-              return (
-                <Pressable
-                  key={String(h)}
-                  onPress={() => chooseKeep(h)}
-                  style={{
-                    paddingHorizontal: 13,
-                    paddingVertical: 8,
-                    borderRadius: 99,
-                    borderWidth: 1.5,
-                    borderColor: on ? colors.accent : colors.line,
-                    backgroundColor: on ? colors.accent : colors.panel2,
-                  }}
-                >
-                  <Text style={{ color: on ? colors.onAccent : colors.text, fontWeight: "700", fontSize: 13 }}>{keepLabel(h)}</Text>
-                </Pressable>
-              );
-            })}
-          </ChipScroller>
+        <Text style={{ color: colors.text, fontWeight: "700", fontSize: 15 }}>{t("Timeline storage")}</Text>
+        <View style={{ marginTop: 12 }}>
+          <Dropdown label={t("Delete my timelines after")} value={keep} options={keepOptions.map((h) => [h, keepLabel(h)])} onChange={chooseKeep} disabled={saving} />
         </View>
         <Text style={{ color: colors.muted, fontSize: 12.5, marginTop: 10, lineHeight: 18 }}>
           {keep
@@ -254,10 +235,20 @@ export default function AccountScreen({ navigation }) {
         <Button title={t("Server addresses")} variant="ghost" onPress={() => navigation.navigate("Settings")} style={{ marginTop: 12 }} />
       </Card>
 
+      {user && user.is_admin ? (
+        <Card>
+          <Text style={{ color: colors.text, fontSize: 17, fontWeight: "800" }}>{t("Server admin")}</Text>
+          <Text style={{ color: colors.muted, fontSize: 12.5, marginTop: 4, lineHeight: 18 }}>
+            {t("Settings for the whole server. Only admins see this.")}
+          </Text>
+          <Button title={t("Street maps")} icon="map" variant="ghost" onPress={() => navigation.navigate("Admin")} style={{ marginTop: 12 }} />
+        </Card>
+      ) : null}
+
       <Card>
         <Row label={t("App version")} value={appVersion} />
         <Row label={t("Server version")} value={cfg.version || "—"} />
-        <Row label={t("Results are deleted after")} value={cfg.results_ttl_days ? pl("days", cfg.results_ttl_days) : "—"} />
+        <Row label={t("Results deleted after")} value={cfg.results_ttl_days ? pl("days", cfg.results_ttl_days) : "—"} />
       </Card>
     </ScrollView>
   );

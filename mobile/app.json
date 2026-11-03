@@ -2,7 +2,7 @@
   "expo": {
     "name": "CrossPaths",
     "slug": "crosspaths",
-    "version": "1.15.0",
+    "version": "1.16.0",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
     "backgroundColor": "#0b1220",
@@ -43,7 +43,7 @@
         "NOTIFICATIONS"
       ],
       "usesCleartextTraffic": true,
-      "versionCode": 21
+      "versionCode": 22
     },
     "plugins": [
       "expo-secure-store",
@@ -92,7 +92,7 @@
       "./plugins/withCrossPathsAndroid"
     ],
     "extra": {
-      "apiUrl": "https://crosspaths.example.com"
+      "apiUrl": "https://crossedpaths.fly.dev"
     },
     "scheme": "crosspaths"
   }

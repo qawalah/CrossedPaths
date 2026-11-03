@@ -316,7 +316,7 @@ export default function MyTimelineScreen({ route, navigation }) {
               </View>
             </View>
 
-            <View style={{ marginTop: 12 }}>
+            <View style={{ marginHorizontal: 12, marginTop: 12, backgroundColor: colors.panel, borderWidth: 1, borderColor: colors.line, borderRadius: 16, paddingVertical: 12, overflow: "hidden" }}>
               <DateScrubber
                 summary={summary}
                 selected={loadedDate}

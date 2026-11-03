@@ -224,7 +224,7 @@ function CheckRow({ c, open, onToggle, onReview, onResults, onDelete }) {
         <View style={{ paddingLeft: 60, paddingRight: 14, paddingBottom: 14, gap: 3 }}>
           {more ? <Text style={{ color: colors.muted, fontSize: 13, lineHeight: 19 }}>{more}</Text> : null}
           <Text style={{ color: colors.muted, fontSize: 13, lineHeight: 19 }}>
-            {t("Within {m} m and {min} min", { m: c.radius_m, min: c.window_min })}{c.created_at ? " · " + t("started {date}", { date: dateStr(c.created_at) }) : ""}
+            {c.created_at ? t("Started {date}", { date: dateStr(c.created_at) }) : t("Started recently")}
           </Text>
           {c.status === "done" && c.results_expire ? (
             <Text style={{ color: colors.muted, fontSize: 13, lineHeight: 19 }}>{t("Results kept until {date}", { date: dateStr(c.results_expire) })}</Text>

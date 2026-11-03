@@ -12,7 +12,8 @@ import TimelineScreen from "../screens/TimelineScreen";
 const Tab = createBottomTabNavigator();
 
 export default function MainTabs({ data }) {
-  const invite = journey(data).invite;
+  const jr = journey(data);
+  const invite = jr.invite || jr.request; // a new person to check with, or a friend's request waiting
   return (
     <Tab.Navigator
       screenOptions={{ headerShown: false }}

@@ -10,8 +10,8 @@ import { colors } from "../theme";
 import DateRangePicker from "../components/DateRangePicker";
 import UploadPicker from "../components/UploadPicker";
 
-// Shown when someone else's check is waiting for MY consent. Radius/window are theirs
-// (already fixed); I only choose my own upload and, optionally, trim my own date range.
+// Shown when someone else's check is waiting for MY consent. Closeness and time tolerance are
+// the server's (the same for every check); I only choose my own upload and, optionally, trim my own date range.
 export default function ReviewCheckModal({ route, navigation, checks, uploads, onDone }) {
   const { checkId } = route.params;
   const c = checks.find((x) => x.id === checkId);
@@ -74,7 +74,7 @@ export default function ReviewCheckModal({ route, navigation, checks, uploads, o
         {t("They will only see when and roughly where (about 100 m) your paths crossed — never your route or full timeline. Your home and work areas are excluded.")}
       </Text>
       <Text style={{ color: colors.muted, fontSize: 13, marginTop: 10 }}>
-        {t("Closeness {m} m · time tolerance {min} min. Nothing runs until you agree.", { m: c.radius_m, min: c.window_min })}
+        {t("Nothing runs until you agree.")}
       </Text>
 
       <Text style={{ color: colors.muted, fontSize: 13, marginTop: 18, marginBottom: 6 }}>{t("Your timeline")}</Text>

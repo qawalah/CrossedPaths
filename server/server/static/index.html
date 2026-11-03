@@ -987,6 +987,22 @@ const AR_STR = {
   "This sign-up has expired. Start again.": "انتهت مهلة إنشاء الحساب. ابدأ من جديد.",
   "Too many codes requested. Try again later.": "طلبت رموزًا كثيرة. حاول مرة أخرى لاحقًا.",
   "We couldn't send a WhatsApp message to this number. Check the number or use another way to sign in.": "تعذّر إرسال رسالة واتساب إلى هذا الرقم. تحقّق من الرقم أو استخدم طريقة أخرى لتسجيل الدخول.",
+  "You'll be connected and your paths checked right away. They'll only see when and roughly where you crossed.": "سيتم ربطكما وفحص مساراتكما فورًا. لن يرى الطرف الآخر إلا متى وأين تقريبًا تقاطعت مساراتكما.",
+  "Started {date}": "بدأ في {date}",
+  "Started recently": "بدأ مؤخرًا",
+  "Nothing runs until you agree.": "لن يُجرى شيء حتى توافق.",
+  "Your paths didn't cross.": "لم تتقاطع مساراتكما.",
+  "A rough guess from how close you were, for how long, and whether you were moving. GPS can be off.": "تقدير تقريبي مبني على مدى قربكما، ومدة ذلك، وهل كنتما تتحركان. قد يخطئ نظام GPS.",
+  "Unlikely you saw each other": "من غير المرجح أنكما رأيتما بعضكما",
+  "Less likely you saw each other": "احتمال أقل أنكما رأيتما بعضكما",
+  "Possibly saw each other": "ربما رأيتما بعضكما",
+  "Likely saw each other": "على الأرجح رأيتما بعضكما",
+  "Spent time together": "قضيتما وقتًا معًا",
+  "Met briefly": "التقيتما لفترة قصيرة",
+  "Walked together": "مشيتما معًا",
+  "Travelled the same way": "سلكتما الطريق نفسه",
+  "Passed by": "مررتما ببعضكما",
+  "estimated must be none, embed or only": "يجب أن تكون قيمة estimated واحدة من none أو embed أو only",
 /*AR:end*/
 };
 const t = (s, p) => { const r = (RTL && AR_STR[s]) || s; return p ? r.replace(/\{(\w+)\}/g, (m, k) => (p[k] != null ? p[k] : m)) : r; };
@@ -1542,7 +1558,7 @@ function pairEnterSheet(prefill, fromLink) {
     catch (e) { box.innerHTML = `<p style="color:var(--bad)">${esc(e.message)}</p>`; return; }
     const canCheck = p.they_have_timeline && state.uploads.length;
     box.innerHTML = `<div class="card" style="margin-top:14px"><h3>${t("Connect with {who}?", { who: H(p.from) })}</h3>
-      <p class="muted small">${canCheck ? t("You'll be connected and your paths checked right away (within {m} m and {min} min). They'll only see when and roughly where you crossed.", { m: p.radius_m, min: p.window_min })
+      <p class="muted small">${canCheck ? t("You'll be connected and your paths checked right away. They'll only see when and roughly where you crossed.")
         : p.they_have_timeline ? t("You'll be connected. No check will run until you upload a timeline.") : t("You'll be connected. {who} hasn't uploaded a timeline, so no check will run yet.", { who: H(p.from) })}</p>
       ${state.uploads.length ? uploadSelect("p_up2") : ""}
       <button class="btn" style="width:100%;margin-top:12px" id="p_ok">${canCheck ? t("Connect &amp; check") : t("Connect")}</button></div>`;
@@ -1613,7 +1629,7 @@ function checkRow(c) {
       <span class="cav">${esc(c.other.slice(0, 1))}</span><span class="grow"><b>${H(c.other)}</b><span class="muted small">${short}</span></span>
       ${pill(c.status, STATUS[c.status] || c.status.replace("_", " "))}${CHEV_DOWN}</button>
     <div class="cbody"><div><div class="cin">${more ? `<div>${more}</div>` : ""}
-      <div>${t("Within {m} m and {min} min", { m: c.radius_m, min: c.window_min })}${c.created_at ? " · " + t("started {date}", { date: dateStr(c.created_at) }) : ""}</div>
+      <div>${c.created_at ? t("Started {date}", { date: dateStr(c.created_at) }) : t("Started recently")}</div>
       ${c.status === "done" && c.results_expire ? `<div>${t("Results kept until {date}", { date: dateStr(c.results_expire) })}</div>` : ""}
       <div class="row">${acts}</div></div></div></div></div>`;
 }
@@ -1662,15 +1678,13 @@ function newCheckSheet(connId, other) {
   if (!state.uploads.length) { switchTab("uploads"); return toast(t("Upload your timeline first"), true); }
   openSheet(`<h2>${t("Check paths with {who}", { who: H(other) })}</h2>${shareNote()}
     <label>${t("Your timeline")}</label><select id="c_up">${uploadOptions()}</select>
-    <label>${t("Closeness: {v}", { v: `<b id="rv">100</b> ${t("m")}` })}</label><input type="range" id="c_r" min="50" max="300" step="10" value="100" oninput="$('#rv').textContent=this.value">
-    <label>${t("Time tolerance: {v}", { v: `<b id="wv">15</b> ${t("min")}` })}</label><input type="range" id="c_w" min="5" max="60" step="5" value="15" oninput="$('#wv').textContent=this.value">
     ${dateRow()}
     <div class="row" style="margin-top:18px"><button class="btn grow" data-act="createcheck" data-id="${connId}">${t("Send request &amp; agree")}</button></div>`);
 }
 function reviewSheet(c) {
   if (!state.uploads.length) { closeSheet(); switchTab("uploads"); return toast(t("Upload your timeline first, then come back"), true); }
   openSheet(`<h2>${t("{who} wants to check paths", { who: H(c.other) })}</h2>${shareNote()}
-    <p class="muted small">${t("Closeness {m} m · time tolerance {min} min. Nothing runs until you agree.", { m: c.radius_m, min: c.window_min })}</p>
+    <p class="muted small">${t("Nothing runs until you agree.")}</p>
     <label>${t("Your timeline")}</label><select id="c_up">${uploadOptions()}</select>${dateRow()}
     <div class="row" style="margin-top:18px"><button class="btn grow" data-act="consent" data-id="${c.id}">${t("Agree &amp; run")}</button><button class="btn ghost" data-act="declinecheck" data-id="${c.id}">${t("Decline")}</button></div>`);
 }
@@ -1874,7 +1888,7 @@ function chartCard(id, title, sub, svg, rows, head) {
 }
 
 function statsHtml(st, chk) {
-  if (!st) return `<div class="vempty"><div class="hero-n">0</div><p class="muted">${t("Your paths didn't cross within {m} m and {min} min.", { m: chk.radius_m, min: chk.window_min })}</p></div>`;
+  if (!st) return `<div class="vempty"><div class="hero-n">0</div><p class="muted">${t("Your paths didn't cross.")}</p></div>`;
   const span = `${dateStr(st.first.t0)} – ${dateStr(st.last.t0)}`;
   const kindRow = Object.keys(KIND).filter(k => st.kinds[k]);
   const tile = (label, value, sub, act) => `<div class="kpi${act ? " tap" : ""}" ${act || ""}><div class="kpi-l">${esc(label)}</div><div class="kpi-v">${esc(value)}</div>${sub ? `<div class="kpi-s">${esc(sub)}</div>` : ""}</div>`;
@@ -1886,7 +1900,7 @@ function statsHtml(st, chk) {
   <div class="vhero">
     <div class="hero-n">${st.count.toLocaleString(UI_LOCALE)}</div>
     <div class="hero-l">${pl("times", st.count, { who: H(chk.other) })}</div>
-    <div class="muted small">${esc(span)} · ${t("within {m} m and {min} min", { m: chk.radius_m, min: chk.window_min })}</div>
+    <div class="muted small">${esc(span)}</div>
   </div>
   <div class="kpis">
     ${tile(t("Days you crossed"), st.days.toLocaleString(UI_LOCALE), st.days > 1 ? t("busiest: {n} on {date}", { n: st.busiest.n, date: dateStr(st.busiest.day.t0) }) : "")}
@@ -2135,7 +2149,7 @@ function applyFilters() {
   if (!M) return;
   M.view = filteredEvents();
   const n = activeFilterCount(), days = new Set(M.view.map(e => localDayKey(new Date(e.t0 * 1000)))).size;
-  $("#rsub").textContent = (M.ev.length ? pl("crossings", M.ev.length) : t("No crossings")) + ` · ${t("{n} m", { n: M.chk.radius_m })} · ${t("{n} min", { n: M.chk.window_min })}`;
+  $("#rsub").textContent = M.ev.length ? pl("crossings", M.ev.length) : t("No crossings");
   if ($("#fcount")) $("#fcount").innerHTML = `<b>${n ? t("{a} of {b}", { a: M.view.length, b: M.ev.length }) : pl("crossings", M.view.length)}</b> <span class="muted">· ${pl("days", days)}</span>`;
   if ($("#filterbtn")) $("#filterbtn").innerHTML = ico("filter", 16, "l") + (n ? `Filter (${n})` : "Filter");
   renderList();
@@ -2148,13 +2162,23 @@ function renderList() {
   const row = e => { const k = KIND[e.kind] || KIND.same_place, d0 = new Date(e.t0 * 1000);
     return `<div class="ev${e.i === M.sel ? " sel" : ""}" data-i="${e.i}">${kindBadge(e.kind)}<div class="grow" style="min-width:0"><div class="top"><b>${k[1]}</b>
       <span class="muted small">${M.f.sort === "long" ? esc(fmtDay(d0)) + " · " : ""}${fmtTime(d0)} · ${e.duration_min} min</span></div>
-      <div class="where small">${esc(whereText(e))}</div></div><div class="muted">${ico("next", 16)}</div></div>`; };
-  if (!M.ev.length) { $("#list").innerHTML = `<p class="muted" style="text-align:center;margin:30px 0">${t("Your paths didn't cross within {m} m and {min} min.", { m: M.chk.radius_m, min: M.chk.window_min })}</p>`; return; }
+      <div class="where small">${esc(whereText(e))}</div>${seenHtml(e)}</div><div class="muted">${ico("next", 16)}</div></div>`; };
+  if (!M.ev.length) { $("#list").innerHTML = `<p class="muted" style="text-align:center;margin:30px 0">${t("Your paths didn't cross.")}</p>`; return; }
   if (!M.view.length) { $("#list").innerHTML = `<p class="muted" style="text-align:center;margin:30px 0">${t("No crossings match these filters.")}<br><a href="#" id="fclear">${t("Clear filters")}</a></p>`; $("#fclear").onclick = ev => { ev.preventDefault(); clearFilters(); }; return; }
   if (M.f.sort === "long") { $("#list").innerHTML = M.view.map(row).join(""); return; }
   const days = [], byKey = {};
   M.view.forEach(e => { const d = new Date(e.t0 * 1000), k = localDayKey(d); if (!byKey[k]) { byKey[k] = { title: fmtDay(d), items: [] }; days.push(byKey[k]); } byKey[k].items.push(e); });
   $("#list").innerHTML = days.map(d => `<div class="dayhdr">${esc(d.title)} · ${d.items.length.toLocaleString(UI_LOCALE)}</div>` + d.items.map(row).join("")).join("");
+}
+// How likely the two saw each other (server: crosspaths/likelihood.py): a rough guess, the same for both.
+const SEEN = ["Unlikely you saw each other", "Less likely you saw each other", "Possibly saw each other", "Likely saw each other"];
+const HOW = { spent_time: "Spent time together", met_briefly: "Met briefly", walked_together: "Walked together",
+  travelled_same_way: "Travelled the same way", crossed_paths: "Crossed paths", passed_by: "Passed by" };
+const seenColor = t => ["var(--muted)", "var(--warn)", "var(--accent2)", "var(--good)"][t] || "var(--muted)";
+function seenHtml(e) {
+  if (e.seen == null) return "";
+  const bars = [0, 1, 2].map(k => `<i style="display:inline-block;width:5px;height:9px;border-radius:2px;margin-right:2px;background:${k < e.seen ? seenColor(e.seen) : "var(--line)"}"></i>`).join("");
+  return `<div class="small" style="margin-top:3px;color:${seenColor(e.seen)};font-weight:650" title="${esc(t("A rough guess from how close you were, for how long, and whether you were moving. GPS can be off."))}">${bars} ${t(SEEN[e.seen])}${HOW[e.how] ? `<span class="muted" style="font-weight:400"> · ${t(HOW[e.how])}</span>` : ""}</div>`;
 }
 function clearFilters() { const sort = M.f.sort; M.f = freshFilters(); M.f.sort = sort; closeSheet(true); applyFilters(); }
 function filterSheet() {
@@ -2372,7 +2396,7 @@ function selectEvent(i, moveSheet) {
       ${pos >= 0 ? `<span class="muted small">${t("{a} of {b}", { a: (pos + 1).toLocaleString(UI_LOCALE), b: M.view.length.toLocaleString(UI_LOCALE) })}</span>` : ""}
       <button class="btn ghost sm" id="evprev" ${prev ? "" : "disabled"} aria-label="${t("Previous")}">${ico("prev", 16, "flip")}</button><button class="btn ghost sm" id="evnext" ${next ? "" : "disabled"} aria-label="${t("Next")}">${ico("next", 16, "flip")}</button></div>
     <div class="row" style="gap:10px;margin-top:6px">${kindBadge(e.kind)}<div class="grow" style="min-width:0"><h3>${k[1]}</h3>
-      <div class="muted small">${esc(fmtDay(d0))} · ${fmtTime(d0)}–${fmtTime(d1)} · ~${t("{n} min", { n: e.duration_min })}</div></div></div>`;
+      <div class="muted small">${esc(fmtDay(d0))} · ${fmtTime(d0)}–${fmtTime(d1)} · ~${t("{n} min", { n: e.duration_min })}</div>${seenHtml(e)}</div></div>`;
   $("#detail").innerHTML = `<div class="place row" style="gap:8px;align-items:flex-start"><span class="muted" style="margin-top:1px">${kindIcon("same_place", 17)}</span><span class="grow">${esc(whereText(e))}</span></div>
     <div class="muted small" id="street" style="margin:4px 0 0;margin-inline-start:25px"><a href="#" id="streetbtn">${t("Show street name")}</a> <span class="muted">${t("(asks OpenStreetMap)")}</span></div>
     <div class="muted small" style="margin-top:8px">${offsetText(e.offset_min)} · ${t("place accurate to about {m} m", { m: e.blur_m || 100 })}</div>
@@ -2953,7 +2977,7 @@ document.addEventListener("click", async e => {
     case "paircode": return pairCodeSheet();
     case "pairenter": return pairEnterSheet("");
     case "createcheck": return run(async () => {
-      const body = { connection_id: id, upload_id: $("#c_up").value, radius_m: +$("#c_r").value, window_min: +$("#c_w").value, ...readDates() };
+      const body = { connection_id: id, upload_id: $("#c_up").value, ...readDates() };
       await api("/api/checks", { method: "POST", body }); closeSheet(); toast(t("Request sent. It runs once they agree."));
       await refreshAll(); switchTab("checks");
     });

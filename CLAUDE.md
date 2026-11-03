@@ -23,7 +23,7 @@ Server (from `server/`):
 
 ```bash
 pip install -r requirements.txt pytest
-python -m pytest -q                  # 118 tests, no network (PLACE_NAMES=False)
+python -m pytest -q                  # 126 tests, no network (PLACE_NAMES=False)
 DATA_DIR=./data python -c "from server.app import create_app; create_app().run(port=8787)"
 ```
 
@@ -66,8 +66,11 @@ read its log in the Actions tab and fix it.
   person's track; times rounded to 15 min, places blurred ~100 m; home/work zones excluded;
   uploads encrypted at rest and purged per the user's retention setting.
 - Street maps (journeys drawn along roads) route on the server with Valhalla from OpenStreetMap
-  data an admin downloads (`server/roads.py`, `crosspaths/snap.py`). Display only, never sent to
-  a public router, never used for matching.
+  data an admin downloads (`server/roads.py`, `crosspaths/snap.py`). Used for display and for the
+  experimental estimated car routes in exports; never sent to a public router, never used for matching.
+- Every check uses the server's `CHECK_RADIUS_M` / `CHECK_WINDOW_MIN`; people don't pick them. Each
+  crossing's "how likely you saw each other" grade (`crosspaths/likelihood.py`) is computed once and
+  stored, so both people see the same.
 - Place names come from offline GeoNames on the server. Street names are fetched client-side,
   only on tap.
 - Maps are MapLibre + OpenFreeMap on both clients, not Google Maps. In GL JS, never pass

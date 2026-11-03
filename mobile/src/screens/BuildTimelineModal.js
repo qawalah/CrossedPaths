@@ -10,7 +10,7 @@ import DateRangePicker from "../components/DateRangePicker";
 import Icon from "../components/Icon";
 import { useToast } from "../components/Toast";
 import { Api } from "../api";
-import { exportTimeline } from "../exportTimeline";
+import ExportSheet from "../exportTimeline";
 import { SOURCES, guideUrl } from "../importSources";
 import { scanPhotoLibrary } from "../photoScan";
 import { pl, RTL, t } from "../i18n";
@@ -41,6 +41,7 @@ function Rich({ text }) {
 export default function BuildTimelineModal({ navigation, route, cfg, uploads, onDone }) {
   const insets = useSafeAreaInsets();
   const toast = useToast();
+  const [exporting, setExporting] = useState(null);
   const params = (route && route.params) || {};
   const target = params.targetId ? uploads.find((u) => u.id === params.targetId) : null;
   const others = uploads.filter((u) => u.id !== params.targetId);
@@ -174,8 +175,9 @@ export default function BuildTimelineModal({ navigation, route, cfg, uploads, on
             names: (saved.sources || []).map((s) => s.label).join(RTL ? "، " : ", "),
           })}
         </Text>
-        <Button title={t("Export a copy")} icon="download" variant="ghost" onPress={() => exportTimeline(saved, toast)} style={{ marginTop: 18 }} />
+        <Button title={t("Export a copy")} icon="download" variant="ghost" onPress={() => setExporting(saved)} style={{ marginTop: 18 }} />
         <Button title={t("Done")} onPress={() => navigation.goBack()} style={{ marginTop: 10 }} />
+        <ExportSheet upload={exporting} onClose={() => setExporting(null)} toast={toast} />
       </>
     );
   }

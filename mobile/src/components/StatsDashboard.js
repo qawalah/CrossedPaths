@@ -143,7 +143,7 @@ export default function StatsDashboard({ events, check, onEvent, onPlace, onCity
       <View style={{ alignItems: "center", padding: 40 }}>
         <Text style={{ color: colors.text, fontSize: 64, fontWeight: "800" }}>0</Text>
         <Text style={{ color: colors.muted, textAlign: "center", marginTop: 8 }}>
-          {t("Your paths didn't cross within {m} m and {min} min.", { m: check.radius_m, min: check.window_min })}
+          {t("Your paths didn't cross.")}
         </Text>
       </View>
     );
@@ -163,7 +163,7 @@ export default function StatsDashboard({ events, check, onEvent, onPlace, onCity
           {pl("times", st.count, { who: H(check.other) })}
         </Text>
         <Text style={{ color: colors.muted, fontSize: 12.5, marginTop: 4 }}>
-          {dateStr(st.first.t0)} – {dateStr(st.last.t0)} · {t("within {m} m and {min} min", { m: check.radius_m, min: check.window_min })}
+          {dateStr(st.first.t0)} – {dateStr(st.last.t0)}
         </Text>
       </View>
 

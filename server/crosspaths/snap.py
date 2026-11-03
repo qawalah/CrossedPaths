@@ -96,3 +96,67 @@ def decode_polyline(s: str, precision: int = 6) -> list[tuple[float, float]]:
         lon += vals[1]
         coords.append((lat / f, lon / f))
     return coords
+
+
+# ---------- estimated car routes for gaps (export only, experimental) ----------
+
+class GapRules:
+    """Which gaps between two recorded points get an estimated car route.
+
+    Defaults (reviewed): a gap of up to 30 min, a straight line of 0.3-50 km, and an average
+    speed of 15-130 km/h over it - i.e. what a car trip with no points in between looks like.
+    Slower gaps are walking or stops, faster ones a train or a flight. The route found must
+    also be plausible: at most twice the straight line, and drivable in the time available.
+    """
+
+    def __init__(self, max_gap_min: float = 30, max_km: float = 50, min_kmh: float = 15, max_kmh: float = 130,
+                 min_km: float = 0.3):
+        self.max_gap_s = max(1.0, float(max_gap_min)) * 60
+        self.min_m = max(0.0, float(min_km)) * 1000
+        self.max_m = max(self.min_m + 1, float(max_km) * 1000)
+        self.min_ms = max(0.0, float(min_kmh)) / 3.6
+        self.max_ms = max(self.min_ms + 0.1, float(max_kmh)) / 3.6
+
+    def wants(self, a: Point, b: Point) -> bool:
+        dt = b.t - a.t
+        if dt <= 0 or dt > self.max_gap_s:
+            return False
+        d = float(haversine_m(a.lat, a.lon, b.lat, b.lon))
+        return self.min_m <= d <= self.max_m and self.min_ms <= d / dt <= self.max_ms
+
+
+def estimate_gaps(points: list[Point], route: Router, rules: GapRules | None = None,
+                  budget_s: float = 40.0, max_routes: int = 3000) -> list[list[Point]]:
+    """Estimated car routes for the gaps that look like car trips: one list of points per gap,
+    from the recorded point before the gap to the one after it (both included, with their real
+    times), timed evenly along the route. The recorded points themselves are never changed."""
+    rules = rules or GapRules()
+    pts = sorted(points, key=lambda p: p.t)
+    deadline = time.monotonic() + budget_s
+    out, routes = [], 0
+    for a, b in zip(pts, pts[1:]):
+        if routes >= max_routes or time.monotonic() > deadline:
+            break
+        if not rules.wants(a, b):
+            continue
+        routes += 1
+        try:
+            r = route((a.lat, a.lon), (b.lat, b.lon), "auto")
+        except Exception:  # noqa: BLE001 - no route just means no estimate
+            r = None
+        if not r:
+            continue
+        shape, length = r
+        d = float(haversine_m(a.lat, a.lon, b.lat, b.lon))
+        dt = b.t - a.t
+        if len(shape) < 2 or length > DETOUR * d + DETOUR_SLACK_M or length / dt > rules.max_ms:
+            continue
+        seg = [float(haversine_m(p[0], p[1], q[0], q[1])) for p, q in zip(shape, shape[1:])]
+        total = sum(seg) or 1.0
+        run, gap = 0.0, [Point(a.t, a.lat, a.lon, None, "estimated", "road")]
+        for (lat, lon), s in zip(shape[1:-1], seg):
+            run += s
+            gap.append(Point(a.t + dt * run / total, lat, lon, None, "estimated", "road"))
+        gap.append(Point(b.t, b.lat, b.lon, None, "estimated", "road"))
+        out.append(gap)
+    return out

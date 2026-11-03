@@ -12,7 +12,7 @@ import { useAuth } from "../auth";
 import { Api } from "../api";
 import { boundsOf, circlePolygon, positionAt, segmentsFeature, segmentsUntil } from "../geo";
 import { H, RTL, pl, t } from "../i18n";
-import { colors, DEVICE_LOCALE, fmtDay, fmtTime, KIND_COLOR, KIND_LABEL, localDayKey, MAP_STYLE_FALLBACK, offsetText, UI_LOCALE, whereText } from "../theme";
+import { colors, DEVICE_LOCALE, fmtDay, fmtTime, HOW_LABEL, KIND_COLOR, KIND_LABEL, localDayKey, MAP_STYLE_FALLBACK, offsetText, SEEN_LABEL, SEEN_SHORT, seenColor, UI_LOCALE, whereText } from "../theme";
 import Icon from "../components/Icon";
 
 const PLAY_TICKS = 400; // a full replay takes ~20 s whatever the window length
@@ -396,7 +396,7 @@ export default function ResultsScreen({ route, navigation }) {
             {t("Paths crossed with {who}", { who: H(check.other) })}
           </Text>
           <Text style={{ color: colors.muted, fontSize: 12 }} numberOfLines={1}>
-            {events.length ? pl("crossings", events.length) : t("No crossings")} · {t("{n} m", { n: check.radius_m })} · {t("{n} min", { n: check.window_min })}
+            {events.length ? pl("crossings", events.length) : t("No crossings")}
           </Text>
         </View>
         <SmallBtn icon="help" onPress={() => setShowLegend(true)} />
@@ -566,6 +566,7 @@ export default function ResultsScreen({ route, navigation }) {
                     </Text>
                   </View>
                 </View>
+                <Seen e={selEvent} style={{ marginTop: 8 }} />
               </View>
             ) : events.length ? (
               <View style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 14, paddingBottom: 10 }}>
@@ -601,6 +602,11 @@ export default function ResultsScreen({ route, navigation }) {
                     {t("(asks OpenStreetMap)")}
                   </Text>
                 )}
+                {selEvent.seen != null ? (
+                  <Text style={{ color: colors.muted, fontSize: 12, lineHeight: 17, marginTop: 10, marginLeft: 25 }}>
+                    {t("This is a rough guess from how close you were, for how long, and whether you were moving. GPS can be off, and it can't tell floors or walls apart.")}
+                  </Text>
+                ) : null}
                 <Text style={{ color: colors.muted, fontSize: 12.5, marginTop: 8 }}>
                   {offsetText(selEvent.offset_min)} · {t("place accurate to about {m} m", { m: selEvent.blur_m || 100 })}
                 </Text>
@@ -726,6 +732,7 @@ export default function ResultsScreen({ route, navigation }) {
                       <Text style={{ color: colors.muted, fontSize: 13, marginTop: 2 }} numberOfLines={1}>
                         {whereText(e)}
                       </Text>
+                      <Seen e={e} small style={{ marginTop: 3 }} />
                     </View>
                     <Text style={{ color: colors.muted, fontSize: 18 }}>{RTL ? "‹" : "›"}</Text>
                   </Pressable>
@@ -762,6 +769,27 @@ export default function ResultsScreen({ route, navigation }) {
 
       <FilterSheet visible={showFilter} onClose={() => setShowFilter(false)} events={events} f={f} setF={setF} shown={view.length} />
       <LegendSheet visible={showLegend} onClose={() => setShowLegend(false)} radiusM={check.radius_m} windowMin={check.window_min} />
+    </View>
+  );
+}
+
+/** "Likely saw each other · Spent time together": a rough guess, worked out once on the server
+ *  from the exact match, so both people see the same. Results from before it existed show nothing. */
+function Seen({ e, small, style }) {
+  if (e.seen == null) return null;
+  const c = seenColor(e.seen);
+  const how = HOW_LABEL[e.how];
+  return (
+    <View style={[{ flexDirection: "row", alignItems: "center", gap: 6 }, style]}>
+      <View style={{ flexDirection: "row", gap: 2 }}>
+        {[0, 1, 2].map((k) => (
+          <View key={k} style={{ width: small ? 5 : 6, height: small ? 9 : 11, borderRadius: 2, backgroundColor: k < e.seen ? c : colors.line }} />
+        ))}
+      </View>
+      <Text style={{ color: c, fontSize: small ? 12 : 13, fontWeight: "700" }} numberOfLines={1}>
+        {small ? SEEN_SHORT[e.seen] : SEEN_LABEL[e.seen]}
+        {how ? <Text style={{ color: colors.muted, fontWeight: "400" }}>{` · ${how}`}</Text> : null}
+      </Text>
     </View>
   );
 }

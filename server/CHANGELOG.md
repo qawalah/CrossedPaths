@@ -7,6 +7,25 @@ migration), MINOR for new features, PATCH for bugfixes. Pre-1.0, expect MINOR bu
 To check what's running on your server, visit `/api/config` — it reports the running
 `version`. That's the number to compare against this file when deciding whether to update.
 
+## 0.21.0 (Android 1.16.0)
+- **How likely you saw each other.** Every crossing now carries a rough, four-step guess (likely,
+  possibly, less likely, unlikely) and what it looked like (spent time together, met briefly,
+  walked together, travelled the same way, crossed paths, passed by). It is worked out once from
+  the exact match (how close, for how long, how far apart in time, whether you were moving, and
+  how much of it rests on positions filled in across a gap) and stored, so both people see the
+  same. Thresholds are coarse so it can't be used to read distances finer than the blurred place.
+  Results from earlier checks show no grade. See `crosspaths/likelihood.py`.
+- **Checks use fixed settings.** People no longer choose the closeness or time tolerance: every
+  check uses `CHECK_RADIUS_M` (100) and `CHECK_WINDOW_MIN` (15), so grades mean the same for
+  everyone. Values sent by older apps are ignored. The web client no longer shows the sliders.
+- **Export: estimated car routes (experimental).** `GET /api/uploads/<id>/export` takes
+  `estimated=embed` (add them to the file, kept apart: their own GPX track, flagged GeoJSON lines,
+  or an `estimated` CSV column) or `estimated=only` (just the routes, as a second file), plus
+  `gap_max_min`, `gap_max_km`, `gap_min_kmh`, `gap_max_kmh`. Suggested defaults: gaps up to
+  30 min and 50 km at 15-130 km/h. Routes come from the server's own street maps (Valhalla); with
+  none installed nothing is added. Response headers `X-Estimated-Gaps` and `X-Street-Maps` say
+  what happened. Estimated points are never used to find crossings.
+- Database: `crossing_events` gains `seen` and `how` (added automatically on start).
 ## 0.20.0 (Android 1.15.0)
 - **Sign in with a phone number or Google.** Both are off until configured (`AUTH_PHONE`,
   `AUTH_GOOGLE`; see HANDOVER.md "Sign-in methods"). Phone sign-in sends a 6-digit code on
