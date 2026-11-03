@@ -34,6 +34,10 @@ class Config:
     LIMIT_CHECKS_PER_DAY = int(os.environ.get("LIMIT_CHECKS_PER_DAY", "10"))
     LIMIT_CHECKS_PER_PAIR_PER_DAY = int(os.environ.get("LIMIT_CHECKS_PER_PAIR_PER_DAY", "3"))
     BLUR_M = float(os.environ.get("BLUR_M", "100"))
+    # Every check uses the same closeness and time tolerance (people no longer pick them), so
+    # the "how likely you saw each other" grades mean the same thing for everyone.
+    CHECK_RADIUS_M = int(os.environ.get("CHECK_RADIUS_M", "100"))
+    CHECK_WINDOW_MIN = int(os.environ.get("CHECK_WINDOW_MIN", "15"))
     # Offline neighbourhood/city names for crossings, from GeoNames files downloaded once to
     # DATA_DIR/places (only static files are fetched; nothing about users leaves the server).
     PLACE_NAMES = _bool("PLACE_NAMES", True)

@@ -885,7 +885,7 @@ function pairEnterSheet(prefill, fromLink) {
     catch (e) { box.innerHTML = `<p style="color:var(--bad)">${esc(e.message)}</p>`; return; }
     const canCheck = p.they_have_timeline && state.uploads.length;
     box.innerHTML = `<div class="card" style="margin-top:14px"><h3>Connect with @${esc(p.from)}?</h3>
-      <p class="muted small">${canCheck ? `You'll be connected and your paths checked right away (within ${p.radius_m} m and ${p.window_min} min). They'll only see when and roughly where you crossed.`
+      <p class="muted small">${canCheck ? `You'll be connected and your paths checked right away. They'll only see when and roughly where you crossed.`
         : p.they_have_timeline ? "You'll be connected. No check will run until you upload a timeline." : `You'll be connected. @${esc(p.from)} hasn't uploaded a timeline, so no check will run yet.`}</p>
       ${state.uploads.length ? uploadSelect("p_up2") : ""}
       <button class="btn" style="width:100%;margin-top:12px" id="p_ok">${canCheck ? "Connect &amp; check" : "Connect"}</button></div>`;
@@ -956,7 +956,7 @@ function checkRow(c) {
       <span class="cav">${esc(c.other.slice(0, 1))}</span><span class="grow"><b>@${esc(c.other)}</b><span class="muted small">${short}</span></span>
       ${pill(c.status, c.status.replace("_", " "))}${CHEV_DOWN}</button>
     <div class="cbody"><div><div class="cin">${more ? `<div>${more}</div>` : ""}
-      <div>Within ${c.radius_m} m and ${c.window_min} min${c.created_at ? ` · started ${dateStr(c.created_at)}` : ""}</div>
+      <div>${c.created_at ? `Started ${dateStr(c.created_at)}` : "Started recently"}</div>
       ${c.status === "done" && c.results_expire ? `<div>Results kept until ${dateStr(c.results_expire)}</div>` : ""}
       <div class="row">${acts}</div></div></div></div></div>`;
 }
@@ -1005,15 +1005,13 @@ function newCheckSheet(connId, other) {
   if (!state.uploads.length) { switchTab("uploads"); return toast("Upload your timeline first", true); }
   openSheet(`<h2>Check paths with @${esc(other)}</h2>${shareNote}
     <label>Your timeline</label><select id="c_up">${uploadOptions()}</select>
-    <label>Closeness: <b id="rv">100</b> m</label><input type="range" id="c_r" min="50" max="300" step="10" value="100" oninput="$('#rv').textContent=this.value">
-    <label>Time tolerance: <b id="wv">15</b> min</label><input type="range" id="c_w" min="5" max="60" step="5" value="15" oninput="$('#wv').textContent=this.value">
     ${dateRow()}
     <div class="row" style="margin-top:18px"><button class="btn grow" data-act="createcheck" data-id="${connId}">Send request &amp; agree</button></div>`);
 }
 function reviewSheet(c) {
   if (!state.uploads.length) { closeSheet(); switchTab("uploads"); return toast("Upload your timeline first, then come back", true); }
   openSheet(`<h2>@${esc(c.other)} wants to check paths</h2>${shareNote}
-    <p class="muted small">Closeness ${c.radius_m} m · time tolerance ${c.window_min} min. Nothing runs until you agree.</p>
+    <p class="muted small">Nothing runs until you agree.</p>
     <label>Your timeline</label><select id="c_up">${uploadOptions()}</select>${dateRow()}
     <div class="row" style="margin-top:18px"><button class="btn grow" data-act="consent" data-id="${c.id}">Agree &amp; run</button><button class="btn ghost" data-act="declinecheck" data-id="${c.id}">Decline</button></div>`);
 }
@@ -1216,7 +1214,7 @@ function chartCard(id, title, sub, svg, rows, head) {
 }
 
 function statsHtml(st, chk) {
-  if (!st) return `<div class="vempty"><div class="hero-n">0</div><p class="muted">Your paths didn't cross within ${chk.radius_m} m and ${chk.window_min} min.</p></div>`;
+  if (!st) return `<div class="vempty"><div class="hero-n">0</div><p class="muted">Your paths didn't cross.</p></div>`;
   const span = `${dateStr(st.first.t0)} – ${dateStr(st.last.t0)}`;
   const kindRow = Object.keys(KIND).filter(k => st.kinds[k]);
   const tile = (label, value, sub, act) => `<div class="kpi${act ? " tap" : ""}" ${act || ""}><div class="kpi-l">${esc(label)}</div><div class="kpi-v">${esc(value)}</div>${sub ? `<div class="kpi-s">${esc(sub)}</div>` : ""}</div>`;
@@ -1228,7 +1226,7 @@ function statsHtml(st, chk) {
   <div class="vhero">
     <div class="hero-n">${st.count.toLocaleString(UI_LOCALE)}</div>
     <div class="hero-l">time${st.count === 1 ? "" : "s"} your paths crossed with @${esc(chk.other)}</div>
-    <div class="muted small">${esc(span)} · within ${chk.radius_m} m and ${chk.window_min} min</div>
+    <div class="muted small">${esc(span)}</div>
   </div>
   <div class="kpis">
     ${tile("Days you crossed", st.days.toLocaleString(UI_LOCALE), st.days > 1 ? `busiest: ${st.busiest.n} on ${dateStr(st.busiest.day.t0)}` : "")}
@@ -1473,7 +1471,7 @@ function applyFilters() {
   if (!M) return;
   M.view = filteredEvents();
   const n = activeFilterCount(), days = new Set(M.view.map(e => localDayKey(new Date(e.t0 * 1000)))).size;
-  $("#rsub").textContent = (M.ev.length ? `${M.ev.length} crossing${M.ev.length === 1 ? "" : "s"}` : "No crossings") + ` · ${M.chk.radius_m} m · ${M.chk.window_min} min`;
+  $("#rsub").textContent = M.ev.length ? `${M.ev.length} crossing${M.ev.length === 1 ? "" : "s"}` : "No crossings";
   if ($("#fcount")) $("#fcount").innerHTML = `<b>${n ? `${M.view.length} of ${M.ev.length}` : `${M.view.length} crossing${M.view.length === 1 ? "" : "s"}`}</b> <span class="muted">· ${days} day${days === 1 ? "" : "s"}</span>`;
   if ($("#filterbtn")) $("#filterbtn").innerHTML = ico("filter", 16, "l") + (n ? `Filter (${n})` : "Filter");
   renderList();
@@ -1486,13 +1484,23 @@ function renderList() {
   const row = e => { const k = KIND[e.kind] || KIND.same_place, d0 = new Date(e.t0 * 1000);
     return `<div class="ev${e.i === M.sel ? " sel" : ""}" data-i="${e.i}">${kindBadge(e.kind)}<div class="grow" style="min-width:0"><div class="top"><b>${k[1]}</b>
       <span class="muted small">${M.f.sort === "long" ? esc(fmtDay(d0)) + " · " : ""}${fmtTime(d0)} · ${e.duration_min} min</span></div>
-      <div class="where small">${esc(whereText(e))}</div></div><div class="muted">${ico("next", 16)}</div></div>`; };
-  if (!M.ev.length) { $("#list").innerHTML = `<p class="muted" style="text-align:center;margin:30px 0">Your paths didn't cross within ${M.chk.radius_m} m and ${M.chk.window_min} min.</p>`; return; }
+      <div class="where small">${esc(whereText(e))}</div>${seenHtml(e)}</div><div class="muted">${ico("next", 16)}</div></div>`; };
+  if (!M.ev.length) { $("#list").innerHTML = `<p class="muted" style="text-align:center;margin:30px 0">Your paths didn't cross.</p>`; return; }
   if (!M.view.length) { $("#list").innerHTML = `<p class="muted" style="text-align:center;margin:30px 0">No crossings match these filters.<br><a href="#" id="fclear">Clear filters</a></p>`; $("#fclear").onclick = ev => { ev.preventDefault(); clearFilters(); }; return; }
   if (M.f.sort === "long") { $("#list").innerHTML = M.view.map(row).join(""); return; }
   const days = [], byKey = {};
   M.view.forEach(e => { const d = new Date(e.t0 * 1000), k = localDayKey(d); if (!byKey[k]) { byKey[k] = { title: fmtDay(d), items: [] }; days.push(byKey[k]); } byKey[k].items.push(e); });
   $("#list").innerHTML = days.map(d => `<div class="dayhdr">${esc(d.title)} · ${d.items.length}</div>` + d.items.map(row).join("")).join("");
+}
+// How likely the two saw each other (server: crosspaths/likelihood.py): a rough guess, the same for both.
+const SEEN = ["Unlikely", "Less likely", "Possibly", "Likely"];
+const HOW = { spent_time: "Spent time together", met_briefly: "Met briefly", walked_together: "Walked together",
+  travelled_same_way: "Travelled the same way", crossed_paths: "Crossed paths", passed_by: "Passed by" };
+const seenColor = t => ["var(--muted)", "var(--warn)", "var(--accent2)", "var(--good)"][t] || "var(--muted)";
+function seenHtml(e) {
+  if (e.seen == null) return "";
+  const bars = [0, 1, 2].map(k => `<i style="display:inline-block;width:5px;height:9px;border-radius:2px;margin-right:2px;background:${k < e.seen ? seenColor(e.seen) : "var(--line)"}"></i>`).join("");
+  return `<div class="small" style="margin-top:3px;color:${seenColor(e.seen)};font-weight:650" title="A rough guess from how close you were, for how long, and whether you were moving. GPS can be off.">${bars} ${SEEN[e.seen]} you saw each other${HOW[e.how] ? `<span class="muted" style="font-weight:400"> · ${HOW[e.how]}</span>` : ""}</div>`;
 }
 function clearFilters() { const sort = M.f.sort; M.f = freshFilters(); M.f.sort = sort; closeSheet(true); applyFilters(); }
 function filterSheet() {
@@ -1710,7 +1718,7 @@ function selectEvent(i, moveSheet) {
       ${pos >= 0 ? `<span class="muted small">${pos + 1} of ${M.view.length}</span>` : ""}
       <button class="btn ghost sm" id="evprev" ${prev ? "" : "disabled"} aria-label="Previous">${ico("prev", 16)}</button><button class="btn ghost sm" id="evnext" ${next ? "" : "disabled"} aria-label="Next">${ico("next", 16)}</button></div>
     <div class="row" style="gap:10px;margin-top:6px">${kindBadge(e.kind)}<div class="grow" style="min-width:0"><h3>${k[1]}</h3>
-      <div class="muted small">${esc(fmtDay(d0))} · ${fmtTime(d0)}–${fmtTime(d1)} · ~${e.duration_min} min</div></div></div>`;
+      <div class="muted small">${esc(fmtDay(d0))} · ${fmtTime(d0)}–${fmtTime(d1)} · ~${e.duration_min} min</div>${seenHtml(e)}</div></div>`;
   $("#detail").innerHTML = `<div class="place row" style="gap:8px;align-items:flex-start"><span class="muted" style="margin-top:1px">${kindIcon("same_place", 17)}</span><span class="grow">${esc(whereText(e))}</span></div>
     <div class="muted small" id="street" style="margin:4px 0 0 25px"><a href="#" id="streetbtn">Show street name</a> <span class="muted">(asks OpenStreetMap)</span></div>
     <div class="muted small" style="margin-top:8px">${offsetText(e.offset_min)} · place accurate to about ${e.blur_m || 100} m</div>
@@ -2291,7 +2299,7 @@ document.addEventListener("click", async e => {
     case "paircode": return pairCodeSheet();
     case "pairenter": return pairEnterSheet("");
     case "createcheck": return run(async () => {
-      const body = { connection_id: id, upload_id: $("#c_up").value, radius_m: +$("#c_r").value, window_min: +$("#c_w").value, ...readDates() };
+      const body = { connection_id: id, upload_id: $("#c_up").value, ...readDates() };
       await api("/api/checks", { method: "POST", body }); closeSheet(); toast("Request sent. It runs once they agree.");
       await refreshAll(); switchTab("checks");
     });

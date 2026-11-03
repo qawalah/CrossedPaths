@@ -8,6 +8,7 @@ from datetime import datetime, timezone
 import numpy as np
 
 from .geo import haversine_m
+from .likelihood import grade
 from .matcher import Crossing, Params, resample
 
 
@@ -70,6 +71,10 @@ def _iso(t: float) -> str:
 def sanitize(events: list[Crossing], grid_m: float = 100.0, time_round_s: int = 900) -> list[dict]:
     """What the other party is allowed to see: blurred place, rounded times, no raw distances.
 
+    Each entry also carries a coarse guess of how likely the two saw each other ("seen", 0-3)
+    and what the crossing looked like ("how"), see likelihood.py. A merged entry takes its
+    most likely part.
+
     Once times are rounded, two matches from one encounter (e.g. sat in a cafe, then walked
     off the same way) would show as overlapping entries - "Same place 21:30-22:15" next to
     "Passed each other 22:00-22:15". Overlapping or touching windows are merged into one,
@@ -85,8 +90,11 @@ def sanitize(events: list[Crossing], grid_m: float = 100.0, time_round_s: int = 
             g["raw_end"] = max(g["raw_end"], e.end_t)
             if e.duration_s > g["main"].duration_s:
                 g["main"] = e
+            seen = grade(e)
+            if seen[0] > g["seen"][0]:
+                g["seen"] = seen
         else:
-            groups.append({"start": start, "end": end, "raw_start": e.start_t, "raw_end": e.end_t, "main": e})
+            groups.append({"start": start, "end": end, "raw_start": e.start_t, "raw_end": e.end_t, "main": e, "seen": grade(e)})
     out = []
     for i, g in enumerate(groups, 1):
         e = g["main"]
@@ -101,5 +109,7 @@ def sanitize(events: list[Crossing], grid_m: float = 100.0, time_round_s: int = 
             "kind": e.kind,
             "duration_min": max(5, int(round((g["raw_end"] - g["raw_start"]) / 300)) * 5),  # 5-minute buckets
             "offset_min": int(round(e.time_offset_s / 60 / 5) * 5),  # 5-minute buckets
+            "seen": g["seen"][0],
+            "how": g["seen"][1],
         })
     return out

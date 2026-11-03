@@ -204,6 +204,16 @@ export default function AccountScreen({ navigation }) {
         <Button title="Server addresses" variant="ghost" onPress={() => navigation.navigate("Settings")} style={{ marginTop: 12 }} />
       </Card>
 
+      {user && user.is_admin ? (
+        <Card>
+          <Text style={{ color: colors.text, fontSize: 17, fontWeight: "800" }}>Server admin</Text>
+          <Text style={{ color: colors.muted, fontSize: 12.5, marginTop: 4, lineHeight: 18 }}>
+            Settings for the whole server. Only admins see this.
+          </Text>
+          <Button title="Street maps" icon="map" variant="ghost" onPress={() => navigation.navigate("Admin")} style={{ marginTop: 12 }} />
+        </Card>
+      ) : null}
+
       <Card>
         <Row label="App version" value={appVersion} />
         <Row label="Server version" value={cfg.version || "—"} />

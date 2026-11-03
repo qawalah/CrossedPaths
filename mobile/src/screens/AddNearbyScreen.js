@@ -257,7 +257,7 @@ function ScanCode({ uploadId, initialCode, onPaired }) {
         <Text style={{ color: colors.muted, marginTop: 6, lineHeight: 20 }}>
           {preview.they_have_timeline
             ? uploadId
-              ? `You'll be connected and your paths checked right away (within ${preview.radius_m} m and ${preview.window_min} min). They'll only see when and roughly where you crossed.`
+              ? `You'll be connected and your paths checked right away. They'll only see when and roughly where you crossed.`
               : "You'll be connected. No check will run until you upload a timeline."
             : `You'll be connected. @${preview.from} hasn't uploaded a timeline, so no check will run yet.`}
         </Text>

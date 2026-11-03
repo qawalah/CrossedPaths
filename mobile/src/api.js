@@ -198,7 +198,7 @@ const TIMEOUT_MS = 12000;
 const UPLOAD_TIMEOUT_MS = 180000;
 
 async function request(path, opts = {}, retried = false) {
-  const { method = "GET", body, form, auth = true, raw = false } = opts;
+  const { method = "GET", body, form, auth = true, raw = false, timeoutMs } = opts;
   if (resolving) await resolving.catch(() => {}); // an address check is running: use its answer
   const base = ACTIVE;
   if (!base) throw new ApiError("Server address not set. Open Settings and enter your CrossPaths server URL.", 0);
@@ -216,7 +216,7 @@ async function request(path, opts = {}, retried = false) {
   }
   let res;
   const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), form ? UPLOAD_TIMEOUT_MS : TIMEOUT_MS);
+  const timer = setTimeout(() => ctrl.abort(), timeoutMs || (form ? UPLOAD_TIMEOUT_MS : TIMEOUT_MS));
   try {
     res = await fetch(base + path, { method, headers, body: payload, signal: ctrl.signal });
   } catch (e) {
@@ -241,6 +241,7 @@ async function request(path, opts = {}, retried = false) {
   } finally {
     clearTimeout(timer);
   }
+  if (raw === "withHeaders" && res.ok) return { text: await res.text(), headers: res.headers }; // export + its notes
   if (raw && res.ok) return res.text(); // a file download (timeline export)
   let json = null;
   try {
@@ -282,6 +283,15 @@ export const Api = {
     return request(targetId ? `/api/uploads/${targetId}/sources` : "/api/uploads", { method: "POST", form });
   },
   exportUpload: (id, format) => request(`/api/uploads/${id}/export?format=${format}`, { raw: true }),
+  // Experimental: estimated = "embed" | "only"; rules = { max_gap_min, max_km, min_kmh } for which gaps get a car route.
+  // Routing every gap can take a while on the server, hence the longer wait.
+  exportWithEstimates: (id, format, estimated, rules = {}) => {
+    const q = Object.entries({ format, estimated, gap_max_min: rules.max_gap_min, gap_max_km: rules.max_km, gap_min_kmh: rules.min_kmh })
+      .filter(([, v]) => v != null && v !== "")
+      .map(([k, v]) => `${k}=${encodeURIComponent(v)}`)
+      .join("&");
+    return request(`/api/uploads/${id}/export?${q}`, { raw: "withHeaders", timeoutMs: 90000 });
+  },
   deleteUpload: (id) => request(`/api/uploads/${id}`, { method: "DELETE" }),
   putZones: (id, zones) => request(`/api/uploads/${id}/zones`, { method: "PUT", body: { zones } }),
   uploadSummary: (id, tz = 0) => request(`/api/uploads/${id}/summary?tz=${tz}`),
@@ -300,6 +310,11 @@ export const Api = {
   getCheck: (id) => request(`/api/checks/${id}`),
   myTrack: (id) => request(`/api/checks/${id}/my-track`),
   deleteCheck: (id) => request(`/api/checks/${id}`, { method: "DELETE" }),
+  // Server admins only (ADMIN_HANDLES on the server): street maps for drawing journeys along roads.
+  adminRoads: () => request("/api/admin/roads"),
+  adminRoadsCatalog: () => request("/api/admin/roads/catalog", { timeoutMs: 45000 }),
+  adminAddRoads: (region) => request("/api/admin/roads", { method: "POST", body: { region }, timeoutMs: 45000 }),
+  adminDeleteRoads: (id) => request(`/api/admin/roads/${encodeURIComponent(id)}`, { method: "DELETE" }),
 
   // Meeting in person: QR code / invite link / shake. Each connects you and, when you both
   // have a timeline, starts the check straight away.

@@ -15,6 +15,7 @@ import BuildTimelineModal from "../screens/BuildTimelineModal";
 import AddNearbyScreen, { codeFrom } from "../screens/AddNearbyScreen";
 import MainTabs from "./MainTabs";
 import WelcomeScreen from "../screens/WelcomeScreen";
+import AdminScreen from "../screens/AdminScreen";
 import { markWelcomeSeen, useWelcomeSeen } from "../welcome";
 import { colors } from "../theme";
 import { useTheme } from "../themeContext";
@@ -106,6 +107,7 @@ export default function RootNavigator() {
             </Stack.Screen>
             <Stack.Screen name="Results" component={ResultsScreen} />
             <Stack.Screen name="MyTimeline" component={MyTimelineScreen} />
+            <Stack.Screen name="Admin" component={AdminScreen} />
             <Stack.Screen name="Settings" component={SettingsScreen} options={{ presentation: "modal", animation: "slide_from_bottom", headerShown: true, title: "Server addresses" }} />
             <Stack.Screen name="AddNearby" options={{ presentation: "modal", animation: "slide_from_bottom" }}>
               {(props) => <AddNearbyScreen {...props} uploads={data.uploads} loaded={data.loaded} onDone={data.refresh} />}

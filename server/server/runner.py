@@ -173,9 +173,10 @@ def _run(app, con, check_id):
     for e, n in zip(res["events"], names):
         n = n or {}
         con.execute("INSERT INTO crossing_events (check_id, starts_at, ends_at, lat, lon, blur_m, kind, duration_min, offset_min, "
-                    "place, place_ar, landmark, landmark_ar) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                    "place, place_ar, landmark, landmark_ar, seen, how) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
                     (check_id, e["start"], e["end"], e["lat"], e["lon"], int(e["blur_m"]), e["kind"],
-                     e["duration_min"], e["offset_min"], n.get("place"), n.get("place_ar"), n.get("landmark"), n.get("landmark_ar")))
+                     e["duration_min"], e["offset_min"], n.get("place"), n.get("place_ar"), n.get("landmark"), n.get("landmark_ar"),
+                     e.get("seen"), e.get("how")))
     route = street_router(cfg) if res["events"] else None
     for p, pts in zip(parts, tracks):     # each user's OWN path around the crossings, only ever returned to them
         con.execute("UPDATE check_participants SET track_json=? WHERE check_id=? AND user_id=?",

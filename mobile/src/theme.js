@@ -85,6 +85,22 @@ export const KIND_LABEL = {
   shared_route: ["", "Travelled together"],
 };
 
+/** How likely the two saw each other at a crossing (server: crosspaths/likelihood.py), 0-3. */
+export const SEEN_LABEL = ["Unlikely you saw each other", "Less likely you saw each other", "Possibly saw each other", "Likely saw each other"];
+export const SEEN_SHORT = ["Unlikely", "Less likely", "Possibly", "Likely"];
+export function seenColor(tier) {
+  return [colors.muted, colors.warn, colors.accent2, colors.good][tier] || colors.muted;
+}
+/** What the crossing looked like: the reason behind the grade. */
+export const HOW_LABEL = {
+  spent_time: "Spent time together",
+  met_briefly: "Met briefly",
+  walked_together: "Walked together",
+  travelled_same_way: "Travelled the same way",
+  crossed_paths: "Crossed paths",
+  passed_by: "Passed by",
+};
+
 /** What each kind means, for the "?" legend. */
 export function kindHelp(kind, radiusM = 100, windowMin = 15) {
   return {

@@ -78,7 +78,9 @@ CREATE TABLE IF NOT EXISTS crossing_events (
     place        TEXT,            -- "Al Murūj, Riyadh"; NULL = not named yet, '' = nothing nearby
     place_ar     TEXT,
     landmark     TEXT,
-    landmark_ar  TEXT
+    landmark_ar  TEXT,
+    seen         INTEGER,         -- how likely they saw each other, 0-3 (crosspaths/likelihood.py); NULL = before 0.19.0
+    how          TEXT             -- what the crossing looked like: spent_time, met_briefly, walked_together...
 );
 CREATE INDEX IF NOT EXISTS crossing_events_check_idx ON crossing_events (check_id, starts_at);
 

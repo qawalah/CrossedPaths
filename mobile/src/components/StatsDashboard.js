@@ -139,7 +139,7 @@ export default function StatsDashboard({ events, check, onEvent, onPlace, onCity
       <View style={{ alignItems: "center", padding: 40 }}>
         <Text style={{ color: colors.text, fontSize: 64, fontWeight: "800" }}>0</Text>
         <Text style={{ color: colors.muted, textAlign: "center", marginTop: 8 }}>
-          Your paths didn't cross within {check.radius_m} m and {check.window_min} min.
+          Your paths didn't cross.
         </Text>
       </View>
     );
@@ -159,7 +159,7 @@ export default function StatsDashboard({ events, check, onEvent, onPlace, onCity
           time{st.count === 1 ? "" : "s"} your paths crossed with @{check.other}
         </Text>
         <Text style={{ color: colors.muted, fontSize: 12.5, marginTop: 4 }}>
-          {dateStr(st.first.t0)} – {dateStr(st.last.t0)} · within {check.radius_m} m and {check.window_min} min
+          {dateStr(st.first.t0)} – {dateStr(st.last.t0)}
         </Text>
       </View>
 

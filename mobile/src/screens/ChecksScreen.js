@@ -222,7 +222,7 @@ function CheckRow({ c, open, onToggle, onReview, onResults, onDelete }) {
         <View style={{ paddingLeft: 60, paddingRight: 14, paddingBottom: 14, gap: 3 }}>
           {more ? <Text style={{ color: colors.muted, fontSize: 13, lineHeight: 19 }}>{more}</Text> : null}
           <Text style={{ color: colors.muted, fontSize: 13, lineHeight: 19 }}>
-            Within {c.radius_m} m and {c.window_min} min{c.created_at ? ` · started ${dateStr(c.created_at)}` : ""}
+            {c.created_at ? `Started ${dateStr(c.created_at)}` : "Started recently"}
           </Text>
           {c.status === "done" && c.results_expire ? (
             <Text style={{ color: colors.muted, fontSize: 13, lineHeight: 19 }}>Results kept until {dateStr(c.results_expire)}</Text>

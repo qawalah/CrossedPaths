@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
-import Slider from "@react-native-community/slider";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Button from "../components/Button";
 import { useToast } from "../components/Toast";
@@ -26,8 +25,6 @@ export default function NewCheckModal({ route, navigation, uploads, connections 
   useEffect(() => {
     if (!uploadId && uploads[0]) setUploadId(uploads[0].id);
   }, [uploads]);
-  const [radius, setRadius] = useState(100);
-  const [window, setWindow] = useState(15);
   const [dateFrom, setDateFrom] = useState(null);
   const [dateTo, setDateTo] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -46,8 +43,6 @@ export default function NewCheckModal({ route, navigation, uploads, connections 
       await Api.createCheck({
         connection_id: connectionId,
         upload_id: uploadId,
-        radius_m: Math.round(radius),
-        window_min: Math.round(window),
         date_from: dateFrom ? dateFrom.getTime() / 1000 : null,
         date_to: dateTo ? dateTo.getTime() / 1000 : null,
       });
@@ -109,18 +104,6 @@ export default function NewCheckModal({ route, navigation, uploads, connections 
 
       <Label>Your timeline</Label>
       <UploadPicker uploads={uploads} value={uploadId} onChange={setUploadId} />
-
-      <Label>
-        Closeness: <Text style={{ color: colors.text }}>{Math.round(radius)} m</Text>
-      </Label>
-      <Slider minimumValue={50} maximumValue={300} step={10} value={radius} onValueChange={setRadius}
-        minimumTrackTintColor={colors.accent} maximumTrackTintColor={colors.line} thumbTintColor={colors.accent} />
-
-      <Label>
-        Time tolerance: <Text style={{ color: colors.text }}>{Math.round(window)} min</Text>
-      </Label>
-      <Slider minimumValue={5} maximumValue={60} step={5} value={window} onValueChange={setWindow}
-        minimumTrackTintColor={colors.accent} maximumTrackTintColor={colors.line} thumbTintColor={colors.accent} />
 
       <Label>Date range (optional)</Label>
       <DateRangePicker from={dateFrom} to={dateTo} onChangeFrom={setDateFrom} onChangeTo={setDateTo} />
