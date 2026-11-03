@@ -172,14 +172,6 @@ export default function DateScrubber({ summary, selected, onPick, onActiveChange
     const [y, m, dd] = ymd(d);
     P.current.onPick && P.current.onPick(y, m, dd);
   }
-  function setLevelFromChip(l) {
-    s.sel = s.committed + 0.5;
-    s.selTarget = null;
-    s.frac = 0.5;
-    setLevel(l);
-    kick();
-  }
-
   const responder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
@@ -329,6 +321,11 @@ export default function DateScrubber({ summary, selected, onPick, onActiveChange
     }
   }
 
+  // The bubble sits mostly left of the finger (the thumb covers the right), and only flips to the
+  // right side when the finger is too near the left edge for it to fit.
+  const BUBBLE_W = 150;
+  const bubbleLeft = Math.min(TW - BUBBLE_W, Math.max(0, sx - BUBBLE_W + 28 >= 0 ? sx - BUBBLE_W + 28 : sx - 28));
+
   const zoomIn = gesture === "hold" ? "hold still" : gesture === "both" ? "hold still or slide up" : "slide up";
   const hint = !dr
     ? `Drag to pick a day · ${zoomIn} to zoom in`
@@ -340,29 +337,10 @@ export default function DateScrubber({ summary, selected, onPick, onActiveChange
           ? "Moving by day · let go to open it"
           : "Moving by day · slide down to zoom out";
 
-  const [cy, cm] = dr ? [sy, sm] : ymd(s.committed); // chips follow the finger while scrubbing
-  const crumbs = [
-    [0, "All"],
-    [1, String(cy)],
-    [2, MON[cm - 1]],
-  ];
-
   return (
     <View>
       <View style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 12, gap: 6 }}>
-        {crumbs.map(([l, label]) => {
-          const on = s.level === l;
-          return (
-            <Pressable
-              key={l}
-              onPress={() => setLevelFromChip(l)}
-              accessibilityLabel={`Show ${SCRUB_LEVELS[l].toLowerCase()}`}
-              style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 99, borderWidth: 1, borderColor: on ? colors.accent : colors.line, backgroundColor: on ? colors.accent : colors.panel2 }}
-            >
-              <Text style={{ color: on ? colors.onAccent : colors.muted, fontWeight: "700", fontSize: 12.5 }}>{label}</Text>
-            </Pressable>
-          );
-        })}
+        <Text style={{ color: colors.text, fontWeight: "700", fontSize: 14 }}>{dr ? SCRUB_LEVELS[s.level] : "Date bar"}</Text>
         <View style={{ flex: 1 }} />
         {onHelp ? (
           <Pressable onPress={onHelp} hitSlop={8} accessibilityLabel="How the date bar works" style={{ width: 28, height: 28, borderRadius: 14, borderWidth: 1, borderColor: colors.line, alignItems: "center", justifyContent: "center" }}>
@@ -432,7 +410,7 @@ export default function DateScrubber({ summary, selected, onPick, onActiveChange
             style={{
               position: "absolute",
               bottom: TRACK_H - 2,
-              left: Math.min(TW - 150, Math.max(0, sx - 75)),
+              left: bubbleLeft,
               width: 150,
               height: BUBBLE_H,
               alignItems: "center",

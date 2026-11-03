@@ -86,7 +86,7 @@
       "./plugins/withCrossPathsAndroid"
     ],
     "extra": {
-      "apiUrl": "https://crosspaths.example.com"
+      "apiUrl": "https://crossedpaths.fly.dev"
     },
     "scheme": "crosspaths"
   }

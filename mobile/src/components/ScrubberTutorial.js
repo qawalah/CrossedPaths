@@ -144,7 +144,7 @@ export default function ScrubberTutorial({ visible, gesture = "pull", onClose })
             })}
           </View>
 
-          <Text style={{ color: colors.muted, fontSize: 12, marginTop: 16 }}>You can change the zoom gesture in Account → Timeline date bar.</Text>
+          <Text style={{ color: colors.muted, fontSize: 12, marginTop: 16 }}>You can change the zoom gesture in Account → Date bar.</Text>
           <Button title="Got it" onPress={onClose} style={{ marginTop: 14 }} />
         </View>
       </View>

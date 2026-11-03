@@ -7,7 +7,7 @@ import { AppState } from "react-native";
 // With "switch automatically" on, the app uses the main address when it answers and the
 // backup otherwise - checked at start-up, whenever the
 // app comes back to the foreground, and whenever a request can't reach the server.
-let HOME_URL = (Constants.expoConfig && Constants.expoConfig.extra && Constants.expoConfig.extra.apiUrl) || "";
+let HOME_URL = (Constants.expoConfig && Constants.expoConfig.extra && Constants.expoConfig.extra.apiUrl) || "https://crossedpaths.fly.dev";
 let ALT_URL = "";
 let AUTO = true;
 let ACTIVE = HOME_URL;

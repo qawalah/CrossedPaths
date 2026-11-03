@@ -4,7 +4,7 @@ import { Alert, Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Button from "../components/Button";
 import Card from "../components/Card";
-import ChipScroller from "../components/ChipScroller";
+import Dropdown from "../components/Dropdown";
 import { useToast } from "../components/Toast";
 import { Api } from "../api";
 import { useServerState } from "../useServer";
@@ -79,7 +79,7 @@ export default function AccountScreen({ navigation }) {
             Can't reach the server right now. Everything will refresh once it's reachable.
           </Text>
         ) : null}
-        <Button title="Show the tutorial again" icon="help" variant="ghost" onPress={showWelcomeAgain} style={{ marginTop: 14 }} />
+        <Button title="Replay the tutorial" icon="help" variant="ghost" onPress={showWelcomeAgain} style={{ marginTop: 14 }} />
         <Button title="Sign out" variant="bad" onPress={confirmLogout} style={{ marginTop: 10 }} />
       </Card>
 
@@ -116,7 +116,7 @@ export default function AccountScreen({ navigation }) {
       </Card>
 
       <Card>
-        <Text style={{ color: colors.text, fontWeight: "700", fontSize: 15 }}>Timeline date bar</Text>
+        <Text style={{ color: colors.text, fontWeight: "700", fontSize: 15 }}>Date bar</Text>
         <Text style={{ color: colors.muted, fontSize: 12.5, marginTop: 4, lineHeight: 18 }}>
           How to zoom from years into months and days while dragging along the date bar in My timeline.
         </Text>
@@ -157,7 +157,7 @@ export default function AccountScreen({ navigation }) {
           </View>
         ) : null}
         <Button
-          title="Show the tutorial again"
+          title="Replay the date bar tutorial"
           variant="ghost"
           onPress={() => {
             setScrubberPrefs({ tutorialSeen: false });
@@ -168,29 +168,9 @@ export default function AccountScreen({ navigation }) {
       </Card>
 
       <Card>
-        <Text style={{ color: colors.text, fontWeight: "700", fontSize: 15 }}>Keep my uploaded timelines</Text>
-        <View style={{ marginTop: 12, opacity: saving ? 0.6 : 1 }}>
-          <ChipScroller selected={keepOptions.indexOf(keep)}>
-            {keepOptions.map((h) => {
-              const on = h === keep;
-              return (
-                <Pressable
-                  key={String(h)}
-                  onPress={() => chooseKeep(h)}
-                  style={{
-                    paddingHorizontal: 13,
-                    paddingVertical: 8,
-                    borderRadius: 99,
-                    borderWidth: 1.5,
-                    borderColor: on ? colors.accent : colors.line,
-                    backgroundColor: on ? colors.accent : colors.panel2,
-                  }}
-                >
-                  <Text style={{ color: on ? colors.onAccent : colors.text, fontWeight: "700", fontSize: 13 }}>{keepLabel(h)}</Text>
-                </Pressable>
-              );
-            })}
-          </ChipScroller>
+        <Text style={{ color: colors.text, fontWeight: "700", fontSize: 15 }}>Timeline storage</Text>
+        <View style={{ marginTop: 12 }}>
+          <Dropdown label="Delete my timelines after" value={keep} options={keepOptions.map((h) => [h, keepLabel(h)])} onChange={chooseKeep} disabled={saving} />
         </View>
         <Text style={{ color: colors.muted, fontSize: 12.5, marginTop: 10, lineHeight: 18 }}>
           {keep
@@ -221,13 +201,13 @@ export default function AccountScreen({ navigation }) {
             Add a backup address to keep using the app if the main one can't be reached.
           </Text>
         )}
-        <Button title={server.alt ? "Server addresses" : "Server addresses"} variant="ghost" onPress={() => navigation.navigate("Settings")} style={{ marginTop: 12 }} />
+        <Button title="Server addresses" variant="ghost" onPress={() => navigation.navigate("Settings")} style={{ marginTop: 12 }} />
       </Card>
 
       <Card>
         <Row label="App version" value={appVersion} />
         <Row label="Server version" value={cfg.version || "—"} />
-        <Row label="Results are deleted after" value={cfg.results_ttl_days ? `${cfg.results_ttl_days} days` : "—"} />
+        <Row label="Results deleted after" value={cfg.results_ttl_days ? `${cfg.results_ttl_days} days` : "—"} />
       </Card>
     </ScrollView>
   );

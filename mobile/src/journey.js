@@ -16,8 +16,10 @@ export function journey({ uploads = [], connections = [], checks = [] }) {
   const waiting = checks.find((c) => c.status === "awaiting_consent" && c.my_consent);
   // connections with no check yet (or only declined / expired / failed ones): a check waiting to happen
   const fresh = ok.filter((c) => !checks.some((k) => k.other === c.other && active(k)));
+  // a person added who you've never checked with: the one reason the Checks page pulses
+  const added = ok.filter((c) => !checks.some((k) => k.other === c.other));
   const has = { upload: uploads.length > 0, connect: ok.length > 0, check: !!(running || done), results: !!done };
   const current = FLOW.findIndex(([k]) => !has[k]);
-  return { ok, fresh, review, waiting, running, done, has, current, invite: !!review || (has.upload && fresh.length > 0) };
+  return { ok, fresh, review, waiting, running, done, has, current, invite: has.upload && added.length > 0, request: !!review };
 }
 
