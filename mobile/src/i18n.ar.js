@@ -790,4 +790,9 @@ export default {
   "Everyone": "الجميع",
   "No crossings yet.": "لا تقاطعات بعد.",
   "All your crossings on one map, with the places you meet most.": "كل تقاطعاتك على خريطة واحدة، مع الأماكن التي تلتقون فيها أكثر.",
+  "Streets": "الشوارع",
+  "The server needs updating (0.23 or newer) to estimate car routes.": "يحتاج الخادم إلى تحديث (0.23 أو أحدث) لتقدير مسارات السيارة.",
+  "No car-like gaps on this day: only gaps up to {min} min and {km} km at {lo}-{hi} km/h are filled (Server admin → Routing options).": "لا توجد فجوات تشبه رحلات السيارة في هذا اليوم: تُملأ فقط الفجوات حتى {min} دقيقة و{km} كم بسرعة {lo}-{hi} كم/س (إدارة الخادم ← خيارات المسارات).",
+  "Straight lines: no street map covers this day.": "خطوط مستقيمة: لا توجد خريطة شوارع تغطي هذا اليوم.",
+  "Straight lines between your recorded points.": "خطوط مستقيمة بين نقاطك المسجّلة.",
 };

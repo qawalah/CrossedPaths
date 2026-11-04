@@ -19,6 +19,24 @@ const EMPTY_FC = { type: "FeatureCollection", features: [] };
 
 const pad2 = (n) => String(n).padStart(2, "0");
 
+/** A small on/off switch over the map. */
+function MapChip({ icon, label, on, warn, onPress }) {
+  const bg = on ? (warn ? colors.warn : colors.accent) : colors.chip;
+  const fg = on ? "#ffffff" : colors.text;
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="switch"
+      accessibilityState={{ checked: on }}
+      accessibilityLabel={label}
+      style={{ flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 99, backgroundColor: bg, borderWidth: 1, borderColor: on ? bg : colors.line }}
+    >
+      <Icon name={icon} size={15} color={fg} />
+      <Text style={{ color: fg, fontSize: 12, fontWeight: "700" }}>{label}</Text>
+    </Pressable>
+  );
+}
+
 export default function MyTimelineScreen({ route, navigation }) {
   // inTab: shown as the My Map tab (no Back button, the tab bar is there instead)
   const { uploadId, uploadLabel, inTab, noTopInset } = route.params;
@@ -35,9 +53,11 @@ export default function MyTimelineScreen({ route, navigation }) {
   // Experimental: estimated car routes for the day's gaps (what an export would add), drawn dashed.
   const [showEst, setShowEst] = useState(false);
   const [dayEst, setDayEst] = useState([]);
-  const [estNote, setEstNote] = useState(null); // shown once per day, then it stays quiet
-  const estSeen = useRef(new Set());
-  const estNoteTimer = useRef(null);
+  // what the routing found for the shown day; stays under the map while Car routes is on (no pop-ups)
+  const [estInfo, setEstInfo] = useState(null);
+  // Journeys are drawn along streets where the server has street maps; off shows the recorded points as straight lines.
+  const [streets, setStreets] = useState(true);
+  const [snapped, setSnapped] = useState(false);
   const [dayLoading, setDayLoading] = useState(false);
   const [pendingScrubTime, setPendingScrubTime] = useState(null);
 
@@ -62,7 +82,8 @@ export default function MyTimelineScreen({ route, navigation }) {
 
   const showEstRef = useRef(false);
   showEstRef.current = showEst;
-  useEffect(() => () => clearTimeout(estNoteTimer.current), []);
+  const streetsRef = useRef(true);
+  streetsRef.current = streets;
   const loadDay = useCallback(
     async (y, m, d) => {
       setLoadedDate({ year: y, month: m, day: d });
@@ -73,25 +94,13 @@ export default function MyTimelineScreen({ route, navigation }) {
       const req = ++dayReq.current;
       try {
         const key = `${y}-${pad2(m)}-${pad2(d)}`;
-        const r = await Api.uploadDay(uploadId, key, tzOffsetMin(), showEstRef.current);
+        const r = await Api.uploadDay(uploadId, key, tzOffsetMin(), showEstRef.current, !streetsRef.current);
         if (req !== dayReq.current) return;
         setDaySegs(r.segments || []);
         setDayEst(r.estimated || []);
+        setSnapped(!!r.snapped);
+        setEstInfo(showEstRef.current ? { n: (r.estimated || []).length, maps: r.street_maps, rules: r.gap_rules, old: r.estimated === undefined } : null);
         setScrub(0);
-        // say what the routing found the first time each day is shown; after that, nothing
-        if (showEstRef.current && !estSeen.current.has(key)) {
-          estSeen.current.add(key);
-          const n = (r.estimated || []).length;
-          clearTimeout(estNoteTimer.current);
-          setEstNote(
-            r.street_maps === false
-              ? t("No street maps on the server yet, so nothing can be estimated.")
-              : n
-                ? pl("estroutes", n)
-                : t("No gaps on this day look like car trips.")
-          );
-          estNoteTimer.current = setTimeout(() => setEstNote(null), 4000);
-        }
       } catch (e) {
         if (req === dayReq.current) toast(e.message, true);
       } finally {
@@ -317,28 +326,60 @@ export default function MyTimelineScreen({ route, navigation }) {
                     <ActivityIndicator color={colors.accent} />
                   </View>
                 ) : null}
-                <Pressable
-                  onPress={() => {
-                    const on = !showEst;
-                    setShowEst(on);
-                    showEstRef.current = on;
-                    if (on && loadedDate) loadDay(loadedDate.year, loadedDate.month, loadedDate.day);
-                    if (!on) setEstNote(null);
-                  }}
-                  accessibilityRole="switch"
-                  accessibilityState={{ checked: showEst }}
-                  style={{ position: "absolute", top: 10, right: 10, flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 99, backgroundColor: showEst ? colors.warn : colors.chip, borderWidth: 1, borderColor: showEst ? colors.warn : colors.line }}
-                >
-                  <Icon name="route" size={15} color={showEst ? "#ffffff" : colors.text} />
-                  <Text style={{ color: showEst ? "#ffffff" : colors.text, fontSize: 12, fontWeight: "700" }}>{t("Car routes")}</Text>
-                </Pressable>
-                {estNote ? (
-                  <View pointerEvents="none" style={{ position: "absolute", left: 10, right: 10, bottom: 10, padding: 9, borderRadius: 12, backgroundColor: colors.chip, borderWidth: 1, borderColor: colors.line }}>
-                    <Text style={{ color: colors.text, fontSize: 12.5 }}>{estNote}</Text>
-                  </View>
-                ) : null}
+                <View style={{ position: "absolute", top: 10, right: 10, flexDirection: "row", gap: 6 }}>
+                  <MapChip
+                    icon="map"
+                    label={t("Streets")}
+                    on={streets}
+                    onPress={() => {
+                      const on = !streets;
+                      setStreets(on);
+                      streetsRef.current = on;
+                      if (loadedDate) loadDay(loadedDate.year, loadedDate.month, loadedDate.day);
+                    }}
+                  />
+                  <MapChip
+                    icon="route"
+                    label={t("Car routes")}
+                    on={showEst}
+                    warn
+                    onPress={() => {
+                      const on = !showEst;
+                      setShowEst(on);
+                      showEstRef.current = on;
+                      if (on && loadedDate) loadDay(loadedDate.year, loadedDate.month, loadedDate.day);
+                      if (!on) setEstInfo(null);
+                    }}
+                  />
+                </View>
               </View>
               <View style={{ backgroundColor: colors.panel, padding: 12 }}>
+                {showEst && estInfo ? (
+                  <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 8, paddingBottom: 8, borderBottomWidth: 1, borderBottomColor: colors.line }}>
+                    <View style={{ width: 18, height: 0, borderTopWidth: 3, borderTopColor: colors.warn, borderStyle: "dashed" }} />
+                    <Text style={{ color: colors.text, fontSize: 12.5, flex: 1 }}>
+                      {estInfo.old
+                        ? t("The server needs updating (0.23 or newer) to estimate car routes.")
+                        : estInfo.maps === false
+                          ? t("No street maps on the server yet, so nothing can be estimated.")
+                          : estInfo.n
+                            ? pl("estroutes", estInfo.n)
+                            : estInfo.rules
+                              ? t("No car-like gaps on this day: only gaps up to {min} min and {km} km at {lo}-{hi} km/h are filled (Server admin → Routing options).", {
+                                  min: estInfo.rules.gap_max_min,
+                                  km: estInfo.rules.gap_max_km,
+                                  lo: estInfo.rules.gap_min_kmh,
+                                  hi: estInfo.rules.gap_max_kmh,
+                                })
+                              : t("No gaps on this day look like car trips.")}
+                    </Text>
+                  </View>
+                ) : null}
+                {!streets || (dayPts.length > 1 && !snapped) ? (
+                  <Text style={{ color: colors.muted, fontSize: 12, marginBottom: 6 }}>
+                    {streets ? t("Straight lines: no street map covers this day.") : t("Straight lines between your recorded points.")}
+                  </Text>
+                ) : null}
                 <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 2 }}>
                   <Text style={{ color: colors.muted, fontSize: 12 }}>
                     {dayPts.length ? `${dayLabel} · ${fmtTime(new Date((mePos ? mePos.t : tMin) * 1000))}` : dayLabel ? `${dayLabel} · ${t("no points recorded")}` : t("Pick a day on the bar below")}

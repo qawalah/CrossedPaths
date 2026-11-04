@@ -309,8 +309,11 @@ export const Api = {
   putZones: (id, zones) => request(`/api/uploads/${id}/zones`, { method: "PUT", body: { zones } }),
   uploadSummary: (id, tz = 0) => request(`/api/uploads/${id}/summary?tz=${tz}`),
   // estimated: also return the car routes an export would estimate for the day's gaps (experimental preview)
-  uploadDay: (id, date, tz = 0, estimated = false) =>
-    request(`/api/uploads/${id}/day?date=${date}&tz=${tz}${estimated ? "&estimated=1" : ""}`, { timeoutMs: estimated ? 30000 : undefined }),
+  // straight: the recorded points as straight lines, not drawn along streets
+  uploadDay: (id, date, tz = 0, estimated = false, straight = false) =>
+    request(`/api/uploads/${id}/day?date=${date}&tz=${tz}${estimated ? "&estimated=1" : ""}${straight ? "&snap=0" : ""}`, {
+      timeoutMs: estimated ? 30000 : undefined,
+    }),
   // every crossing from your finished checks, with who it was with (the "where we cross paths" map)
   crossings: () => request("/api/crossings"),
   uploadVisits: (id, lat, lon, radiusM) => request(`/api/uploads/${id}/visits?lat=${lat}&lon=${lon}&radius_m=${radiusM}`),
