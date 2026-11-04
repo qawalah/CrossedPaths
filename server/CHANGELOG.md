@@ -7,6 +7,16 @@ migration), MINOR for new features, PATCH for bugfixes. Pre-1.0, expect MINOR bu
 To check what's running on your server, visit `/api/config` — it reports the running
 `version`. That's the number to compare against this file when deciding whether to update.
 
+## 0.23.0 (Android 1.18.0)
+- **Where you cross paths.** `GET /api/crossings` lists every crossing from your finished checks
+  with who it was with, using only what each check's results already show both people (blurred
+  place, rounded time, the shared grade). Android: Checks → *Where you cross paths* shows them on a
+  heatmap, for everyone or one person, with the places you cross most.
+- **Preview estimated car routes on the map.** `GET /api/uploads/<id>/day?estimated=1` also returns
+  the car routes an export would estimate for that day's gaps (admin's default gap rules), cached
+  like the day itself. Android: a *Car routes* switch on My Map draws them dashed; the first time a
+  day is shown it says how many were added (or why none were), then stays quiet.
+
 ## 0.22.0 (Android 1.17.0)
 - **Upload street maps.** Admins can send a map from their own device in pieces (8 MB each, a
   dropped piece is simply sent again): ready-made Valhalla routing tiles (`.tar` / `.tar.gz`), which

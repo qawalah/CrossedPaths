@@ -120,6 +120,8 @@ const PL = {
     sources: { one: "{n} source", other: "{n} sources" },
     photos: { one: "{n} photo", other: "{n} photos" },
     newpoints: { one: "{n} new point", other: "{n} new points" },
+    estroutes: { one: "{n} estimated car route added for this day", other: "{n} estimated car routes added for this day" },
+    xplaces: { one: "{n} crossing here", other: "{n} crossings here" },
   },
   ar: {
     crossings: { zero: "{n} تقاطع", one: "تقاطع واحد", two: "تقاطعان", few: "{n} تقاطعات", many: "{n} تقاطعًا", other: "{n} تقاطع" },
@@ -132,6 +134,8 @@ const PL = {
     sources: { zero: "{n} مصدر", one: "مصدر واحد", two: "مصدران", few: "{n} مصادر", many: "{n} مصدرًا", other: "{n} مصدر" },
     photos: { zero: "{n} صورة", one: "صورة واحدة", two: "صورتان", few: "{n} صور", many: "{n} صورة", other: "{n} صورة" },
     newpoints: { zero: "{n} نقطة جديدة", one: "نقطة جديدة واحدة", two: "نقطتين جديدتين", few: "{n} نقاط جديدة", many: "{n} نقطة جديدة", other: "{n} نقطة جديدة" },
+    estroutes: { zero: "لم يُضف مسار سيارة تقديري لهذا اليوم", one: "أُضيف مسار سيارة تقديري واحد لهذا اليوم", two: "أُضيف مساران تقديريان للسيارة لهذا اليوم", few: "أُضيفت {n} مسارات تقديرية للسيارة لهذا اليوم", many: "أُضيف {n} مسارًا تقديريًا للسيارة لهذا اليوم", other: "أُضيف {n} مسار تقديري للسيارة لهذا اليوم" },
+    xplaces: { zero: "{n} تقاطع هنا", one: "تقاطع واحد هنا", two: "تقاطعان هنا", few: "{n} تقاطعات هنا", many: "{n} تقاطعًا هنا", other: "{n} تقاطع هنا" },
   },
 };
 // Hermes has no Intl.PluralRules, so the (small) CLDR rules for these two languages are written out.
