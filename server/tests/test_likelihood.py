@@ -124,3 +124,33 @@ if __name__ == "__main__":
         if name.startswith("test_") and callable(fn):
             fn()
             print("PASS", name)
+
+
+def test_crossings_map_lists_only_my_finished_checks():
+    from test_api import make_client, reg, setup_pair, wait_done
+    app, c, d = make_client()
+    ha, hb, ua, ub, conn = setup_pair(c)
+    hc = reg(c, "carol")
+    assert c.get("/api/crossings", headers=ha).get_json() == []
+    cid = c.post("/api/checks", headers=ha, json={"connection_id": conn, "upload_id": ua["id"]}).get_json()["id"]
+    c.post(f"/api/checks/{cid}/consent", headers=hb, json={"upload_id": ub["id"]})
+    wait_done(c, ha, cid)
+    mine = c.get("/api/crossings", headers=ha).get_json()
+    assert mine and all(e["other"] == "bob.b" for e in mine) and {"lat", "lon", "seen", "place"} <= set(mine[0])
+    theirs = c.get("/api/crossings", headers=hb).get_json()
+    assert len(theirs) == len(mine) and all(e["other"] == "alice" for e in theirs)
+    assert c.get("/api/crossings", headers=hc).get_json() == []
+
+
+def test_day_preview_of_estimated_routes_without_street_maps():
+    from test_api import make_client, reg, upload, A_FILE
+    import synth
+    app, c, d = make_client()
+    h = reg(c, "alice")
+    u = upload(c, h, A_FILE).get_json()
+    s = c.get(f"/api/uploads/{u['id']}/summary", headers=h).get_json()
+    y = s["years"][0]; m = y["months"][0]; day = m["days"][0]
+    date = f"{y['year']}-{m['month']:02d}-{day['day']:02d}"
+    r = c.get(f"/api/uploads/{u['id']}/day?date={date}&estimated=1", headers=h).get_json()
+    assert r["street_maps"] is False and r["estimated"] == [] and r["segments"]
+    assert "estimated" not in c.get(f"/api/uploads/{u['id']}/day?date={date}", headers=h).get_json()

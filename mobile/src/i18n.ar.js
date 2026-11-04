@@ -783,4 +783,11 @@ export default {
   "Reset": "إعادة الضبط",
   "That upload has expired. Start it again.": "انتهت صلاحية هذا الرفع. ابدأه من جديد.",
   "data must be base64": "يجب أن تكون البيانات بترميز base64",
+  "No street maps on the server yet, so nothing can be estimated.": "لا توجد خرائط شوارع على الخادم بعد، لذا لا يمكن تقدير شيء.",
+  "No gaps on this day look like car trips.": "لا توجد فجوات في هذا اليوم تبدو كرحلات بالسيارة.",
+  "Car routes": "مسارات السيارة",
+  "Where you cross paths": "أين تتقاطع مساراتكم",
+  "Everyone": "الجميع",
+  "No crossings yet.": "لا تقاطعات بعد.",
+  "All your crossings on one map, with the places you meet most.": "كل تقاطعاتك على خريطة واحدة، مع الأماكن التي تلتقون فيها أكثر.",
 };

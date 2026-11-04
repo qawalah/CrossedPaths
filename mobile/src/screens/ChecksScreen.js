@@ -134,6 +134,20 @@ export default function ChecksScreen({ navigation, data }) {
               </View>
             ) : null}
           </Animated.View>
+          {checks.some((c) => c.status === "done" && c.events_count) ? (
+            <Pressable
+              onPress={() => navigation.navigate("CrossingsMap")}
+              accessibilityRole="button"
+              style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: 12, marginTop: 24, padding: 14, borderRadius: 16, borderWidth: 1, borderColor: colors.line, backgroundColor: pressed ? colors.pressed : colors.panel })}
+            >
+              <Icon name="map" size={22} color={colors.accent} />
+              <View style={{ flex: 1 }}>
+                <Text style={{ color: colors.text, fontWeight: "800", fontSize: 15 }}>{t("Where you cross paths")}</Text>
+                <Text style={{ color: colors.muted, fontSize: 12.5, marginTop: 1 }}>{t("All your crossings on one map, with the places you meet most.")}</Text>
+              </View>
+              <Icon name="next" size={18} color={colors.muted} />
+            </Pressable>
+          ) : null}
           {checks.length ? (
             <Text style={{ color: colors.muted, fontSize: 14, fontWeight: "700", marginTop: 28, marginBottom: 2, marginLeft: 4 }}>{t("Previous checks")}</Text>
           ) : null}

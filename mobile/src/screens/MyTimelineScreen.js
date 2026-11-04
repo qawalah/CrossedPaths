@@ -13,7 +13,7 @@ import { Api } from "../api";
 import { boundsOf, positionAt, segmentsFeature, segmentsUntil } from "../geo";
 import { colors, fmtDay, fmtTime, MAP_STYLE_FALLBACK, tzOffsetMin } from "../theme";
 import Icon from "../components/Icon";
-import { RTL, t } from "../i18n";
+import { pl, RTL, t } from "../i18n";
 
 const EMPTY_FC = { type: "FeatureCollection", features: [] };
 
@@ -32,6 +32,12 @@ export default function MyTimelineScreen({ route, navigation }) {
   const [loadedDate, setLoadedDate] = useState(null); // { year, month, day }
   const [dayLabel, setDayLabel] = useState("");
   const [daySegs, setDaySegs] = useState([]);
+  // Experimental: estimated car routes for the day's gaps (what an export would add), drawn dashed.
+  const [showEst, setShowEst] = useState(false);
+  const [dayEst, setDayEst] = useState([]);
+  const [estNote, setEstNote] = useState(null); // shown once per day, then it stays quiet
+  const estSeen = useRef(new Set());
+  const estNoteTimer = useRef(null);
   const [dayLoading, setDayLoading] = useState(false);
   const [pendingScrubTime, setPendingScrubTime] = useState(null);
 
@@ -54,6 +60,9 @@ export default function MyTimelineScreen({ route, navigation }) {
   const [scrubPrefs, scrubPrefsReady] = useScrubberPrefs();
   const [tutorial, setTutorial] = useState(false);
 
+  const showEstRef = useRef(false);
+  showEstRef.current = showEst;
+  useEffect(() => () => clearTimeout(estNoteTimer.current), []);
   const loadDay = useCallback(
     async (y, m, d) => {
       setLoadedDate({ year: y, month: m, day: d });
@@ -63,10 +72,26 @@ export default function MyTimelineScreen({ route, navigation }) {
       setPlaying(false);
       const req = ++dayReq.current;
       try {
-        const r = await Api.uploadDay(uploadId, `${y}-${pad2(m)}-${pad2(d)}`, tzOffsetMin());
+        const key = `${y}-${pad2(m)}-${pad2(d)}`;
+        const r = await Api.uploadDay(uploadId, key, tzOffsetMin(), showEstRef.current);
         if (req !== dayReq.current) return;
         setDaySegs(r.segments || []);
+        setDayEst(r.estimated || []);
         setScrub(0);
+        // say what the routing found the first time each day is shown; after that, nothing
+        if (showEstRef.current && !estSeen.current.has(key)) {
+          estSeen.current.add(key);
+          const n = (r.estimated || []).length;
+          clearTimeout(estNoteTimer.current);
+          setEstNote(
+            r.street_maps === false
+              ? t("No street maps on the server yet, so nothing can be estimated.")
+              : n
+                ? pl("estroutes", n)
+                : t("No gaps on this day look like car trips.")
+          );
+          estNoteTimer.current = setTimeout(() => setEstNote(null), 4000);
+        }
       } catch (e) {
         if (req === dayReq.current) toast(e.message, true);
       } finally {
@@ -120,6 +145,10 @@ export default function MyTimelineScreen({ route, navigation }) {
   const scrubT = tMin + (tMax - tMin) * scrub;
   const mePos = dayPts.length ? positionAt(dayPts, scrubT) : null;
   const trackFeature = useMemo(() => segmentsFeature(daySegs), [daySegs]);
+  const estFeature = useMemo(
+    () => ({ type: "Feature", properties: {}, geometry: { type: "MultiLineString", coordinates: dayEst.map((g) => g.map((p) => [p[2], p[1]])) } }),
+    [dayEst]
+  );
   const doneFeature = useMemo(() => segmentsFeature(segmentsUntil(daySegs, scrubT)), [daySegs, scrubT]);
 
   function togglePlay() {
@@ -273,6 +302,9 @@ export default function MyTimelineScreen({ route, navigation }) {
                   <ShapeSource id="day-track-done" shape={dayPts.length ? doneFeature : EMPTY_FC}>
                     <LineLayer id="day-track-done-line" style={{ lineColor: colors.accent2, lineWidth: 4, lineCap: "round", lineJoin: "round" }} />
                   </ShapeSource>
+                  <ShapeSource id="day-est" shape={showEst && dayEst.length ? estFeature : EMPTY_FC}>
+                    <LineLayer id="day-est-line" style={{ lineColor: colors.warn, lineWidth: 3, lineOpacity: 0.9, lineDasharray: [1.5, 1.5], lineCap: "round", lineJoin: "round" }} />
+                  </ShapeSource>
                   <ShapeSource id="pin" shape={pin ? { type: "Feature", properties: {}, geometry: { type: "Point", coordinates: [pin.lon, pin.lat] } } : EMPTY_FC}>
                     <CircleLayer id="pin-dot" style={{ circleRadius: 8, circleColor: colors.warn, circleStrokeColor: "#ffffff", circleStrokeWidth: 2 }} />
                   </ShapeSource>
@@ -283,6 +315,26 @@ export default function MyTimelineScreen({ route, navigation }) {
                 {dayLoading ? (
                   <View style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, alignItems: "center", justifyContent: "center", backgroundColor: "#0008" }}>
                     <ActivityIndicator color={colors.accent} />
+                  </View>
+                ) : null}
+                <Pressable
+                  onPress={() => {
+                    const on = !showEst;
+                    setShowEst(on);
+                    showEstRef.current = on;
+                    if (on && loadedDate) loadDay(loadedDate.year, loadedDate.month, loadedDate.day);
+                    if (!on) setEstNote(null);
+                  }}
+                  accessibilityRole="switch"
+                  accessibilityState={{ checked: showEst }}
+                  style={{ position: "absolute", top: 10, right: 10, flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 99, backgroundColor: showEst ? colors.warn : colors.chip, borderWidth: 1, borderColor: showEst ? colors.warn : colors.line }}
+                >
+                  <Icon name="route" size={15} color={showEst ? "#ffffff" : colors.text} />
+                  <Text style={{ color: showEst ? "#ffffff" : colors.text, fontSize: 12, fontWeight: "700" }}>{t("Car routes")}</Text>
+                </Pressable>
+                {estNote ? (
+                  <View pointerEvents="none" style={{ position: "absolute", left: 10, right: 10, bottom: 10, padding: 9, borderRadius: 12, backgroundColor: colors.chip, borderWidth: 1, borderColor: colors.line }}>
+                    <Text style={{ color: colors.text, fontSize: 12.5 }}>{estNote}</Text>
                   </View>
                 ) : null}
               </View>

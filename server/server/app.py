@@ -597,13 +597,32 @@ def create_app(overrides=None, start_background=True):
         route = runner.street_router(app.config)
         key = (upload_id, t0, t1, roads_for(app.config).version if route else 0)
         segs = day_cache_get(key)
+        raw = None
         if segs is None:
-            day_pts = analysis.points_in_range(load_points(app.config, upload_id), t0, t1)
+            raw = analysis.points_in_range(load_points(app.config, upload_id), t0, t1)
+            day_pts = raw
             if route is not None:
                 day_pts = snap_points(day_pts, route, budget_s=6, max_routes=600, opts=runner.route_options(app.config))
             segs = runner.thin_track(day_pts, max_points=2000, min_move_m=15)
             day_cache_put(key, segs)
-        return jsonify({"segments": segs, "date": request.args.get("date")})
+        out = {"segments": segs, "date": request.args.get("date")}
+        if request.args.get("estimated") in ("1", "true"):
+            # Experimental: the car routes an export would estimate for this day's gaps, to preview them
+            # on the map. Drawn apart from the recorded path, never used for matching.
+            out["street_maps"] = route is not None
+            ekey = ("est",) + key + (json.dumps(roads_for(app.config).gap_defaults(), sort_keys=True),)
+            est = day_cache_get(ekey)
+            if est is None:
+                est = []
+                if route is not None:
+                    if raw is None:
+                        raw = analysis.points_in_range(load_points(app.config, upload_id), t0, t1)
+                    roads = roads_for(app.config)
+                    gaps = estimate_gaps(raw, route, roads.gap_rules(), budget_s=8, max_routes=300, opts=roads.route_options())
+                    est = [[[round(p.t), round(p.lat, 6), round(p.lon, 6)] for p in g] for g in gaps]
+                day_cache_put(ekey, est)
+            out["estimated"] = est
+        return jsonify(out)
 
     # Street-snapped days take a moment to route, and people flick back and forth between days.
     day_cache, day_cache_lock = OrderedDict(), threading.Lock()
@@ -846,6 +865,23 @@ def create_app(overrides=None, start_background=True):
                               "seen": e["seen"], "how": e["how"]}
                              for i, e in enumerate(ev)]
         return jsonify(out)
+
+    @app.get("/api/crossings")
+    @auth
+    def all_crossings():
+        """Every crossing from your finished checks, with who it was with: for the "where we cross
+        paths" map. Only what both people already see in a check's results (blurred place, rounded
+        time, the shared grade); nothing new is revealed."""
+        me = g.user["id"]
+        rows = get_db().execute(
+            "SELECT e.lat, e.lon, e.starts_at, e.kind, e.seen, e.place, e.place_ar, e.duration_min, u.handle AS other, c.id AS check_id "
+            "FROM crossing_events e JOIN checks c ON c.id = e.check_id "
+            "JOIN check_participants me ON me.check_id = c.id AND me.user_id = ? "
+            "JOIN check_participants o ON o.check_id = c.id AND o.user_id <> ? JOIN users u ON u.id = o.user_id "
+            "WHERE c.status = 'done' ORDER BY e.starts_at", (me, me)).fetchall()
+        return jsonify([{"lat": r["lat"], "lon": r["lon"], "start": r["starts_at"], "kind": r["kind"], "seen": r["seen"],
+                         "place": r["place"] or "", "place_ar": r["place_ar"] or "", "duration_min": r["duration_min"],
+                         "other": r["other"], "check_id": r["check_id"]} for r in rows])
 
     @app.get("/api/checks/<check_id>/my-track")
     @auth
