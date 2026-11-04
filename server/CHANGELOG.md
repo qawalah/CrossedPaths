@@ -7,6 +7,15 @@ migration), MINOR for new features, PATCH for bugfixes. Pre-1.0, expect MINOR bu
 To check what's running on your server, visit `/api/config` — it reports the running
 `version`. That's the number to compare against this file when deciding whether to update.
 
+## 0.23.1 (Android 1.18.1)
+- My Map: the *Car routes* result now stays under the map while the switch is on (how many were
+  added, or why none were: no street maps, server too old, or no gap within the gap rules, which it
+  lists). The 4-second note is gone.
+- My Map: a *Streets* switch shows your recorded points as straight lines instead of drawn along
+  streets (`/api/uploads/<id>/day?snap=0`). Nothing is stored either way: street drawing and car
+  routes are worked out when a day is shown. The day response also says `snapped` and, with
+  `estimated=1`, the `gap_rules` used.
+
 ## 0.23.0 (Android 1.18.0)
 - **Where you cross paths.** `GET /api/crossings` lists every crossing from your finished checks
   with who it was with, using only what each check's results already show both people (blurred

@@ -595,6 +595,8 @@ def create_app(overrides=None, start_background=True):
         except ValueError:
             err("date must be in YYYY-MM-DD format")
         route = runner.street_router(app.config)
+        if request.args.get("snap") in ("0", "false"):
+            route = None          # the person asked to see their recorded points as straight lines
         key = (upload_id, t0, t1, roads_for(app.config).version if route else 0)
         segs = day_cache_get(key)
         raw = None
@@ -605,11 +607,13 @@ def create_app(overrides=None, start_background=True):
                 day_pts = snap_points(day_pts, route, budget_s=6, max_routes=600, opts=runner.route_options(app.config))
             segs = runner.thin_track(day_pts, max_points=2000, min_move_m=15)
             day_cache_put(key, segs)
-        out = {"segments": segs, "date": request.args.get("date")}
+        out = {"segments": segs, "date": request.args.get("date"), "snapped": route is not None}
         if request.args.get("estimated") in ("1", "true"):
+            route = runner.street_router(app.config)   # estimates need the router even with straight lines shown
             # Experimental: the car routes an export would estimate for this day's gaps, to preview them
             # on the map. Drawn apart from the recorded path, never used for matching.
             out["street_maps"] = route is not None
+            out["gap_rules"] = roads_for(app.config).gap_defaults()   # so the app can say why a gap wasn't filled
             ekey = ("est",) + key + (json.dumps(roads_for(app.config).gap_defaults(), sort_keys=True),)
             est = day_cache_get(ekey)
             if est is None:

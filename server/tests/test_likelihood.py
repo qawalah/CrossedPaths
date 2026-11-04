@@ -153,4 +153,7 @@ def test_day_preview_of_estimated_routes_without_street_maps():
     date = f"{y['year']}-{m['month']:02d}-{day['day']:02d}"
     r = c.get(f"/api/uploads/{u['id']}/day?date={date}&estimated=1", headers=h).get_json()
     assert r["street_maps"] is False and r["estimated"] == [] and r["segments"]
+    assert r["gap_rules"]["gap_max_min"] == 30 and r["snapped"] is False
+    straight = c.get(f"/api/uploads/{u['id']}/day?date={date}&snap=0", headers=h).get_json()
+    assert straight["snapped"] is False and straight["segments"] == r["segments"]
     assert "estimated" not in c.get(f"/api/uploads/{u['id']}/day?date={date}", headers=h).get_json()
