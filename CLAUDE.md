@@ -60,6 +60,13 @@ read its log in the Actions tab and fix it.
   pushes `ghcr.io/qawalah/crosspaths` and tags `docker-v<version>`. The `Dockerfile` must keep
   its `HEALTHCHECK`, `ARG VERSION` and no baked-in secrets.
 
+## Design
+
+**Read `DESIGN.md` before any UI change.** It is the CrossPaths design language (colours, type,
+shapes, tabs, motion, tutorial, date bar) and is shared with the other apps. A copy is kept in
+`qawalah/devstore` at `docs/design/DESIGN.md`; when you change this file, update that copy too.
+Reuse its tokens and patterns instead of inventing new ones.
+
 ## Don't undo
 
 - Privacy: nothing is compared without both people's consent; the API never returns the other
