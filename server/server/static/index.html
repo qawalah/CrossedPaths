@@ -61,7 +61,8 @@ nav.tabs button.inv .ti::before,nav.tabs button.inv .ti::after{content:"";positi
 nav.tabs button.inv .ti::after{animation-delay:1.2s}
 /* Checks sits in the middle as a raised round button */
 nav.tabs button.mid .ti{width:54px;height:54px;margin-top:-32px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--accent),var(--accent-g));color:var(--onaccent);box-shadow:0 6px 16px var(--shadow),0 0 0 5px var(--panel);transition:transform .2s}
-nav.tabs button.mid .ti svg{width:27px;height:27px}
+nav.tabs button.mid .ti{background:var(--panel);overflow:visible}nav.tabs button.mid .ti img{width:calc(100% + 4px);height:calc(100% + 4px);margin:-2px;border-radius:50%;object-fit:cover;clip-path:circle(50% at 50% 50%)}
+nav.tabs button.mid.on .ti{box-shadow:0 6px 16px var(--shadow),0 0 0 3px var(--accent),0 0 0 6px var(--panel)}
 nav.tabs button.mid:active .ti{transform:scale(.94)}
 nav.tabs button.mid.inv svg{color:var(--onaccent)}
 nav.tabs button.mid .dot{top:-24px;right:calc(50% - 32px)}
@@ -1246,7 +1247,7 @@ function renderTabs(pop) {
   const html = TABS.map(([k, l]) => {
     const cls = [k === "checks" ? "mid" : "", state.tab === k ? "on" : "", k === "checks" && inv && state.tab !== k ? "inv" : "", pop && state.tab === k ? "pop" : ""].join(" ").trim();
     const lbl = k === "checks" && inv ? t("{tab}, a check is ready to run", { tab: l }) : l;
-    return `<button data-act="tab" data-t="${k}" class="${cls}" aria-label="${lbl}"${state.tab === k ? ` aria-current="page"` : ""}><span class="ti"><svg viewBox="0 0 24 24">${ICON[TAB_ICON[k]]}</svg></span>${l}${k === "checks" && n ? `<span class="dot">${n}</span>` : ""}</button>`;
+    return `<button data-act="tab" data-t="${k}" class="${cls}" aria-label="${lbl}"${state.tab === k ? ` aria-current="page"` : ""}><span class="ti">${k === "checks" ? `<img src="/static/tab-logo.png" alt="">` : `<svg viewBox="0 0 24 24">${ICON[TAB_ICON[k]]}</svg>`}</span>${l}${k === "checks" && n ? `<span class="dot">${n}</span>` : ""}</button>`;
   }).join("");
   const box = $(".tabbtns", nav);
   if (box.dataset.k !== html) { box.innerHTML = html; box.dataset.k = html; }
@@ -1284,8 +1285,10 @@ function journey() {
   const waiting = ch.find(c => c.status === "awaiting_consent" && c.my_consent);
   // connections with no check yet (or only declined / expired / failed ones): a check is waiting to happen
   const fresh = ok.filter(c => !ch.some(k => k.other === c.other && active(k)));
+  // a person added who you've never checked with: the one reason Checks pulses
+  const added = ok.filter(c => !ch.some(k => k.other === c.other));
   const has = { upload: state.uploads.length > 0, connect: ok.length > 0, check: !!(running || done), results: !!done };
-  return { ok, fresh, review, waiting, running, done, has, invite: !!review || (has.upload && fresh.length > 0) };
+  return { ok, fresh, review, waiting, running, done, has, invite: has.upload && added.length > 0 };
 }
 function render() { ({ uploads: renderTimeline, mytimeline: renderMyTimeline, people: renderPeople, checks: renderChecks, account: renderAccount })[state.tab](); }
 

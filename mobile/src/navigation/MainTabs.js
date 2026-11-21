@@ -15,7 +15,7 @@ const Tab = createBottomTabNavigator();
 
 export default function MainTabs({ data }) {
   const jr = journey(data);
-  const invite = jr.invite || jr.request; // a new person to check with, or a friend's request waiting
+  const invite = jr.invite; // pulse only for someone newly added you've never checked with (requests get the badge)
   return (
     <View style={{ flex: 1 }}>
     <Tab.Navigator

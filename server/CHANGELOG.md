@@ -18,6 +18,10 @@ To check what's running on your server, visit `/api/config` — it reports the r
   top, the sign-in form in the middle of the screen, links at the bottom. The intro and privacy
   paragraphs are gone (web: under the button; Android: under the title and at the bottom).
 - Web My map: the date bar now sits under the map in its own card, as on Android.
+- Web: the raised Checks button shows the app icon (as on Android) instead of the old check mark.
+- Checks pulses only when someone new has been added that you've never checked with (both clients).
+  It no longer pulses for a friend's check request (that keeps its number badge) or for people
+  you've already checked with.
 
 ## 0.23.1 (Android 1.18.1)
 - My Map: the *Car routes* result now stays under the map while the switch is on (how many were
