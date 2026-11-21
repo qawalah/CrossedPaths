@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, View } from "react-native";
+import { Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, View } from "react-native";
 import { Text, TextInput } from "../components/AppText";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Button from "../components/Button";
@@ -8,9 +8,11 @@ import ThemeToggle from "../components/ThemeToggle";
 import { useAuth } from "../auth";
 import { changeLanguage } from "../changeLanguage";
 import { RTL, t } from "../i18n";
-import { colors, keepLabel } from "../theme";
+import { colors } from "../theme";
 import { useToast } from "../components/Toast";
 import { registerForPushNotifications } from "../notifications";
+
+const LOGO = require("../../assets/tab-logo.png"); // the app icon
 
 export default function AuthScreen({ navigation }) {
   const { login, register, cfg, loginWithPhone, loginWithGoogle, completeSignup } = useAuth();
@@ -76,14 +78,19 @@ export default function AuthScreen({ navigation }) {
       style={{ flex: 1, backgroundColor: colors.bg }}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
-      <ScrollView contentContainerStyle={{ padding: 20, paddingTop: insets.top + 30, paddingBottom: 40 }}>
-        <Text style={{ color: colors.text, fontSize: 26, fontWeight: "800", marginBottom: 8 }}>
-          {t("Did our paths ever cross?")}
-        </Text>
-        <Text style={{ color: colors.muted, marginBottom: 22, lineHeight: 20 }}>
-          {t("Compare Google Timeline exports with a friend — or a stranger — and see only the places and times you both were there.")}
-        </Text>
+      {/* logo and slogan at the top, the sign-in form in the middle, links at the bottom */}
+      <ScrollView
+        contentContainerStyle={{ flexGrow: 1, padding: 20, paddingTop: insets.top + 24, paddingBottom: Math.max(insets.bottom, 16) + 8 }}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View style={{ alignItems: "center" }}>
+          <Image source={LOGO} style={{ width: 76, height: 76, borderRadius: 20, marginBottom: 14 }} accessibilityLabel="CrossPaths" />
+          <Text style={{ color: colors.text, fontSize: 30, fontWeight: "800", lineHeight: 38, textAlign: "center" }}>
+            {t("Did our paths ever cross?")}
+          </Text>
+        </View>
 
+        <View style={{ flex: 1, justifyContent: "center", paddingVertical: 20 }}>
         {signupToken ? (
           <View>
             <Text style={{ color: colors.text, fontSize: 18, fontWeight: "700" }}>{t("Choose a username")}</Text>
@@ -167,17 +174,15 @@ export default function AuthScreen({ navigation }) {
             ) : null}
           </View>
         )}
+        </View>
         <Text
           onPress={() => navigation.navigate("Settings")}
-          style={{ color: colors.accent2, textAlign: "center", marginTop: 22 }}
+          style={{ color: colors.accent2, textAlign: "center" }}
         >
           {t("Server settings")}
         </Text>
         <Text onPress={() => changeLanguage(RTL ? "en" : "ar")} style={{ color: colors.accent2, textAlign: "center", marginTop: 14 }}>
           {RTL ? "English" : "العربية"}
-        </Text>
-        <Text style={{ color: colors.muted, fontSize: 12.5, marginTop: 24, textAlign: "center" }}>
-          {t("Your raw timeline is encrypted, used only for checks you agree to, and - unless you choose to keep it longer - deleted {when} after you upload it.", { when: keepLabel(cfg.upload_ttl_hours || 24) })}
         </Text>
       </ScrollView>
       <ThemeToggle />

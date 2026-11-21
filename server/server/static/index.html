@@ -111,7 +111,11 @@ a{color:var(--accent2)}
 .sheet{position:fixed;left:0;right:0;bottom:0;max-height:88%;overflow:auto;background:var(--panel);border-top:1px solid var(--line);border-radius:22px 22px 0 0;padding:18px 18px calc(22px + var(--sab));z-index:21;transform:translateY(100%);transition:transform .32s cubic-bezier(.2,.9,.25,1)}
 .sheet.on{transform:none}
 .grip{width:40px;height:4px;background:var(--line);border-radius:4px;margin:-6px auto 14px}
-.auth{max-width:420px;margin:0 auto;padding:10px 0 40px}
+.auth{max-width:420px;margin:0 auto;padding:0 0 8px;display:flex;flex-direction:column;min-height:calc(100vh - 80px - var(--sat) - var(--sab));min-height:calc(100dvh - 80px - var(--sat) - var(--sab))}
+.auth-top{text-align:center;padding-top:4px}.auth-top img{width:76px;height:76px;border-radius:20px;display:block;margin:0 auto 14px;box-shadow:0 6px 20px var(--shadow)}
+.auth-top h1{font-size:29px;line-height:1.2;margin:0}
+.auth-mid{flex:1;display:flex;flex-direction:column;justify-content:center;padding:20px 0}
+body.authmode #view{padding-bottom:16px}body.authmode header.top .brand{visibility:hidden}
 .seg{display:flex;background:var(--panel2);border-radius:12px;padding:3px;margin:14px 0}
 .seg button{flex:1;border:0;background:none;padding:9px;border-radius:10px;color:var(--muted);font-weight:600}
 .seg button.on{background:var(--panel);color:var(--text)}
@@ -1195,7 +1199,7 @@ async function boot() {
   state.cfg = await fetch("/api/config").then(r => r.json()).catch(() => ({}));
   if (state.token) { try { state.user = await api("/api/me"); } catch (e) { state.token = null; } }
   if (!state.user) { renderAuth(); if (!welcomeSeen()) showWelcome(); return; }
-  $("#header").style.display = ""; $("#tabs").style.display = "";
+  $("#header").style.display = ""; $("#tabs").style.display = ""; document.body.classList.remove("authmode");
   await refreshAll(); renderTabs(); render();
   clearInterval(pollTimer); pollTimer = setInterval(() => { if (!document.hidden) refreshSoft(); }, 4000);
   let pending = null; try { pending = sessionStorage.getItem("cp_pair"); sessionStorage.removeItem("cp_pair"); } catch (e) { /* private mode */ }
@@ -1203,17 +1207,19 @@ async function boot() {
   else if (!welcomeSeen()) showWelcome();
 }
 function renderAuth() {
-  $("#header").style.display = ""; $("#tabs").style.display = "none";
+  $("#header").style.display = ""; $("#tabs").style.display = "none"; document.body.classList.add("authmode");
   const reg = state.authMode === "register", c = state.cfg;
   $("#view").innerHTML = `<div class="auth">
-    <div class="hero" style="padding-top:${Math.max(6, 22)}px"><h1 style="font-size:21px">${t("Did our paths ever cross?")}</h1></div>
+    <div class="auth-top"><img src="/static/icon-192.png" alt="CrossPaths"><h1>${t("Did our paths ever cross?")}</h1></div>
+    <div class="auth-mid">
     <div class="seg"><button data-act="mode" data-m="login" class="${reg ? "" : "on"}">${t("Sign in")}</button><button data-act="mode" data-m="register" class="${reg ? "on" : ""}">${t("Create account")}</button></div>
     <label>${t("Username")}</label><input type="text" id="a_user" dir="ltr" autocomplete="username" autocapitalize="none" placeholder="${t("e.g. sara.k")}">
     <label>${t("Password")} ${reg ? t("(10+ characters)") : ""}</label><input type="password" id="a_pass" dir="ltr" autocomplete="${reg ? "new-password" : "current-password"}">
     ${reg && c.invite_required ? `<label>${t("Invite code")}</label><input type="text" id="a_inv" dir="ltr" autocapitalize="none">` : ""}
     <div style="margin-top:18px"><button class="btn" style="width:100%" data-act="auth">${reg ? t("Create account") : t("Sign in")}</button></div>
     ${reg && c.registration_open === false ? `<p class="muted small">${t("Registration is closed on this server.")}</p>` : ""}
-    <p class="small lang-link" style="margin-top:22px"><a href="#" data-act="lang" data-l="${RTL ? "en" : "ar"}" lang="${RTL ? "en" : "ar"}">${RTL ? "English" : "العربية"}</a></p></div>`;
+    </div>
+    <p class="small lang-link" style="margin-top:0"><a href="#" data-act="lang" data-l="${RTL ? "en" : "ar"}" lang="${RTL ? "en" : "ar"}">${RTL ? "English" : "العربية"}</a></p></div>`;
 }
 
 /* ---------- data ---------- */

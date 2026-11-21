@@ -14,7 +14,9 @@ To check what's running on your server, visit `/api/config` — it reports the r
   choice is gone from Settings and Account; an old "System" choice now means light.
 - Web: the first-start tutorial (the five animated cards) now opens before sign-in for first-time
   visitors, as on Android, instead of only after the first sign-in.
-- Web: the paragraph under the sign-in button is gone.
+- **Sign-in screen, both clients:** the app logo and a bigger "Did our paths ever cross?" at the
+  top, the sign-in form in the middle of the screen, links at the bottom. The intro and privacy
+  paragraphs are gone (web: under the button; Android: under the title and at the bottom).
 - Web My map: the date bar now sits under the map in its own card, as on Android.
 
 ## 0.23.1 (Android 1.18.1)
