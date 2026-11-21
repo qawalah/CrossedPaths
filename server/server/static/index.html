@@ -151,7 +151,7 @@ details summary{cursor:pointer;color:var(--accent2);font-size:13px;margin-top:8p
 .vchart{margin-top:8px}.cols{width:100%;height:auto;display:block}.cols .tick{fill:var(--muted);font-size:10px}.cols .peak{fill:var(--text);font-size:11px;font-weight:700}
 .cols .hit{cursor:pointer;outline:none}.cols .hit.on,.cols .hit:focus{fill:var(--hit)}
 .linkbtn{background:none;border:0;color:var(--accent2);font-size:12.5px;cursor:pointer;padding:4px}
-.vtable{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px;font-variant-numeric:tabular-nums}.vtable th{text-align:left;color:var(--muted);font-weight:600}.vtable td,.vtable th{padding:4px 2px;border-bottom:1px solid var(--line)}.vtable td:last-child,.vtable th:last-child{text-align:right}
+.vtable{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px;font-variant-numeric:tabular-nums}.vtable th{text-align:left;color:var(--muted);font-weight:600}.vtable td,.vtable th{padding:4px 2px;border-bottom:1px solid var(--line)}.admintbl td,.admintbl th{text-align:right}.admintbl td:first-child,.admintbl th:first-child{text-align:left}.vtable td:last-child,.vtable th:last-child{text-align:right}
 .hl{display:flex;align-items:center;gap:10px;width:100%;background:none;border:0;border-top:1px solid var(--line);color:var(--text);padding:10px 0;text-align:left;cursor:pointer}
 .hl-l{width:84px;flex:none;color:var(--muted);font-size:12.5px}.hl-m{flex:1;display:flex;flex-direction:column;gap:2px;font-size:13px}
 .vtip{position:absolute;z-index:3;pointer-events:none;background:var(--toast);border:1px solid var(--line);color:var(--text);font-size:12.5px;font-weight:650;padding:5px 9px;border-radius:8px;white-space:nowrap;box-shadow:0 6px 20px var(--shadow)}
@@ -328,13 +328,54 @@ const ICONS = {
   uploads: '<path d="M12 4v10m0-10 4 4m-4-4-4 4M5 17.5h14"/>',
   mytimeline: '<path d="M4 19c4-1 3-7 8-7s3-7 8-7"/><circle cx="4" cy="19" r="1.5"/><circle cx="20" cy="5" r="1.5"/>',
   people: '<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.5 3-5.5 6-5.5s6 2 6 5.5"/><path d="M16 5.5a3 3 0 010 5.5M18.5 20c0-2.2-1-3.8-2.6-4.7"/>',
-  checks: '<circle cx="12" cy="12" r="8"/><path d="M8.5 12.5l2.4 2.4 4.6-5"/>'
+  checks: '<circle cx="12" cy="12" r="8"/><path d="M8.5 12.5l2.4 2.4 4.6-5"/>',
+  admin: '<path d="M4 20V10M10 20V4M16 20v-7M21 20H3"/>'
 };
 function renderTabs() {
   const n = needsMe(), tabs = [["uploads", "Uploads"], ["mytimeline", "My Timeline"], ["people", "People"], ["checks", "Checks"]];
+  if (state.user && state.user.is_admin) tabs.push(["admin", "Admin"]);
   $("#tabs").innerHTML = tabs.map(([k, l]) => `<button data-act="tab" data-t="${k}" class="${state.tab === k ? "on" : ""}"><svg viewBox="0 0 24 24">${ICONS[k]}</svg>${l}${k === "checks" && n ? `<span class="dot">${n}</span>` : ""}</button>`).join("");
 }
-function render() { ({ uploads: renderTimeline, mytimeline: renderMyTimeline, people: renderPeople, checks: renderChecks })[state.tab](); }
+function render() { ({ uploads: renderTimeline, mytimeline: renderMyTimeline, people: renderPeople, checks: renderChecks, admin: renderAdmin })[state.tab](); }
+
+/* ---------- admin tab (only for ADMIN_HANDLES; server-wide counts, nothing about anyone's places) ---------- */
+const fmtN = n => n == null ? "–" : Number(n).toLocaleString(UI_LOCALE);
+const fmtBytes = b => b == null ? "–" : b < 1e6 ? Math.round(b / 1e3) + " KB" : b < 1e9 ? (b / 1e6).toFixed(1) + " MB" : (b / 1e9).toFixed(2) + " GB";
+const fmtDur = s => s < 3600 ? Math.round(s / 60) + " min" : s < 172800 ? Math.round(s / 3600) + " h" : Math.round(s / 86400) + " days";
+async function renderAdmin() {
+  $("#view").innerHTML = `<div class="hero"><h1>Admin</h1></div><p class="muted">Loading…</p>`;
+  let s; try { s = await api("/api/admin/stats"); } catch (e) { $("#view").innerHTML = `<div class="hero"><h1>Admin</h1></div><p class="muted">${esc(e.message)}</p>`; return; }
+  if (state.tab !== "admin") return;
+  const kpi = (l, v, sub) => `<div class="kpi"><div class="kpi-l">${esc(l)}</div><div class="kpi-v">${esc(v)}</div>${sub ? `<div class="kpi-s">${esc(sub)}</div>` : ""}</div>`;
+  const obj = o => Object.entries(o || {}).filter(([, v]) => v).map(([k, v]) => `${k} ${fmtN(v)}`).join(" · ") || "none";
+  const card = (title, rows) => `<div class="card"><h3>${esc(title)}</h3><table class="vtable">${rows.map(([k, v]) => `<tr><td>${esc(k)}</td><td>${esc(v)}</td></tr>`).join("")}</table></div>`;
+  const u = s.users, k = s.checks, up = s.uploads, sv = s.server, pl = s.places;
+  const days = s.daily.slice(-14).reverse();
+  $("#view").innerHTML = `<div class="hero"><h1>Admin</h1><p>Server ${esc(sv.version)} · up ${fmtDur(sv.uptime_s)}</p></div>
+    <div class="kpis">
+      ${kpi("Users", fmtN(u.total), `+${fmtN(u.new_7d)} this week`)}
+      ${kpi("Active (7 days)", fmtN(u.active_7d), `${fmtN(u.active_1d)} today · ${fmtN(u.active_30d)} in 30 days`)}
+      ${kpi("Checks run", fmtN(k.total), `${fmtN(k.last_7d)} this week`)}
+      ${kpi("Crossings found", fmtN(k.crossings_found), `in ${fmtN(k.with_crossings)} of ${fmtN(k.finished)} finished checks`)}
+      ${kpi("Uploads", fmtN(up.total), `${fmtN(up.stored)} still stored`)}
+      ${kpi("Results opened", fmtN(s.views.results_opened_7d), `this week · ${fmtN(s.views.results_opened_total)} ever`)}
+      ${kpi("Place data", pl.world_ready ? "Ready" : "Not yet", `${fmtN(pl.countries)} countries · ${fmtBytes(sv.places_bytes)}`)}
+      ${kpi("Disk free", fmtBytes(sv.disk_free_bytes), sv.disk_total_bytes ? `of ${fmtBytes(sv.disk_total_bytes)}` : "")}
+    </div>
+    ${card("People", [["New in 30 days", fmtN(u.new_30d)], ["Connections", obj(s.connections)], ["Connection requests sent", fmtN(s.pairing.connection_requests)],
+      ["Connected in person", obj(s.pairing.in_person)], ["Phones with notifications", obj(u.devices)], ["Keep uploads until deleted", fmtN(u.keep_until_deleted)]])}
+    ${card("Checks", [["Started in person", fmtN(k.in_person)], ["Right now", obj(k.current)]])}
+    ${k.recent_errors.length ? `<div class="card"><h3>Recent failed checks</h3>${k.recent_errors.map(e => `<p class="small"><span class="muted">${esc(dateStr(e.at))}</span> ${esc(e.error || "")}</p>`).join("")}</div>` : ""}
+    ${card("Uploads", [["This week", fmtN(up.last_7d)], ["Points stored", fmtN(up.points_stored)], ["By format", obj(up.by_format)], ["By trust", obj(up.by_trust)]])}
+    ${card("Server", [["Database", fmtBytes(sv.db_bytes)], ["Stored timelines", fmtBytes(sv.uploads_bytes)],
+      ["Place files downloaded", pl.downloaded.join(", ") || "none"], ["Registration", sv.registration_open ? (sv.invite_required ? "Open, invite code needed" : "Open") : "Closed"],
+      ["Failed sign-ins (24 h)", fmtN(s.security.failed_logins_24h)], ["Users at a daily limit today", obj(s.security.users_at_daily_limit)]])}
+    <div class="card"><h3>Last 14 days</h3><div style="overflow-x:auto"><table class="vtable admintbl"><thead><tr><th>Day</th><th>Active</th><th>Sign-ups</th><th>Uploads</th><th>Checks</th><th>Opened</th></tr></thead><tbody>
+      ${days.map(d => `<tr><td>${esc(d.day.slice(5))}</td><td>${fmtN(d.active || 0)}</td><td>${fmtN(d.signups)}</td><td>${fmtN(d.uploads)}</td><td>${fmtN(d.checks)}</td><td>${fmtN(d.results_opened)}</td></tr>`).join("") || `<tr><td colspan="6" class="muted">No activity yet</td></tr>`}
+    </tbody></table></div></div>
+    <p class="muted small" style="margin:12px 0 24px">Counts only. Map tiles load from OpenFreeMap straight to each phone or browser, so the server can't count them; "Opened" counts results whose map was opened.</p>
+    <div style="height:70px"></div>`;
+}
 
 /* ---------- timeline tab ---------- */
 // Where people can get a location history from, and how to export it. Shown under "Import a file".

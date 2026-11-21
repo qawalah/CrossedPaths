@@ -28,6 +28,8 @@ class Config:
     CHECK_INVITE_DAYS = float(os.environ.get("CHECK_INVITE_DAYS", "7"))  # unanswered check lapses
     ALLOW_REGISTRATION = _bool("ALLOW_REGISTRATION", True)
     INVITE_CODE = os.environ.get("INVITE_CODE", "").strip()              # if set, required at signup
+    # Usernames that see the Admin tab (server-wide counts only), comma-separated, e.g. "sara,omar".
+    ADMIN_HANDLES = os.environ.get("ADMIN_HANDLES", "")
     MAP_STYLE_URL = os.environ.get("MAP_STYLE_URL", "https://tiles.openfreemap.org/styles/liberty")
     LIMIT_UPLOADS_PER_DAY = int(os.environ.get("LIMIT_UPLOADS_PER_DAY", "10"))
     LIMIT_REQUESTS_PER_DAY = int(os.environ.get("LIMIT_REQUESTS_PER_DAY", "20"))

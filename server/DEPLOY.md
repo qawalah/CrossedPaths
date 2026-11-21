@@ -37,6 +37,8 @@ and geolocation, and the data is location-related. The container listens on plai
 With a reverse proxy on the same host, publish the port on localhost only
 (`"127.0.0.1:8787:8787"` in `docker-compose.yml`) so plain HTTP isn't reachable from outside.
 Set `INVITE_CODE`, and `ALLOW_REGISTRATION=false` once everyone has joined.
+Set `ADMIN_HANDLES=yourname` to get the Admin tab (server-wide counts) in the web app; after
+changing `.env`, run `docker compose up -d` so the container picks it up.
 
 ### The Android/iOS app: a backup address, switching automatically
 

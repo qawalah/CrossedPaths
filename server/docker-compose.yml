@@ -8,6 +8,7 @@ services:
     environment:
       INVITE_CODE: ${INVITE_CODE:-}
       ALLOW_REGISTRATION: ${ALLOW_REGISTRATION:-true}
+      ADMIN_HANDLES: ${ADMIN_HANDLES:-}                  # usernames that see the Admin tab, comma-separated
       MAP_STYLE_URL: ${MAP_STYLE_URL:-https://tiles.openfreemap.org/styles/liberty}
       MAX_UPLOAD_MB: ${MAX_UPLOAD_MB:-80}
       UPLOAD_TTL_HOURS: ${UPLOAD_TTL_HOURS:-24}          # default for new accounts; each user can change theirs

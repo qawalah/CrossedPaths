@@ -7,6 +7,15 @@ migration), MINOR for new features, PATCH for bugfixes. Pre-1.0, expect MINOR bu
 To check what's running on your server, visit `/api/config` — it reports the running
 `version`. That's the number to compare against this file when deciding whether to update.
 
+## 0.13.0
+- **Admin tab.** Set `ADMIN_HANDLES` (comma-separated usernames) and those accounts get an Admin
+  tab in the web app: users (total, new, active), checks run and crossings found, uploads and
+  stored data, results opened, connections and in-person pairings, place-name files downloaded,
+  disk/database size, failed sign-ins, users at a daily limit, and a 14-day activity table.
+  Counts only: no tracks, places or who-connected-with-whom. API: `GET /api/admin/stats`
+  (403 for everyone else); `/api/me` adds `is_admin: true` for admins.
+- Sign-ins and opened results are now written to the audit log (feeds the activity numbers).
+
 ## 0.12.0
 - **Import from more apps.** Uploads now accept GPX, TCX, FIT, KML/KMZ, GeoJSON and CSV files
   as well as Google Maps Timeline JSON, so routes from Strava, Apple Health, Samsung Health,

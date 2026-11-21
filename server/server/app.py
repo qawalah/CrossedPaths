@@ -14,7 +14,7 @@ from crosspaths.importers import Limits, parse_files
 from crosspaths.privacy import detect_anchor_zones
 from crosspaths.spoofcheck import assess
 
-from . import analysis, retention, runner
+from . import admin, analysis, retention, runner
 from .config import Config
 from .notifications import send_expo_push
 from .db import audit, close_db, get_db, init_db, new_id
@@ -37,6 +37,8 @@ def create_app(overrides=None, start_background=True):
     app.config["MAX_CONTENT_LENGTH"] = app.config["MAX_UPLOAD_MB"] * 1024 * 1024
     app.config["DATA_PATH"] = init_db(app.config["DATA_DIR"])
     app.teardown_appcontext(close_db)
+    started_at = time.time()
+    admins = {h.strip().lower().lstrip("@") for h in str(app.config["ADMIN_HANDLES"]).split(",") if h.strip()}
     if start_background:
         runner.purge(app)
         runner.start_purge_loop(app)
@@ -75,8 +77,11 @@ def create_app(overrides=None, start_background=True):
         return request.get_json(silent=True) or {}
 
     def user_dict(u):
-        return {"id": u["id"], "handle": u["handle"], "display_name": u["display_name"],
-                "upload_keep_hours": retention.keep_hours(app.config, u)}
+        out = {"id": u["id"], "handle": u["handle"], "display_name": u["display_name"],
+               "upload_keep_hours": retention.keep_hours(app.config, u)}
+        if u["handle"] in admins:
+            out["is_admin"] = True
+        return out
 
     def num(v, lo, hi, default):
         try:
@@ -168,6 +173,8 @@ def create_app(overrides=None, start_background=True):
             db.execute("INSERT INTO login_failures (handle, at) VALUES (?,?)", (handle, time.time()))
             db.commit()
             err("Wrong username or password", 401)
+        audit(db, u["id"], "login")
+        db.commit()
         return jsonify({"token": make_token(u["id"], app.config["SECRET_KEY"]), "user": user_dict(u)})
 
     @app.get("/api/me")
@@ -564,6 +571,8 @@ def create_app(overrides=None, start_background=True):
         """Your own path, cut into windows of a few hours around each crossing."""
         my_check(check_id)
         db = get_db()
+        audit(db, g.user["id"], "result_opened", check_id)   # the app fetches this once each time a result's map opens
+        db.commit()
         r = db.execute("SELECT track_json FROM check_participants WHERE check_id=? AND user_id=?", (check_id, g.user["id"])).fetchone()
         stored = json.loads(r["track_json"]) if r and r["track_json"] else None
         if isinstance(stored, dict):
@@ -586,6 +595,14 @@ def create_app(overrides=None, start_background=True):
         audit(db, g.user["id"], "check_deleted", check_id)
         db.commit()
         return jsonify({"ok": True})
+
+    # ---------------- admin ----------------
+    @app.get("/api/admin/stats")
+    @auth
+    def admin_stats():
+        if g.user["handle"] not in admins:
+            err("Admins only", 403)
+        return jsonify(admin.stats(get_db(), app.config, started_at))
 
     # ---------------- in-person pairing: QR code / invite link / shake ----------------
     # Meeting in person replaces the request -> accept -> request a check -> consent dance:

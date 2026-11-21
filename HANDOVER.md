@@ -46,6 +46,8 @@ Main features:
   - theme: system, dark or light, plus five accent colours;
   - per-user upload retention: 24 h (default), 7 days, 30 days, or until deleted;
   - two server addresses (main + backup) with automatic switching.
+- **Admin tab (web only):** usernames in `ADMIN_HANDLES` see server-wide counts
+  (`GET /api/admin/stats`, `server/server/admin.py`). Aggregates only, never places or tracks.
 - **Trust:** a heuristic check flags timelines that look fake or edited, shown as a warning on
   results.
 
@@ -76,7 +78,7 @@ Main features:
 planned), `buildNumber` 4. Waiting on the owner's Apple Developer enrollment; plan was EAS build
 and then TestFlight. `eas.json` exists, but there's no EAS `projectId` yet.
 
-**Server:** version in `server/VERSION`, currently **0.12.0**, reported at `GET /api/config`.
+**Server:** version in `server/VERSION`, currently **0.13.0**, reported at `GET /api/config`.
 Entry point `server/wsgi.py` → `server.app:create_app()`. Run by gunicorn: 1 worker, 8 threads,
 port 8787.
 
@@ -96,7 +98,7 @@ docker compose up -d --build        # first time, or when requirements.txt / Doc
 So **most updates are "copy those four in, restart the container"**, with no rebuild. Never touch
 `./data`.
 
-Tests (55 passing), from `server/`:
+Tests (56 passing), from `server/`:
 ```bash
 pip install -r requirements.txt pytest
 python -m pytest -q
