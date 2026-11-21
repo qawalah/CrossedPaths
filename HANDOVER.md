@@ -54,7 +54,8 @@ Main features:
   - *Scan my photos*: the app scans the phone's library; the web client reads EXIF from photos
     the user picks, in the browser. Only `{t, lat, lon}` points are uploaded.
 - **Settings:**
-  - theme: system, dark or light, plus five accent colours;
+  - theme: light by default whatever the device says, or dark if the user picks it with the sun/moon
+    button at the top of the screen (remembered), plus five accent colours;
   - per-user upload retention: 24 h (default), 7 days, 30 days, or until deleted;
   - two server addresses (main + backup) with automatic switching;
   - web only, for usernames in `ADMIN_HANDLES`: *Server (admin) → Street maps*.
@@ -75,7 +76,7 @@ Main features:
 - `applicationId` / namespace: `com.example.crosspaths`. **This must change before Play**: Play
   rejects `com.example.*`. The suggested name is `com.abu.crosspaths`. Changing it makes it a new
   app for anyone with the sideloaded version, so they'll need to install it fresh.
-- `versionCode` **21**, `versionName` **1.15.0** (in `mobile/app.json` and
+- `versionCode` **26**, `versionName` **1.19.0** (in `mobile/app.json` and
   `mobile/android/app/build.gradle`). `package.json` still says 1.0.0; ignore it.
 - **Signing:** there's no own key yet. Release builds are signed with React Native's stock
   **debug keystore** (`android/app/debug.keystore`, alias `androiddebugkey`; deliberately not in
@@ -88,7 +89,7 @@ Main features:
 planned), `buildNumber` 4. Waiting on the owner's Apple Developer enrollment; plan was EAS build
 and then TestFlight. `eas.json` exists, but there's no EAS `projectId` yet.
 
-**Server:** version in `server/VERSION`, currently **0.19.0**, reported at `GET /api/config`.
+**Server:** version in `server/VERSION`, currently **0.24.0**, reported at `GET /api/config`.
 Entry point `server/wsgi.py` → `server.app:create_app()`. Run by gunicorn: 1 worker, 8 threads,
 port 8787.
 
@@ -343,7 +344,9 @@ route files then. Separate workouts close together in place (within 200 m and 6 
   **once**, but a POST that *timed out* is never resent (it may have reached the server).
 
 **Mobile UI**
-- **Theme:** `colors` in `src/theme.js` is one mutable object. A theme change rewrites it and
+- **Theme:** the app starts in light mode on both clients (the owner asked for this); dark is only
+  ever the user's choice with the sun/moon button (`components/ThemeToggle.js`, web `#themebtn`).
+  Don't bring back "follow the system". `colors` in `src/theme.js` is one mutable object. A theme change rewrites it and
   the `NavigationContainer` remounts, keyed on the theme with its nav state preserved. Don't
   capture colours in `StyleSheet.create`.
 - **Language:** English and Arabic (RTL) on both clients, chosen under Account → Language

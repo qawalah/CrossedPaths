@@ -1,15 +1,13 @@
 import * as SecureStore from "expo-secure-store";
 import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
-import { useColorScheme } from "react-native";
 import { applyTheme, DEFAULT_THEME } from "./theme";
 
 const KEY = "cp_theme";
 const ThemeContext = createContext({ pref: DEFAULT_THEME, themeKey: "", setTheme: () => {} });
 
-/** Loads the saved theme, follows the system light/dark setting, and exposes setTheme.
+/** Loads the saved theme (light unless the user switched to dark) and exposes setTheme.
  *  `themeKey` changes whenever the colours do; the navigator remounts on it (keeping its state). */
 export function ThemeProvider({ children }) {
-  const scheme = useColorScheme();
   const [pref, setPref] = useState(null);
 
   useEffect(() => {
@@ -27,7 +25,7 @@ export function ThemeProvider({ children }) {
   }, []);
 
   if (!pref) return null; // a few ms while the saved theme loads, so nothing flashes in the wrong colours
-  const themeKey = applyTheme(pref, scheme); // rewrites `colors` before anything below renders
+  const themeKey = applyTheme(pref); // rewrites `colors` before anything below renders
   return React.createElement(ThemeContext.Provider, { value: { pref, themeKey, setTheme } }, children);
 }
 

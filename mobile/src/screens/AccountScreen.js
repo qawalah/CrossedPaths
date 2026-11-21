@@ -17,7 +17,7 @@ import { googleIdToken } from "../google";
 import { useTheme } from "../themeContext";
 import { changeLanguage } from "../changeLanguage";
 import { H, LANG_PREF, pl, RTL, t } from "../i18n";
-import { ACCENTS, colors, keepLabel, THEME_MODES } from "../theme";
+import { ACCENTS, colors, keepLabel } from "../theme";
 import Slider from "@react-native-community/slider";
 import { setScrubberPrefs, useScrubberPrefs, ZOOM_GESTURES } from "../scrubberPrefs";
 import { showWelcomeAgain } from "../welcome";
@@ -116,18 +116,7 @@ export default function AccountScreen({ navigation }) {
 
       <Card>
         <Text style={{ color: colors.text, fontWeight: "700", fontSize: 15 }}>{t("Appearance")}</Text>
-        <View style={{ flexDirection: "row", backgroundColor: colors.panel2, borderRadius: 12, padding: 3, marginTop: 12 }}>
-          {THEME_MODES.map(([k, label]) => (
-            <Pressable
-              key={k}
-              onPress={() => setTheme({ mode: k })}
-              style={{ flex: 1, paddingVertical: 9, borderRadius: 10, alignItems: "center", backgroundColor: pref.mode === k ? colors.panel : "transparent" }}
-            >
-              <Text style={{ color: pref.mode === k ? colors.text : colors.muted, fontWeight: "700" }}>{label}</Text>
-            </Pressable>
-          ))}
-        </View>
-        <Text style={{ color: colors.muted, fontSize: 12.5, marginTop: 14, marginBottom: 8 }}>{t("Accent colour")}</Text>
+        <Text style={{ color: colors.muted, fontSize: 12.5, marginTop: 6, marginBottom: 8 }}>{t("Accent colour")}</Text>
         <View style={{ flexDirection: "row", gap: 14 }}>
           {Object.entries(ACCENTS).map(([k, a]) => {
             const on = pref.accent === k;

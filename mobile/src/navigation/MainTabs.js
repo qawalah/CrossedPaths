@@ -1,7 +1,9 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import React from "react";
+import { View } from "react-native";
 import TabBar from "../components/TabBar";
 import TabScene from "../components/TabScene";
+import ThemeToggle from "../components/ThemeToggle";
 import { journey } from "../journey";
 import AccountScreen from "../screens/AccountScreen";
 import ChecksScreen from "../screens/ChecksScreen";
@@ -15,6 +17,7 @@ export default function MainTabs({ data }) {
   const jr = journey(data);
   const invite = jr.invite || jr.request; // a new person to check with, or a friend's request waiting
   return (
+    <View style={{ flex: 1 }}>
     <Tab.Navigator
       screenOptions={{ headerShown: false }}
       tabBar={(props) => <TabBar {...props} invite={invite} badges={{ Checks: data.pendingForMe || undefined }} />}
@@ -56,5 +59,8 @@ export default function MainTabs({ data }) {
         )}
       </Tab.Screen>
     </Tab.Navigator>
+    {/* light/dark switch, at the top of every tab */}
+    <ThemeToggle />
+    </View>
   );
 }

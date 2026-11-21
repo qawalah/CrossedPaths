@@ -482,6 +482,8 @@ export default {
   "My Map": "خريطتي",
   "{tab}, a check is ready to run": "{tab}، هناك فحص جاهز للتشغيل",
   "Show the tutorial again": "عرض الشرح التعريفي مجددًا",
+  "Switch to light mode": "التبديل إلى الوضع الفاتح",
+  "Switch to dark mode": "التبديل إلى الوضع الداكن",
   "My map": "خريطتي",
   "{n} MB": "{n} ميغابايت",
   "+{n} more": "و{n} غيرها",

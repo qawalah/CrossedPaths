@@ -1,4 +1,4 @@
-// ---------- themes: dark / light (or follow the system) + an accent colour ----------
+// ---------- themes: light (always the start) / dark + an accent colour ----------
 // `colors` is one shared object that every screen reads while rendering. Changing the theme
 // rewrites it in place and the app re-renders from the top (see themeContext.js).
 const DARK = {
@@ -28,23 +28,15 @@ onLanguage(() => {
   rose: { name: t("Rose"), dark: ["#fb7185", "#33060f"], light: ["#e11d48", "#ffffff"] },
 };
 });
-export let THEME_MODES;
-onLanguage(() => {
-  THEME_MODES = [
-  ["system", t("System")],
-  ["dark", t("Dark")],
-  ["light", t("Light")],
-];
-});
-export const DEFAULT_THEME = { mode: "system", accent: "teal" };
+// The app starts in light mode whatever the phone is set to; the sun/moon button at the top switches it.
+export const DEFAULT_THEME = { mode: "light", accent: "teal" };
 
 export const colors = { ...DARK, accent: ACCENTS.teal.dark[0], onAccent: ACCENTS.teal.dark[1], isDark: true };
 
-/** Rewrite `colors` for this preference; systemScheme is "light" | "dark" | null. Returns a key that
- * changes whenever the colours do. */
-export function applyTheme(pref, systemScheme) {
+/** Rewrite `colors` for this preference. Returns a key that changes whenever the colours do. */
+export function applyTheme(pref) {
   const p = { ...DEFAULT_THEME, ...(pref || {}) };
-  const dark = p.mode === "dark" || (p.mode !== "light" && systemScheme !== "light");
+  const dark = p.mode === "dark"; // an old "system" choice now means light too
   Object.assign(colors, dark ? DARK : LIGHT);
   const a = (ACCENTS[p.accent] || ACCENTS.teal)[dark ? "dark" : "light"];
   colors.accent = a[0];

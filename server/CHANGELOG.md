@@ -7,6 +7,16 @@ migration), MINOR for new features, PATCH for bugfixes. Pre-1.0, expect MINOR bu
 To check what's running on your server, visit `/api/config` — it reports the running
 `version`. That's the number to compare against this file when deciding whether to update.
 
+## 0.24.0 (Android 1.19.0)
+- **Light mode by default.** Both clients start in light mode, whatever the phone or browser is set
+  to. A sun/moon button at the top switches to dark and back (web: in the header, also on the
+  sign-in page; Android: top corner of every tab and the sign-in screen). The System / Dark / Light
+  choice is gone from Settings and Account; an old "System" choice now means light.
+- Web: the first-start tutorial (the five animated cards) now opens before sign-in for first-time
+  visitors, as on Android, instead of only after the first sign-in.
+- Web: the paragraph under the sign-in button is gone.
+- Web My map: the date bar now sits under the map in its own card, as on Android.
+
 ## 0.23.1 (Android 1.18.1)
 - My Map: the *Car routes* result now stays under the map while the switch is on (how many were
   added, or why none were: no street maps, server too old, or no gap within the gap rules, which it

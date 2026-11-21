@@ -4,6 +4,7 @@ import { Text, TextInput } from "../components/AppText";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Button from "../components/Button";
 import PhoneCodeForm from "../components/PhoneCodeForm";
+import ThemeToggle from "../components/ThemeToggle";
 import { useAuth } from "../auth";
 import { changeLanguage } from "../changeLanguage";
 import { RTL, t } from "../i18n";
@@ -179,6 +180,7 @@ export default function AuthScreen({ navigation }) {
           {t("Your raw timeline is encrypted, used only for checks you agree to, and - unless you choose to keep it longer - deleted {when} after you upload it.", { when: keepLabel(cfg.upload_ttl_hours || 24) })}
         </Text>
       </ScrollView>
+      <ThemeToggle />
     </KeyboardAvoidingView>
   );
 }
