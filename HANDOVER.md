@@ -58,7 +58,8 @@ Main features:
     button at the top of the screen (remembered), plus five accent colours;
   - per-user upload retention: 24 h (default), 7 days, 30 days, or until deleted;
   - two server addresses (main + backup) with automatic switching;
-  - web only, for usernames in `ADMIN_HANDLES`: *Server (admin) → Street maps*.
+  - web only, for usernames in `ADMIN_HANDLES`: *Server (admin) → Server stats* (counts only,
+    `server/server/admin.py`, `GET /api/admin/stats`) and *Server (admin) → Street maps*.
 - **Trust:** a heuristic check flags timelines that look fake or edited, shown as a warning on
   results.
 

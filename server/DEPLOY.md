@@ -88,7 +88,8 @@ Never delete or overwrite `data/`.
 - `MAX_UPLOAD_MB`: the whole JSON is parsed in RAM (~5-10x file size). Raise it only with more
   RAM (and raise `mem_limit` in `docker-compose.yml` to match).
 
-- `ADMIN_HANDLES=yourname` to manage **street maps**: then *Settings → Server (admin) → Street
+- `ADMIN_HANDLES=yourname` to see **server stats** (users, checks, uploads, disk; counts only)
+  and to manage **street maps**: then *Settings → Server (admin) → Street
   maps* on the web lets you add countries. Journeys there are drawn along roads instead of
   straight lines. Pick single countries (or US states etc.), not whole continents; downloads over
   `ROADS_MAX_DOWNLOAD_MB` are refused. Maps live in `data/roads/` and survive updates. If one

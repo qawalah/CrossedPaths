@@ -200,7 +200,7 @@ details summary{cursor:pointer;color:var(--accent2);font-size:13px;margin-top:8p
 .vchart{margin-top:8px}.cols{width:100%;height:auto;display:block}.cols .tick{fill:var(--muted);font-size:10px}.cols .peak{fill:var(--text);font-size:11px;font-weight:700}
 .cols .hit{cursor:pointer;outline:none}.cols .hit.on,.cols .hit:focus{fill:var(--hit)}
 .linkbtn{background:none;border:0;color:var(--accent2);font-size:12.5px;cursor:pointer;padding:4px}
-.vtable{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px;font-variant-numeric:tabular-nums}.vtable th{text-align:start;color:var(--muted);font-weight:600}.vtable td,.vtable th{padding:4px 2px;border-bottom:1px solid var(--line)}.vtable td:last-child,.vtable th:last-child{text-align:end}
+.vtable{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px;font-variant-numeric:tabular-nums}.vtable th{text-align:start;color:var(--muted);font-weight:600}.admintbl td,.admintbl th{text-align:end}.admintbl td:first-child,.admintbl th:first-child{text-align:start}.vtable td,.vtable th{padding:4px 2px;border-bottom:1px solid var(--line)}.vtable td:last-child,.vtable th:last-child{text-align:end}
 .hl{display:flex;align-items:center;gap:10px;width:100%;background:none;border:0;border-top:1px solid var(--line);color:var(--text);padding:10px 0;text-align:start;cursor:pointer}
 .hl-l{width:84px;flex:none;color:var(--muted);font-size:12.5px}.hl-m{flex:1;display:flex;flex-direction:column;gap:2px;font-size:13px}
 .vtip{position:absolute;z-index:3;pointer-events:none;background:var(--toast);border:1px solid var(--line);color:var(--text);font-size:12.5px;font-weight:600;padding:5px 9px;border-radius:8px;white-space:nowrap;box-shadow:0 6px 20px var(--shadow)}
@@ -1050,6 +1050,58 @@ const AR_STR = {
   "Put every routing option back to its suggested value?": "إعادة كل خيارات المسارات إلى قيمها المقترحة؟",
   "That upload has expired. Start it again.": "انتهت صلاحية هذا الرفع. ابدأه من جديد.",
   "data must be base64": "يجب أن تكون البيانات بترميز base64",
+  "Server stats: users, checks, maps": "إحصاءات الخادم: المستخدمون والفحوصات والخرائط",
+  "Server stats": "إحصاءات الخادم",
+  "Server {v} · up {d}": "الخادم {v} · يعمل منذ {d}",
+  "Users": "المستخدمون",
+  "+{n} this week": "+{n} هذا الأسبوع",
+  "Active (7 days)": "النشطون (7 أيام)",
+  "{a} today · {b} in 30 days": "{a} اليوم · {b} خلال 30 يومًا",
+  "Checks run": "الفحوصات المنفذة",
+  "{n} this week": "{n} هذا الأسبوع",
+  "Crossings found": "التقاطعات المكتشفة",
+  "in {a} of {b} finished checks": "في {a} من {b} فحصًا مكتملًا",
+  "Timelines uploaded": "الخطوط الزمنية المرفوعة",
+  "{n} still stored": "{n} ما زالت محفوظة",
+  "Results opened": "النتائج المفتوحة",
+  "this week · {n} ever": "هذا الأسبوع · {n} إجمالًا",
+  "{a} of {b} ready": "{a} من {b} جاهزة",
+  "Disk free": "المساحة الحرة",
+  "of {n}": "من {n}",
+  "New in 30 days": "جدد خلال 30 يومًا",
+  "Connection requests sent": "طلبات الاتصال المرسلة",
+  "Connected in person": "اتصلوا وجهًا لوجه",
+  "Sign-in methods": "طرق تسجيل الدخول",
+  "Phones with notifications": "هواتف تتلقى الإشعارات",
+  "Keep uploads until deleted": "يحتفظون بالرفع حتى الحذف",
+  "Started in person": "بدأت وجهًا لوجه",
+  "Right now": "الآن",
+  "Recent failed checks": "فحوصات فشلت مؤخرًا",
+  "This week": "هذا الأسبوع",
+  "Points stored": "النقاط المحفوظة",
+  "Copies exported": "النسخ المصدّرة",
+  "By format": "حسب الصيغة",
+  "By trust": "حسب الموثوقية",
+  "Server": "الخادم",
+  "Database": "قاعدة البيانات",
+  "Stored timelines": "الخطوط الزمنية المحفوظة",
+  "Place names": "أسماء الأماكن",
+  "World + {n} countries": "العالم + {n} دولة",
+  "Not downloaded yet": "لم تُنزّل بعد",
+  "Registration": "التسجيل",
+  "Open to everyone": "مفتوح للجميع",
+  "Open, invite code needed": "مفتوح، يلزم رمز دعوة",
+  "Closed": "مغلق",
+  "Failed sign-ins (24 h)": "محاولات دخول فاشلة (24 ساعة)",
+  "Users at a daily limit today": "مستخدمون بلغوا الحد اليومي اليوم",
+  "Last 14 days": "آخر 14 يومًا",
+  "Date": "التاريخ",
+  "Active": "نشطون",
+  "Sign-ups": "تسجيلات",
+  "Opened": "فُتحت",
+  "No activity yet": "لا يوجد نشاط بعد",
+  "none": "لا شيء",
+  "Counts only: nobody's places, paths or connections. Map tiles load from OpenFreeMap straight to each phone or browser, so they aren't counted here; Opened counts results whose map was opened.": "أعداد فقط: لا أماكن ولا مسارات ولا اتصالات لأحد. تُحمَّل خرائط الخلفية من OpenFreeMap مباشرة إلى كل هاتف أو متصفح فلا تُحسب هنا؛ و«فُتحت» تعني النتائج التي فُتحت خريطتها.",
 /*AR:end*/
 };
 const t = (s, p) => { const r = (RTL && AR_STR[s]) || s; return p ? r.replace(/\{(\w+)\}/g, (m, k) => (p[k] != null ? p[k] : m)) : r; };
@@ -2052,6 +2104,7 @@ function settingsBody() {
     <label style="margin-top:18px">${t("My map date bar: zoom in by")}</label><div class="seg" id="scgest" style="margin-top:0">${[["pull", t("Sliding up")], ["hold", t("Holding still")], ["both", t("Both")]].map(([k, l]) => `<button data-g="${k}" class="${scrubPrefs().gesture === k ? "on" : ""}">${l}</button>`).join("")}</div>
     <div id="schold" ${scrubPrefs().gesture === "pull" ? "hidden" : ""}><label>${t("Hold for: {v} s", { v: `<b id="scholdv">${(scrubPrefs().holdMs / 1000).toFixed(1)}</b>` })}</label><input type="range" id="schms" min="300" max="1500" step="100" value="${scrubPrefs().holdMs}"></div>
     ${u.is_admin ? `<label style="margin-top:18px">${t("Server (admin)")}</label>
+    <div class="zone"><span>${t("Server stats: users, checks, maps")}</span><button class="btn ghost sm" id="statsbtn">${t("View")}</button></div>
     <div class="zone"><span>${t("Street maps: draw journeys along roads")}</span><button class="btn ghost sm" id="roadsbtn">${t("Manage")}</button></div>` : ""}`;
 }
 function settingsSheet() {
@@ -2063,6 +2116,7 @@ function wireSettings(sh) {
   const note = keepNote, $$ = q => $(q, sh);
   wireHScroll(sh);
   if ($$("#roadsbtn")) $$("#roadsbtn").onclick = () => roadsSheet();
+  if ($$("#statsbtn")) $$("#statsbtn").onclick = () => statsSheet();
   $$("#thlang").onclick = e => { const b = e.target.closest("[data-lang]"); if (b && b.dataset.lang !== langPref()) setLang(b.dataset.lang); };
   $$("#thacc").onclick = e => { const b = e.target.closest("[data-acc]"); if (!b) return; setTheme({ accent: b.dataset.acc }); $$("#thacc").querySelectorAll(".sw2").forEach(x => x.classList.toggle("on", x === b)); };
   $$("#scgest").onclick = e => { const b = e.target.closest("[data-g]"); if (!b) return; setScrubPrefs({ gesture: b.dataset.g }); $$("#scgest").querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b)); $$("#schold").hidden = b.dataset.g === "pull"; if (MYT.scrub) MYT.scrub.refresh(); };
@@ -2082,6 +2136,48 @@ function wireSettings(sh) {
       toast(h ? t("Uploads are now deleted after {when}", { when: keepLabel(h) }) : t("Uploads are now kept until you delete them"));
     } catch (err) { toast(err.message, true); }
   };
+}
+
+/* ---- admin: server stats (counts only; GET /api/admin/stats) ---- */
+const fmtBytes = b => b == null ? "–" : b < 1e6 ? Math.round(b / 1e3) + " KB" : b < 1e9 ? (b / 1e6).toFixed(1) + " MB" : (b / 1e9).toFixed(2) + " GB";
+const fmtUp = s => s < 3600 ? t("{n} min", { n: Math.round(s / 60) }) : s < 172800 ? t("{n} h", { n: Math.round(s / 3600) }) : t("{n} days", { n: Math.round(s / 86400) });
+async function statsSheet() {
+  openSheet(`<h2>${t("Server stats")}</h2><div id="stbody"><p class="muted small"><span class="spin"></span> ${t("Loading…")}</p></div>
+    <div class="row" style="margin-top:18px"><button class="btn grow" id="stdone">${t("Done")}</button></div>`);
+  $("#stdone").onclick = () => closeSheet();
+  let s; try { s = await api("/api/admin/stats"); } catch (e) { if ($("#stbody")) $("#stbody").textContent = e.message; return; }
+  const box = $("#stbody"); if (!box) return;
+  const kpi = (l, v, sub) => `<div class="kpi"><div class="kpi-l">${esc(l)}</div><div class="kpi-v">${esc(v)}</div>${sub ? `<div class="kpi-s">${esc(sub)}</div>` : ""}</div>`;
+  const obj = o => Object.entries(o || {}).filter(([, v]) => v).map(([k, v]) => `${k} ${fmtN(v)}`).join(" · ") || t("none");
+  const card = (title, rows) => `<div class="card"><h3>${esc(title)}</h3><table class="vtable">${rows.map(([k, v]) => `<tr><td>${esc(k)}</td><td>${esc(v)}</td></tr>`).join("")}</table></div>`;
+  const u = s.users, k = s.checks, up = s.uploads, sv = s.server, pl = s.places, maps = s.street_maps || [];
+  const ready = maps.filter(m => m.state === "ready"), days = s.daily.slice(-14).reverse();
+  box.innerHTML = `<p class="muted small" style="margin-top:0">${esc(t("Server {v} · up {d}", { v: sv.version, d: fmtUp(sv.uptime_s) }))}</p>
+    <div class="kpis">
+      ${kpi(t("Users"), fmtN(u.total), t("+{n} this week", { n: fmtN(u.new_7d) }))}
+      ${kpi(t("Active (7 days)"), fmtN(u.active_7d), t("{a} today · {b} in 30 days", { a: fmtN(u.active_1d), b: fmtN(u.active_30d) }))}
+      ${kpi(t("Checks run"), fmtN(k.total), t("{n} this week", { n: fmtN(k.last_7d) }))}
+      ${kpi(t("Crossings found"), fmtN(k.crossings_found), t("in {a} of {b} finished checks", { a: fmtN(k.with_crossings), b: fmtN(k.finished) }))}
+      ${kpi(t("Timelines uploaded"), fmtN(up.total), t("{n} still stored", { n: fmtN(up.stored) }))}
+      ${kpi(t("Results opened"), fmtN(s.views.results_opened_7d), t("this week · {n} ever", { n: fmtN(s.views.results_opened_total) }))}
+      ${kpi(t("Street maps"), fmtN(ready.length), maps.length ? t("{a} of {b} ready", { a: fmtN(ready.length), b: fmtN(maps.length) }) : t("none"))}
+      ${kpi(t("Disk free"), fmtBytes(sv.disk_free_bytes), sv.disk_total_bytes ? t("of {n}", { n: fmtBytes(sv.disk_total_bytes) }) : "")}
+    </div>
+    ${card(t("People"), [[t("New in 30 days"), fmtN(u.new_30d)], [t("Sign-in methods"), obj(u.sign_in)], [t("Connections"), obj(s.connections)],
+      [t("Connection requests sent"), fmtN(s.pairing.connection_requests)], [t("Connected in person"), obj(s.pairing.in_person)],
+      [t("Phones with notifications"), obj(u.devices)], [t("Keep uploads until deleted"), fmtN(u.keep_until_deleted)]])}
+    ${card(t("Checks"), [[t("Started in person"), fmtN(k.in_person)], [t("Right now"), obj(k.current)]])}
+    ${k.recent_errors.length ? `<div class="card"><h3>${t("Recent failed checks")}</h3>${k.recent_errors.map(e => `<p class="small"><span class="muted">${esc(dateStr(e.at))}</span> ${esc(e.error || "")}</p>`).join("")}</div>` : ""}
+    ${card(t("Uploads"), [[t("This week"), fmtN(up.last_7d)], [t("Points stored"), fmtN(up.points_stored)], [t("Copies exported"), fmtN(up.exports)], [t("By format"), obj(up.by_format)], [t("By trust"), obj(up.by_trust)]])}
+    ${card(t("Server"), [[t("Database"), fmtBytes(sv.db_bytes)], [t("Stored timelines"), fmtBytes(sv.uploads_bytes)],
+      [t("Street maps"), maps.length ? maps.map(m => `${m.name} (${m.state}${m.disk_mb != null ? ", " + Math.round(m.disk_mb) + " MB" : ""})`).join(", ") : t("none")],
+      [t("Place names"), pl.world_ready ? t("World + {n} countries", { n: fmtN(pl.countries) }) + " · " + fmtBytes(sv.places_bytes) : t("Not downloaded yet")],
+      [t("Registration"), sv.registration_open ? (sv.invite_required ? t("Open, invite code needed") : t("Open to everyone")) : t("Closed")],
+      [t("Failed sign-ins (24 h)"), fmtN(s.security.failed_logins_24h)], [t("Users at a daily limit today"), obj(s.security.users_at_daily_limit)]])}
+    <div class="card"><h3>${t("Last 14 days")}</h3><div style="overflow-x:auto"><table class="vtable admintbl"><thead><tr><th>${t("Date")}</th><th>${t("Active")}</th><th>${t("Sign-ups")}</th><th>${t("Uploads")}</th><th>${t("Checks")}</th><th>${t("Opened")}</th></tr></thead><tbody>
+      ${days.map(d => `<tr><td>${esc(d.day.slice(5))}</td><td>${fmtN(d.active)}</td><td>${fmtN(d.signups)}</td><td>${fmtN(d.uploads)}</td><td>${fmtN(d.checks)}</td><td>${fmtN(d.results_opened)}</td></tr>`).join("") || `<tr><td colspan="6" class="muted">${t("No activity yet")}</td></tr>`}
+    </tbody></table></div></div>
+    <p class="muted small" style="margin:12px 0 0">${t("Counts only: nobody's places, paths or connections. Map tiles load from OpenFreeMap straight to each phone or browser, so they aren't counted here; Opened counts results whose map was opened.")}</p>`;
 }
 
 /* ---- admin: street maps (countries whose roads journeys are drawn along) ---- */

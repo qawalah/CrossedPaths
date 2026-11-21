@@ -645,3 +645,26 @@ def test_combine_sources_add_later_and_export():
     assert r.status_code == 404
     assert c.post(f"/api/uploads/{first}/sources", headers=h, data={}, content_type="multipart/form-data").status_code == 400
     shutil.rmtree(d, ignore_errors=True)
+
+
+def test_admin_stats_are_admin_only_and_aggregate():
+    app, c, d = make_client(ADMIN_HANDLES={"alice"})
+    ha, hb, ua, ub, conn = setup_pair(c)
+    assert c.get("/api/me", headers=ha).get_json()["is_admin"] is True
+    assert c.get("/api/me", headers=hb).get_json()["is_admin"] is False
+    assert c.get("/api/admin/stats", headers=hb).status_code == 403
+    assert c.get("/api/admin/stats").status_code == 401
+    r = c.post("/api/checks", headers=ha, json={"connection_id": conn, "upload_id": ua["id"]})
+    cid = r.get_json()["id"]
+    assert c.post(f"/api/checks/{cid}/consent", headers=hb, json={"upload_id": ub["id"]}).status_code == 200
+    wait_done(c, ha, cid)
+    assert c.get(f"/api/checks/{cid}/my-track", headers=ha).status_code == 200
+    s = c.get("/api/admin/stats", headers=ha).get_json()
+    assert s["users"]["total"] == 2 and s["users"]["new_7d"] == 2 and s["users"]["active_7d"] == 2 and s["users"]["sign_in"]["password"] == 2
+    assert s["uploads"]["total"] == 2 and s["uploads"]["stored"] == 2
+    assert s["connections"] == {"accepted": 1}
+    assert s["checks"]["total"] == 1 and s["checks"]["finished"] == 1 and s["checks"]["crossings_found"] > 0
+    assert s["views"]["results_opened_total"] == 1
+    assert s["daily"][-1]["signups"] == 2 and s["daily"][-1]["checks"] == 1
+    assert '"lat"' not in json.dumps(s) and "track_json" not in json.dumps(s)   # nothing location-shaped
+    shutil.rmtree(d, ignore_errors=True)

@@ -7,6 +7,16 @@ migration), MINOR for new features, PATCH for bugfixes. Pre-1.0, expect MINOR bu
 To check what's running on your server, visit `/api/config` — it reports the running
 `version`. That's the number to compare against this file when deciding whether to update.
 
+## 0.25.0
+- **Server stats for admins.** On the web, usernames in `ADMIN_HANDLES` get *Account → Server
+  (admin) → Server stats*: users (total, new, active today / 7 / 30 days, sign-in methods), checks
+  run and crossings found, timelines uploaded and still stored, results opened, exports,
+  connections and in-person pairings, street maps downloaded, place-name data, database and disk
+  size, failed sign-ins, users at a daily limit, recent failed checks and a 14-day activity table.
+  Counts only: nobody's places, paths or connections. Nobody else sees it, and
+  `GET /api/admin/stats` answers 403 for them.
+- Sign-ins and opened results are now written to the audit log (they feed the activity numbers).
+
 ## 0.24.0 (Android 1.19.0)
 - **Light mode by default.** Both clients start in light mode, whatever the phone or browser is set
   to. A sun/moon button at the top switches to dark and back (web: in the header, also on the

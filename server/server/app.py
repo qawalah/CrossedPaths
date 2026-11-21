@@ -19,6 +19,7 @@ from crosspaths.privacy import detect_anchor_zones
 from crosspaths.snap import estimate_gaps, snap_points
 from crosspaths.spoofcheck import assess
 
+from . import admin as admin_stats_mod
 from . import analysis, identity, otp, retention, runner, whatsapp
 from .roads import roads_for
 from .config import Config
@@ -44,6 +45,7 @@ def create_app(overrides=None, start_background=True):
     app.config.setdefault("GOOGLE_VERIFIER", identity.verify_google)
     app.config["MAX_CONTENT_LENGTH"] = app.config["MAX_UPLOAD_MB"] * 1024 * 1024
     app.config["DATA_PATH"] = init_db(app.config["DATA_DIR"])
+    started_at = time.time()
     app.teardown_appcontext(close_db)
     if start_background:
         runner.purge(app)
@@ -181,6 +183,7 @@ def create_app(overrides=None, start_background=True):
         return db.execute("SELECT * FROM users WHERE id=?", (uid,)).fetchone()
 
     def session(u):
+        audit(get_db(), u["id"], "login"); get_db().commit()   # feeds the admin activity numbers
         return {"token": make_token(u["id"], app.config["SECRET_KEY"]), "user": user_dict(u)}
 
     @app.post("/api/register")
@@ -893,6 +896,8 @@ def create_app(overrides=None, start_background=True):
         """Your own path, cut into windows of a few hours around each crossing."""
         my_check(check_id)
         db = get_db()
+        audit(db, g.user["id"], "result_opened", check_id)   # fetched once each time a result's map opens
+        db.commit()
         r = db.execute("SELECT track_json FROM check_participants WHERE check_id=? AND user_id=?", (check_id, g.user["id"])).fetchone()
         stored = json.loads(r["track_json"]) if r and r["track_json"] else None
         if isinstance(stored, dict):
@@ -915,6 +920,17 @@ def create_app(overrides=None, start_background=True):
         audit(db, g.user["id"], "check_deleted", check_id)
         db.commit()
         return jsonify({"ok": True})
+
+    # ---------------- admin: server stats ----------------
+    @app.get("/api/admin/stats")
+    @auth
+    @admin
+    def admin_stats():
+        try:
+            regions = roads_for(app.config).regions()
+        except Exception:  # noqa: BLE001 - stats still load if the street-map folder can't be read
+            regions = []
+        return jsonify(admin_stats_mod.stats(get_db(), app.config, started_at, regions))
 
     # ---------------- admin: street maps ----------------
     @app.get("/api/admin/roads")
