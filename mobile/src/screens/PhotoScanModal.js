@@ -9,6 +9,7 @@ import DateRangePicker from "../components/DateRangePicker";
 import { useToast } from "../components/Toast";
 import { Api } from "../api";
 import { colors, trustLabel } from "../theme";
+import { T } from "../i18n";
 
 const BATCH_SIZE = 200; // assets fetched per getAssetsAsync page
 const CONCURRENCY = 16; // getAssetInfoAsync calls in flight at once
@@ -45,7 +46,7 @@ export default function PhotoScanModal({ navigation, cfg, onDone }) {
     try {
       const perm = await MediaLibrary.requestPermissionsAsync();
       if (perm.status !== "granted") {
-        toast("Photo library access is needed to scan for geotagged photos", true);
+        toast(T("Photo library access is needed to scan for geotagged photos"), true);
         setScanning(false);
         return;
       }
@@ -88,8 +89,8 @@ export default function PhotoScanModal({ navigation, cfg, onDone }) {
       if (points.length < MIN_POINTS) {
         toast(
           points.length === 0
-            ? "None of those photos carry GPS data. Many apps strip location on save/share — try photos straight from the camera."
-            : `Only ${points.length} geotagged photos found — need at least ${MIN_POINTS}. Try widening the date range.`,
+            ? T("None of those photos carry GPS data. Many apps strip location on save/share — try photos straight from the camera.")
+            : T("Only {n} geotagged photos found — need at least {min}. Try widening the date range.", { n: points.length, min: MIN_POINTS }),
           true
         );
         return;
@@ -103,17 +104,17 @@ export default function PhotoScanModal({ navigation, cfg, onDone }) {
       if (cfg && cfg.max_upload_mb) {
         const info = await FileSystem.getInfoAsync(fileUri);
         if (info.size && info.size > cfg.max_upload_mb * 1048576) {
-          toast(`That's too much data for one upload (limit ${cfg.max_upload_mb} MB) — narrow the date range.`, true);
+          toast(T("That's too much data for one upload (limit {max} MB) — narrow the date range.", { max: cfg.max_upload_mb }), true);
           return;
         }
       }
 
       const u = await Api.upload(fileUri, "photo-timeline.json");
-      toast(`Timeline built from ${points.length} photos · ${trustLabel(u.trust.level)}`);
+      toast(T("Timeline built from {n} photos", { n: points.length }) + " · " + trustLabel(u.trust.level));
       await onDone();
       navigation.goBack();
     } catch (e) {
-      toast(e.message || "Couldn't scan your photo library", true);
+      toast(e.message || T("Couldn't scan your photo library"), true);
     } finally {
       setScanning(false);
       setUploading(false);
@@ -127,28 +128,24 @@ export default function PhotoScanModal({ navigation, cfg, onDone }) {
       style={{ flex: 1, backgroundColor: colors.panel }}
       contentContainerStyle={{ padding: 20, paddingTop: insets.top + 16, paddingBottom: 40 }}
     >
-      <Text style={{ color: colors.text, fontSize: 20, fontWeight: "800" }}>Build timeline from photos</Text>
+      <Text style={{ color: colors.text, fontSize: 20, fontWeight: "800" }}>{T("Build timeline from photos")}</Text>
       <Text style={{ color: colors.muted, marginTop: 8, lineHeight: 20 }}>
-        An alternative to importing a timeline file: CrossPaths reads the GPS location and
-        date already saved in your photos' metadata and turns that into a timeline, right here on
-        your phone. Photos with no location (screenshots, downloaded images, some messaging apps)
-        are skipped.
+        {T("An alternative to importing a timeline file: CrossPaths reads the GPS location and date already saved in your photos' metadata and turns that into a timeline, right here on your phone. Photos with no location (screenshots, downloaded images, some messaging apps) are skipped.")}
       </Text>
 
-      <Text style={{ color: colors.muted, fontSize: 13, marginTop: 18, marginBottom: 6 }}>Limit to a date range (optional)</Text>
+      <Text style={{ color: colors.muted, fontSize: 13, marginTop: 18, marginBottom: 6 }}>{T("Limit to a date range (optional)")}</Text>
       <DateRangePicker from={dateFrom} to={dateTo} onChangeFrom={setDateFrom} onChangeTo={setDateTo} />
       <Text style={{ color: colors.muted, fontSize: 11, marginTop: 6 }}>
-        Leave both empty to scan your whole library. A narrower range scans faster.
+        {T("Leave both empty to scan your whole library. A narrower range scans faster.")}
       </Text>
 
       {progress ? (
         <Card style={{ marginTop: 18 }}>
           <Text style={{ color: colors.text, fontWeight: "700" }}>
-            {scanning ? "Scanning…" : uploading ? "Uploading…" : "Done"}
+            {scanning ? T("Scanning…") : uploading ? T("Uploading…") : T("Done")}
           </Text>
           <Text style={{ color: colors.muted, fontSize: 12.5, marginTop: 4 }}>
-            {progress.total ? `${progress.scanned} / ${progress.total} photos checked` : "Starting…"} · {progress.found} with
-            location
+            {progress.total ? T("{n} / {total} photos checked", { n: progress.scanned, total: progress.total }) : T("Starting…")} · {T("{n} with location", { n: progress.found })}
           </Text>
           <View style={{ height: 6, borderRadius: 3, backgroundColor: colors.line, marginTop: 10, overflow: "hidden" }}>
             <View
@@ -164,14 +161,14 @@ export default function PhotoScanModal({ navigation, cfg, onDone }) {
       ) : null}
 
       <Button
-        title={scanning ? "Scanning…" : uploading ? "Uploading…" : "📷 Scan photo library"}
+        title={scanning ? T("Scanning…") : uploading ? T("Uploading…") : "📷 " + T("Scan photo library")}
         onPress={scanAndUpload}
         loading={busy}
         disabled={busy}
         style={{ marginTop: 20 }}
       />
       <Pressable onPress={() => navigation.goBack()} disabled={busy} style={{ marginTop: 14, alignItems: "center" }}>
-        <Text style={{ color: colors.muted, fontSize: 13 }}>Cancel</Text>
+        <Text style={{ color: colors.muted, fontSize: 13 }}>{T("Cancel")}</Text>
       </Pressable>
     </ScrollView>
   );

@@ -3,7 +3,8 @@ import { Pressable, ScrollView, Text, useWindowDimensions, View } from "react-na
 import Svg, { Line, Path, Rect, Text as SvgText } from "react-native-svg";
 import KindIcon from "./KindIcon";
 import { computeStats, fmtHours, hourLabel, WEEKDAYS, WEEKDAYS_LONG } from "../stats";
-import { colors, dateStr, fmtDay, fmtTime, KIND_COLOR, KIND_LABEL, UI_LOCALE, whereText } from "../theme";
+import { colors, dateStr, fmtDay, fmtNum, fmtTime, KIND_COLOR, KIND_LABEL, whereText } from "../theme";
+import { arrow, chevNext, H, T, TP } from "../i18n";
 
 // Validated on the dark panel (see the data-viz palette check): one hue for every magnitude
 // chart, a fixed categorical order for the three crossing types.
@@ -79,7 +80,7 @@ function Card({ title, sub, children, table }) {
         </View>
         {table ? (
           <Pressable onPress={() => setAsTable(!asTable)} hitSlop={10}>
-            <Text style={{ color: colors.accent2, fontSize: 12.5 }}>{asTable ? "Chart" : "Table"}</Text>
+            <Text style={{ color: colors.accent2, fontSize: 12.5 }}>{asTable ? T("Chart") : T("Table")}</Text>
           </Pressable>
         ) : null}
       </View>
@@ -138,7 +139,7 @@ export default function StatsDashboard({ events, check, onEvent, onPlace, onCity
       <View style={{ alignItems: "center", padding: 40 }}>
         <Text style={{ color: colors.text, fontSize: 64, fontWeight: "800" }}>0</Text>
         <Text style={{ color: colors.muted, textAlign: "center", marginTop: 8 }}>
-          Your paths didn't cross within {check.radius_m} m and {check.window_min} min.
+          {T("Your paths didn't cross within {r} m and {w} min.", { r: check.radius_m, w: check.window_min })}
         </Text>
       </View>
     );
@@ -148,41 +149,42 @@ export default function StatsDashboard({ events, check, onEvent, onPlace, onCity
   const tl = st.timeline;
   const tickEvery = Math.max(1, Math.ceil(tl.length / (st.monthly ? 6 : 8)));
   const peakTl = tl.reduce((b, s) => (s.value > b.value ? s : b), tl[0]);
-  const tip = (s) => `${s.value} crossing${s.value === 1 ? "" : "s"} · ${s.label}`;
+  const tip = (s) => `${TP(s.value, "{n} crossing", "{n} crossings")} · ${s.label}`;
+  const wdShort = WEEKDAYS(), wdLong = WEEKDAYS_LONG();
 
   return (
     <ScrollView contentContainerStyle={{ padding: 14, paddingBottom: bottomInset + 24, maxWidth: 720, width: "100%", alignSelf: "center" }}>
       <View style={{ paddingHorizontal: 4, paddingTop: 6, paddingBottom: 14 }}>
-        <Text style={{ color: colors.text, fontSize: 64, fontWeight: "800", lineHeight: 70 }}>{st.count.toLocaleString(UI_LOCALE)}</Text>
+        <Text style={{ color: colors.text, fontSize: 64, fontWeight: "800", lineHeight: 70 }}>{fmtNum(st.count)}</Text>
         <Text style={{ color: colors.text, fontSize: 16, marginTop: 2 }}>
-          time{st.count === 1 ? "" : "s"} your paths crossed with @{check.other}
+          {TP(st.count, "time your paths crossed with {who}", "times your paths crossed with {who}", { who: H(check.other) })}
         </Text>
         <Text style={{ color: colors.muted, fontSize: 12.5, marginTop: 4 }}>
-          {dateStr(st.first.t0)} – {dateStr(st.last.t0)} · within {check.radius_m} m and {check.window_min} min
+          {dateStr(st.first.t0)} – {dateStr(st.last.t0)} · {T("within {r} m and {w} min", { r: check.radius_m, w: check.window_min })}
         </Text>
       </View>
 
       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10, marginBottom: 10 }}>
         <Tile
-          label="Days you crossed"
-          value={st.days.toLocaleString(UI_LOCALE)}
-          sub={st.days > 1 ? `busiest: ${st.busiest.n} on ${dateStr(st.busiest.day.t0)}` : ""}
+          label={T("Days you crossed")}
+          value={fmtNum(st.days)}
+          sub={st.days > 1 ? T("busiest: {n} on {date}", { n: st.busiest.n, date: dateStr(st.busiest.day.t0) }) : ""}
           onPress={st.days > 1 ? () => onEvent(st.busiest.day.i) : null}
         />
         <Tile
-          label="Time together"
+          label={T("Time together")}
           value={fmtHours(st.minutes)}
-          sub={st.minutes >= 2880 ? `about ${Math.round(st.minutes / 1440)} days, all added up` : "all crossings added up"}
+          sub={st.minutes >= 2880 ? T("about {n} days, all added up", { n: Math.round(st.minutes / 1440) }) : T("all crossings added up")}
         />
         <Tile
-          label="Places"
-          value={st.nPlaces.toLocaleString(UI_LOCALE)}
-          sub={st.nCities > 1 ? `in ${st.nCities} cities` : st.cities.length ? `in ${st.cities[0][0]}` : ""}
+          label={T("Places")}
+          value={fmtNum(st.nPlaces)}
+          sub={st.nCities > 1 ? T("in {n} cities", { n: st.nCities }) : st.cities.length ? T("in {city}", { city: st.cities[0][0] }) : ""}
         />
-        <Tile label="Longest" value={fmtHours(st.longest.duration_min)} sub={`${dateStr(st.longest.t0)} · tap to see`} onPress={() => onEvent(st.longest.i)} />
+        <Tile label={T("Longest")} value={fmtHours(st.longest.duration_min)} sub={`${dateStr(st.longest.t0)} · ${T("tap to see")}`} onPress={() => onEvent(st.longest.i)} />
       </View>
 
-      <Card title="By type">
+      <Card title={T("By type")}>
         <View style={{ flexDirection: "row", gap: 2, height: 14, borderRadius: 7, overflow: "hidden", marginVertical: 6 }}>
           {kinds.map((k) => (
             <View key={k} style={{ flex: st.kinds[k], minWidth: 4, backgroundColor: KIND_COLOR[k] }} />
@@ -198,28 +200,28 @@ export default function StatsDashboard({ events, check, onEvent, onPlace, onCity
           </Pressable>
         ))}
         <Text style={{ color: colors.muted, fontSize: 12.5, marginTop: 6 }}>
-          Tap a type to see just those on the map.{" "}
+          {T("Tap a type to see just those on the map.")}{" "}
           <Text style={{ color: colors.accent2 }} onPress={onLegend}>
-            What do they mean?
+            {T("What do they mean?")}
           </Text>
         </Text>
       </Card>
 
       {st.places.length ? (
-        <Card title="Where you cross most">
+        <Card title={T("Where you cross most")}>
           {st.places.map(([p, n]) => (
             <HBar key={p} label={p} n={n} max={st.places[0][1]} onPress={() => onPlace(p)} />
           ))}
           {st.nPlaces > st.places.length ? (
             <Text style={{ color: colors.muted, fontSize: 12.5, marginTop: 4 }}>
-              and {st.nPlaces - st.places.length} more place{st.nPlaces - st.places.length === 1 ? "" : "s"}
+              {TP(st.nPlaces - st.places.length, "and {n} more place", "and {n} more places")}
             </Text>
           ) : null}
         </Card>
       ) : null}
 
       {st.nCities > 1 ? (
-        <Card title="Cities">
+        <Card title={T("Cities")}>
           {st.cities.map(([c, n]) => (
             <HBar key={c} label={c} n={n} max={st.cities[0][1]} onPress={() => onCity(c)} />
           ))}
@@ -227,8 +229,8 @@ export default function StatsDashboard({ events, check, onEvent, onPlace, onCity
       ) : null}
 
       <Card
-        title={st.monthly ? "Crossings per month" : "Crossings per year"}
-        sub={peakTl.value ? `Most in ${peakTl.label}: ${peakTl.value}` : ""}
+        title={st.monthly ? T("Crossings per month") : T("Crossings per year")}
+        sub={peakTl.value ? T("Most in {when}: {n}", { when: peakTl.label, n: peakTl.value }) : ""}
         table={{ rows: tl.map((s) => [s.label, s.value]) }}
       >
         <Columns
@@ -241,19 +243,19 @@ export default function StatsDashboard({ events, check, onEvent, onPlace, onCity
         />
       </Card>
 
-      <Card title="Time of day" sub={`Most often around ${hourLabel(st.peakHour)}`} table={{ rows: st.hours.map((v, h) => [hourLabel(h), v]) }}>
+      <Card title={T("Time of day")} sub={T("Most often around {time}", { time: hourLabel(st.peakHour) })} table={{ rows: st.hours.map((v, h) => [hourLabel(h), v]) }}>
         <Columns series={st.hours.map((v, h) => ({ value: v, short: hourLabel(h), label: hourLabel(h) }))} width={chartW} tickEvery={6} tip={tip} />
       </Card>
 
-      <Card title="Day of week" sub={`Most often on ${WEEKDAYS_LONG[st.peakDay]}`} table={{ rows: st.wdays.map((v, d) => [WEEKDAYS_LONG[d], v]) }}>
-        <Columns series={st.wdays.map((v, d) => ({ value: v, short: WEEKDAYS[d], label: WEEKDAYS_LONG[d] }))} width={chartW} tip={tip} />
+      <Card title={T("Day of week")} sub={T("Most often on {day}", { day: wdLong[st.peakDay] })} table={{ rows: st.wdays.map((v, d) => [wdLong[d], v]) }}>
+        <Columns series={st.wdays.map((v, d) => ({ value: v, short: wdShort[d], label: wdLong[d] }))} width={chartW} tip={tip} />
       </Card>
 
-      <Card title="Highlights">
+      <Card title={T("Highlights")}>
         {[
-          ["Longest", st.longest, `~${fmtHours(st.longest.duration_min)}`],
-          ["First", st.first, ""],
-          ["Most recent", st.last, ""],
+          [T("Longest"), st.longest, `~${fmtHours(st.longest.duration_min)}`],
+          [T("First"), st.first, ""],
+          [T("Most recent"), st.last, ""],
         ].map(([label, e, extra]) => (
           <Pressable
             key={label}
@@ -270,13 +272,13 @@ export default function StatsDashboard({ events, check, onEvent, onPlace, onCity
                 {extra ? ` · ${extra}` : ""}
               </Text>
             </View>
-            <Text style={{ color: colors.muted }}>›</Text>
+            <Text style={{ color: colors.muted }}>{chevNext()}</Text>
           </Pressable>
         ))}
       </Card>
 
       <Pressable onPress={onShowMap} style={{ backgroundColor: colors.accent, borderRadius: 12, paddingVertical: 13, alignItems: "center", marginTop: 6 }}>
-        <Text style={{ color: colors.onAccent, fontWeight: "700", fontSize: 15 }}>See all {st.count} on the map →</Text>
+        <Text style={{ color: colors.onAccent, fontWeight: "700", fontSize: 15 }}>{T("See all {n} on the map", { n: st.count })} {arrow()}</Text>
       </Pressable>
     </ScrollView>
   );

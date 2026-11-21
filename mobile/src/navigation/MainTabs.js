@@ -6,16 +6,19 @@ import ChecksScreen from "../screens/ChecksScreen";
 import PeopleScreen from "../screens/PeopleScreen";
 import TimelineScreen from "../screens/TimelineScreen";
 import { colors } from "../theme";
+import { T } from "../i18n";
 
 const Tab = createBottomTabNavigator();
 
 const ICONS = { Timeline: "🗺️", People: "👥", Checks: "✅", Account: "⚙️" };
+const label = (name) => ({ Timeline: T("Timeline"), People: T("People"), Checks: T("Checks"), Account: T("Account") }[name]);
 
 export default function MainTabs({ data }) {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
+        tabBarLabel: label(route.name),
         tabBarActiveTintColor: colors.accent,
         tabBarInactiveTintColor: colors.muted,
         tabBarStyle: { backgroundColor: colors.panel, borderTopColor: colors.line },

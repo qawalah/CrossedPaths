@@ -271,9 +271,33 @@ route files then. Separate workouts close together in place (within 200 m and 6 
 - **Theme:** `colors` in `src/theme.js` is one mutable object. A theme change rewrites it and
   the `NavigationContainer` remounts, keyed on the theme with its nav state preserved. Don't
   capture colours in `StyleSheet.create`.
-- **Dates:** the interface is English and dates use an English locale even on Arabic phones,
-  to avoid Hijri dates mixed into English. Place names still follow the device language
-  (Arabic names from GeoNames).
+- **Languages (English and Arabic), both clients.** The English text in the code is the key:
+  `T("Settings")` returns the Arabic when the interface is Arabic and the same English otherwise,
+  so a missing translation shows English instead of a blank. `TP(n, one, other)` does plurals
+  (Arabic has six forms; its dictionary entry is `{one, two, few, many, other}`), `TE()` translates
+  messages that come back from the server, `H(handle)` keeps `@name` left-to-right inside an Arabic
+  sentence. Web: `server/server/static/i18n.js` (runtime and dictionary in one file). Mobile:
+  `mobile/src/i18n.js` (runtime, dates) and `mobile/src/i18n.ar.js` (dictionary). They are separate
+  files, so a string used in both has to be added to both.
+  - The language is the device's (browser or phone) unless chosen in Settings (web) or Account
+    (mobile). Web switches at once (page reload). The app needs a restart, because Android applies
+    the layout direction at start-up (`I18nManager`, `android:supportsRtl` in the manifest and in the
+    config plugin); the app offers to close itself.
+  - **Arabic style:** plain everyday wording close to how people talk, by meaning and not word for
+    word (for example "Checks" is المقارنات, "crossing" is تقاطع). Keep to it. Use the same
+    term for the same thing everywhere.
+  - **Dates and numbers are always Gregorian with Latin digits, even in Arabic** (no Hijri, no
+    Arabic-Indic digits). Web uses `ar-SA-u-ca-gregory-nu-latn`; mobile writes the Arabic month and
+    day names itself (`i18n.js`) because Hermes' `Intl` is patchy on Android.
+  - Place names follow the interface language (Arabic names from GeoNames).
+  - **Push notifications** are written by the server (`server/messages.py`) in the language the
+    app sent when registering the device (`devices.lang`); no language means English.
+  - To add a string: wrap it in `T()` in the code and add the Arabic to the dictionary (both
+    files if both clients show it). `server/tests/test_i18n.py` fails when a string has no Arabic or
+    when its `{placeholders}` differ from the English.
+  - **Not yet tried on a phone:** the Arabic layout of the Android app was only checked as a JS
+    bundle and in the web client. Look through every screen right-to-left on a real device
+    (tab order, arrows, the sliders and the year/month/day chips, the map controls) before relying on it.
 
 **Builds and deployment**
 - **APK:** arm64-only, minified, legacy packaging (about 18 MB).

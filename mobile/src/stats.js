@@ -1,19 +1,21 @@
 // Summary statistics for a check's crossings - what the results screen leads with.
-import { cityOf, localDayKey, placeOf, UI_LOCALE } from "./theme";
+import { cityOf, localDayKey, placeOf } from "./theme";
+import { fmtHourOfDay, fmtMonth, fmtNum, T, weekdayLong, weekdayShort } from "./i18n";
 
-export const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-export const WEEKDAYS_LONG = ["Sundays", "Mondays", "Tuesdays", "Wednesdays", "Thursdays", "Fridays", "Saturdays"];
+// (functions, so the names are looked up in the interface language when drawn)
+export const WEEKDAYS = () => [0, 1, 2, 3, 4, 5, 6].map(weekdayShort);
+export const WEEKDAYS_LONG = () => [0, 1, 2, 3, 4, 5, 6].map(weekdayLong);
 
 export function fmtHours(min) {
-  if (min < 60) return `${Math.round(min)} min`;
-  if (min < 600) return `${(min / 60).toFixed(1).replace(/\.0$/, "")} h`;
-  return `${Math.round(min / 60).toLocaleString(UI_LOCALE)} h`;
+  if (min < 60) return T("{n} min", { n: Math.round(min) });
+  if (min < 600) return T("{n} h", { n: (min / 60).toFixed(1).replace(/\.0$/, "") });
+  return T("{n} h", { n: fmtNum(Math.round(min / 60)) });
 }
 export function hourLabel(h) {
-  return new Date(2000, 0, 1, h).toLocaleTimeString(UI_LOCALE, { hour: "numeric", minute: "2-digit" }).replace(/:00(?=\s?[AP]M)/i, "");
+  return fmtHourOfDay(h);
 }
 function monthLabel(y, m, withYear) {
-  return new Date(y, m, 1).toLocaleDateString(UI_LOCALE, withYear ? { month: "short", year: "numeric" } : { month: "short" });
+  return fmtMonth(y, m, withYear);
 }
 
 /** events: [{i, t0, t1, kind, duration_min, place, ...}] -> stats, or null when there are none. */

@@ -4,6 +4,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { AuthProvider } from "./src/auth";
 import { loadStoredApiUrl } from "./src/api";
+import { initI18n } from "./src/i18n";
 import RootNavigator from "./src/navigation/RootNavigator";
 import { ToastProvider } from "./src/components/Toast";
 import { ThemeProvider, useTheme } from "./src/themeContext";
@@ -18,10 +19,10 @@ export default function App() {
   const [urlLoaded, setUrlLoaded] = React.useState(false);
 
   useEffect(() => {
-    loadStoredApiUrl().finally(() => setUrlLoaded(true));
+    Promise.all([loadStoredApiUrl().catch(() => {}), initI18n()]).finally(() => setUrlLoaded(true));
   }, []);
 
-  if (!urlLoaded) return null; // brief splash while the stored server URL loads
+  if (!urlLoaded) return null; // brief splash while the stored server URL and language load
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

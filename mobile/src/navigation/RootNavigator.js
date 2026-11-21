@@ -17,6 +17,7 @@ import AddNearbyScreen, { codeFrom } from "../screens/AddNearbyScreen";
 import MainTabs from "./MainTabs";
 import { colors } from "../theme";
 import { useTheme } from "../themeContext";
+import { T } from "../i18n";
 
 const Stack = createNativeStackNavigator();
 
@@ -89,7 +90,7 @@ export default function RootNavigator() {
         {!user ? (
           <>
             <Stack.Screen name="Auth" component={AuthScreen} />
-            <Stack.Screen name="Settings" component={SettingsScreen} options={{ presentation: "modal", headerShown: true, title: "Server addresses" }} />
+            <Stack.Screen name="Settings" component={SettingsScreen} options={{ presentation: "modal", headerShown: true, title: T("Server addresses") }} />
           </>
         ) : (
           <>
@@ -102,7 +103,7 @@ export default function RootNavigator() {
             </Stack.Screen>
             <Stack.Screen name="Results" component={ResultsScreen} options={{ animation: "fade" }} />
             <Stack.Screen name="MyTimeline" component={MyTimelineScreen} options={{ animation: "fade" }} />
-            <Stack.Screen name="Settings" component={SettingsScreen} options={{ presentation: "modal", headerShown: true, title: "Server addresses" }} />
+            <Stack.Screen name="Settings" component={SettingsScreen} options={{ presentation: "modal", headerShown: true, title: T("Server addresses") }} />
             <Stack.Screen name="AddNearby" options={{ presentation: "modal" }}>
               {(props) => <AddNearbyScreen {...props} uploads={data.uploads} loaded={data.loaded} onDone={data.refresh} />}
             </Stack.Screen>

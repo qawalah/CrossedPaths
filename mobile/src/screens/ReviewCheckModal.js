@@ -5,6 +5,7 @@ import Button from "../components/Button";
 import { useToast } from "../components/Toast";
 import { Api } from "../api";
 import { colors } from "../theme";
+import { H, T } from "../i18n";
 import DateRangePicker from "../components/DateRangePicker";
 import UploadPicker from "../components/UploadPicker";
 
@@ -27,7 +28,7 @@ export default function ReviewCheckModal({ route, navigation, checks, uploads, o
   if (!c) {
     return (
       <View style={{ flex: 1, backgroundColor: colors.panel, padding: 20, paddingTop: insets.top + 40 }}>
-        <Text style={{ color: colors.muted }}>This check is no longer available.</Text>
+        <Text style={{ color: colors.muted }}>{T("This check is no longer available.")}</Text>
       </View>
     );
   }
@@ -67,24 +68,23 @@ export default function ReviewCheckModal({ route, navigation, checks, uploads, o
       style={{ flex: 1, backgroundColor: colors.panel }}
       contentContainerStyle={{ padding: 20, paddingTop: insets.top + 16, paddingBottom: 40 }}
     >
-      <Text style={{ color: colors.text, fontSize: 20, fontWeight: "800" }}>@{c.other} wants to check paths</Text>
+      <Text style={{ color: colors.text, fontSize: 20, fontWeight: "800" }}>{T("{who} wants to check paths", { who: H(c.other) })}</Text>
       <Text style={{ color: colors.muted, marginTop: 8, lineHeight: 20 }}>
-        They will only see when and roughly where (about 100 m) your paths crossed — never your
-        route or full timeline. Your home and work areas are excluded.
+        {T("They will only see when and roughly where (about 100 m) your paths crossed — never your route or full timeline. Your home and work areas are excluded.")}
       </Text>
       <Text style={{ color: colors.muted, fontSize: 13, marginTop: 10 }}>
-        Closeness {c.radius_m} m · time tolerance {c.window_min} min. Nothing runs until you agree.
+        {T("Closeness {r} m · time tolerance {w} min. Nothing runs until you agree.", { r: c.radius_m, w: c.window_min })}
       </Text>
 
-      <Text style={{ color: colors.muted, fontSize: 13, marginTop: 18, marginBottom: 6 }}>Your timeline</Text>
+      <Text style={{ color: colors.muted, fontSize: 13, marginTop: 18, marginBottom: 6 }}>{T("Your timeline")}</Text>
       <UploadPicker uploads={uploads} value={uploadId} onChange={setUploadId} />
 
-      <Text style={{ color: colors.muted, fontSize: 13, marginTop: 18, marginBottom: 6 }}>Date range (optional)</Text>
+      <Text style={{ color: colors.muted, fontSize: 13, marginTop: 18, marginBottom: 6 }}>{T("Date range (optional)")}</Text>
       <DateRangePicker from={dateFrom} to={dateTo} onChangeFrom={setDateFrom} onChangeTo={setDateTo} />
 
       <View style={{ flexDirection: "row", gap: 10, marginTop: 24 }}>
-        <Button title="Agree & run" onPress={agree} loading={busy} style={{ flex: 1 }} />
-        <Button title="Decline" variant="ghost" onPress={decline} disabled={busy} style={{ flex: 1 }} />
+        <Button title={T("Agree & run")} onPress={agree} loading={busy} style={{ flex: 1 }} />
+        <Button title={T("Decline")} variant="ghost" onPress={decline} disabled={busy} style={{ flex: 1 }} />
       </View>
     </ScrollView>
   );

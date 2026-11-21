@@ -1,6 +1,7 @@
 import * as SecureStore from "expo-secure-store";
 import Constants from "expo-constants";
 import { AppState } from "react-native";
+import { getLang, T, TE } from "./i18n";
 
 // ---------- which address to use: the main address, or the backup when it can't be reached ----------
 // You can give the app two addresses of the same server: a main address and a backup one.
@@ -201,7 +202,7 @@ async function request(path, opts = {}, retried = false) {
   const { method = "GET", body, form, auth = true } = opts;
   if (resolving) await resolving.catch(() => {}); // an address check is running: use its answer
   const base = ACTIVE;
-  if (!base) throw new ApiError("Server address not set. Open Settings and enter your CrossPaths server URL.", 0);
+  if (!base) throw new ApiError(T("Server address not set. Open Settings and enter your CrossPaths server URL."), 0);
   const headers = {};
   if (auth) {
     const t = await getToken();
@@ -232,10 +233,10 @@ async function request(path, opts = {}, retried = false) {
     const two = AUTO && ALT_URL;
     throw new ApiError(
       two
-        ? "Couldn't reach your server at either address. Check your connection."
+        ? T("Couldn't reach your server at either address. Check your connection.")
         : timedOut
-        ? "The server didn't answer in time. Check the address and your connection."
-        : "Couldn't reach the server. Check the address and your connection.",
+        ? T("The server didn't answer in time. Check the address and your connection.")
+        : T("Couldn't reach the server. Check the address and your connection."),
       0
     );
   } finally {
@@ -249,10 +250,10 @@ async function request(path, opts = {}, retried = false) {
   }
   if (res.status === 401 && auth) {
     if (onUnauthorized) onUnauthorized();
-    throw new ApiError("Your session has expired. Please sign in again.", 401);
+    throw new ApiError(T("Your session has expired. Please sign in again."), 401);
   }
   if (!res.ok) {
-    throw new ApiError((json && json.error) || `Request failed (${res.status})`, res.status);
+    throw new ApiError(json && json.error ? TE(json.error) : T("Request failed ({status})", { status: res.status }), res.status);
   }
   return json;
 }
@@ -304,6 +305,7 @@ export const Api = {
   shake: (lat, lon, acc, uploadId) => request("/api/pair/shake", { method: "POST", body: { lat, lon, acc, upload_id: uploadId || null } }),
   shakeStatus: (id) => request(`/api/pair/shake/${id}`),
 
-  registerDevice: (platform, pushToken) => request("/api/devices", { method: "POST", body: { platform, push_token: pushToken } }),
+  // lang: the interface language, so the server writes notifications in it (older servers ignore it)
+  registerDevice: (platform, pushToken) => request("/api/devices", { method: "POST", body: { platform, push_token: pushToken, lang: getLang() } }),
   unregisterDevice: (pushToken) => request("/api/devices", { method: "DELETE", body: { push_token: pushToken } }),
 };

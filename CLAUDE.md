@@ -23,7 +23,7 @@ Server (from `server/`):
 
 ```bash
 pip install -r requirements.txt pytest
-python -m pytest -q                  # 55 tests, no network (PLACE_NAMES=False)
+python -m pytest -q                  # 59 tests, no network (PLACE_NAMES=False)
 DATA_DIR=./data python -c "from server.app import create_app; create_app().run(port=8787)"
 ```
 
@@ -71,6 +71,10 @@ read its log in the Actions tab and fix it.
   `padding` to `easeTo`; use `offset`.
 - Server address switching only happens between addresses with the same `instance`, and a
   timed-out POST is never resent.
+- Languages: the English text is the translation key (`T("...")`); every user-facing string goes
+  through `T`/`TP`/`TE`, and Arabic is plain everyday wording by meaning, not word for word. Dates
+  stay Gregorian with Latin digits in Arabic. The web (`static/i18n.js`) and the app
+  (`src/i18n.js`, `src/i18n.ar.js`) keep separate dictionaries. See HANDOVER.md "Languages".
 - Mobile theme: `colors` in `src/theme.js` is one mutable object. Don't capture colours in
   `StyleSheet.create`.
 - `mobile/plugins/withCrossPathsAndroid.js` and `expo.useLegacyPackaging` in

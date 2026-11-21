@@ -2,6 +2,7 @@ import React, { useRef, useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
 import Svg, { Defs, LinearGradient, Path, Rect, Stop } from "react-native-svg";
 import { colors } from "../theme";
+import { T } from "../i18n";
 
 /** One line of chips that scrolls sideways. When there's more off either edge, that edge fades
  *  out and shows an arrow button that scrolls the row along. `selected` (child index) starts in view. */
@@ -26,7 +27,8 @@ export default function ChipScroller({ children, selected, bg }) {
   }
 
   return (
-    <View onLayout={(e) => setW(e.nativeEvent.layout.width)}>
+    // Kept left-to-right even in Arabic: the edge arrows and scroll offsets below are measured from the left.
+    <View style={{ direction: "ltr" }} onLayout={(e) => setW(e.nativeEvent.layout.width)}>
       <ScrollView
         ref={ref}
         horizontal
@@ -75,7 +77,7 @@ function Edge({ side, bg, onPress }) {
       <Pressable
         onPress={onPress}
         hitSlop={8}
-        accessibilityLabel={left ? "Scroll left" : "Scroll right"}
+        accessibilityLabel={left ? T("Scroll left") : T("Scroll right")}
         style={{
           width: 30,
           height: 30,

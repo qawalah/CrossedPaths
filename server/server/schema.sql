@@ -88,6 +88,7 @@ CREATE TABLE IF NOT EXISTS devices (
     push_token TEXT NOT NULL,
     created_at REAL NOT NULL,
     last_seen  REAL NOT NULL,
+    lang       TEXT,                 -- interface language of the app ('ar' or 'en'), for notification text
     UNIQUE (user_id, push_token)
 );
 

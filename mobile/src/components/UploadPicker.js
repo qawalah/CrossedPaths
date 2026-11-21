@@ -1,10 +1,11 @@
 import React from "react";
 import { Pressable, ScrollView, Text } from "react-native";
 import { colors, dateStr } from "../theme";
+import { arrow, fmtNum, T } from "../i18n";
 
 export default function UploadPicker({ uploads, value, onChange }) {
   if (!uploads.length) {
-    return <Text style={{ color: colors.muted }}>No timeline uploaded yet.</Text>;
+    return <Text style={{ color: colors.muted }}>{T("No timeline uploaded yet.")}</Text>;
   }
   return (
     <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -25,10 +26,10 @@ export default function UploadPicker({ uploads, value, onChange }) {
             }}
           >
             <Text style={{ color: colors.text, fontWeight: "700", fontSize: 13 }}>
-              {dateStr(u.from)} → {dateStr(u.to)}
+              {dateStr(u.from)} {arrow()} {dateStr(u.to)}
             </Text>
             <Text style={{ color: colors.muted, fontSize: 11.5, marginTop: 2 }}>
-              {u.points.toLocaleString()} pts
+              {T("{n} pts", { n: fmtNum(u.points) })}
             </Text>
           </Pressable>
         );

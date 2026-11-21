@@ -32,6 +32,8 @@ def init_db(data_dir):
     # re-named the next time their result is opened.
     if "keep_hours" not in {r[1] for r in con.execute("PRAGMA table_info(users)")}:
         con.execute("ALTER TABLE users ADD COLUMN keep_hours REAL")
+    if "lang" not in {r[1] for r in con.execute("PRAGMA table_info(devices)")}:   # push language ("ar" or "en"), added in 0.13.0
+        con.execute("ALTER TABLE devices ADD COLUMN lang TEXT")
     if con.execute("PRAGMA user_version").fetchone()[0] < 1:
         con.execute("UPDATE crossing_events SET place=NULL, place_ar=NULL, landmark=NULL, landmark_ar=NULL WHERE place=''")
         con.execute("PRAGMA user_version = 1")

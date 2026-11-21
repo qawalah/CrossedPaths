@@ -6,6 +6,7 @@ import { useAuth } from "../auth";
 import { colors, keepLabel } from "../theme";
 import { useToast } from "../components/Toast";
 import { registerForPushNotifications } from "../notifications";
+import { getLang, setLangPref, T } from "../i18n";
 
 export default function AuthScreen({ navigation }) {
   const { login, register, cfg } = useAuth();
@@ -38,11 +39,10 @@ export default function AuthScreen({ navigation }) {
     >
       <ScrollView contentContainerStyle={{ padding: 20, paddingTop: insets.top + 30, paddingBottom: 40 }}>
         <Text style={{ color: colors.text, fontSize: 26, fontWeight: "800", marginBottom: 8 }}>
-          Did our paths ever cross?
+          {T("Did our paths ever cross?")}
         </Text>
         <Text style={{ color: colors.muted, marginBottom: 22, lineHeight: 20 }}>
-          Compare Google Timeline exports with a friend — or a stranger — and see only the places
-          and times you both were there.
+          {T("Compare Google Timeline exports with a friend — or a stranger — and see only the places and times you both were there.")}
         </Text>
 
         <View style={{ flexDirection: "row", backgroundColor: colors.panel2, borderRadius: 12, padding: 3, marginBottom: 18 }}>
@@ -53,15 +53,15 @@ export default function AuthScreen({ navigation }) {
               style={{ flex: 1, paddingVertical: 11, borderRadius: 10, alignItems: "center", backgroundColor: mode === m ? colors.panel : "transparent" }}
             >
               <Text style={{ color: mode === m ? colors.text : colors.muted, fontWeight: "700", fontSize: 15 }}>
-                {m === "login" ? "Sign in" : "Create account"}
+                {m === "login" ? T("Sign in") : T("Create account")}
               </Text>
             </Pressable>
           ))}
         </View>
 
-        <Field label="Username" value={handle} onChangeText={setHandle} autoCapitalize="none" autoCorrect={false} placeholder="e.g. sara.k" />
+        <Field label={T("Username")} value={handle} onChangeText={setHandle} autoCapitalize="none" autoCorrect={false} placeholder={T("e.g. sara.k")} />
         <Field
-          label={isReg ? "Password (10+ characters)" : "Password"}
+          label={isReg ? T("Password (10+ characters)") : T("Password")}
           value={password}
           onChangeText={setPassword}
           secureTextEntry
@@ -70,7 +70,7 @@ export default function AuthScreen({ navigation }) {
         {/* Shown when the server needs one - or when we couldn't ask it (config didn't load). */}
         {isReg && cfg.invite_required !== false ? (
           <Field
-            label={cfg.invite_required ? "Invite code" : "Invite code (if your server uses one)"}
+            label={cfg.invite_required ? T("Invite code") : T("Invite code (if your server uses one)")}
             value={invite}
             onChangeText={setInvite}
             autoCapitalize="none"
@@ -79,7 +79,7 @@ export default function AuthScreen({ navigation }) {
         ) : null}
 
         <Button
-          title={isReg ? "Create account" : "Sign in"}
+          title={isReg ? T("Create account") : T("Sign in")}
           onPress={submit}
           loading={busy}
           style={{ marginTop: 16 }}
@@ -88,11 +88,16 @@ export default function AuthScreen({ navigation }) {
           onPress={() => navigation.navigate("Settings")}
           style={{ color: colors.accent2, textAlign: "center", marginTop: 22 }}
         >
-          Server settings
+          {T("Server settings")}
+        </Text>
+        <Text
+          onPress={() => setLangPref(getLang() === "ar" ? "en" : "ar")}
+          style={{ color: colors.accent2, textAlign: "center", marginTop: 16 }}
+        >
+          {getLang() === "ar" ? "English" : "العربية"}
         </Text>
         <Text style={{ color: colors.muted, fontSize: 12.5, marginTop: 24, textAlign: "center" }}>
-          Your raw timeline is encrypted, used only for checks you agree to, and - unless you choose to keep it longer -
-          deleted {keepLabel(cfg.upload_ttl_hours || 24)} after you upload it.
+          {T("Your raw timeline is encrypted, used only for checks you agree to, and - unless you choose to keep it longer - deleted {when} after you upload it.", { when: keepLabel(cfg.upload_ttl_hours || 24) })}
         </Text>
       </ScrollView>
     </KeyboardAvoidingView>

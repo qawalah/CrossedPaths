@@ -1,3 +1,5 @@
+import { fmtDate, fmtDay, fmtTime, getLang, T, TP } from "./i18n";
+
 // ---------- themes: dark / light (or follow the system) + an accent colour ----------
 // `colors` is one shared object that every screen reads while rendering. Changing the theme
 // rewrites it in place and the app re-renders from the top (see themeContext.js).
@@ -79,89 +81,99 @@ export function localDayKey(d) {
 export const KIND_COLOR = { same_place: "#3987e5", passing: "#d95926", shared_route: "#199e70" };
 
 // [unused, label] - the icon is drawn by components/KindIcon.js
+// (getters, so the text is looked up when drawn, after the language has loaded)
 export const KIND_LABEL = {
-  same_place: ["", "Same place"],
-  passing: ["", "Crossed paths"],
-  shared_route: ["", "Travelled together"],
+  get same_place() {
+    return ["", T("Same place")];
+  },
+  get passing() {
+    return ["", T("Crossed paths")];
+  },
+  get shared_route() {
+    return ["", T("Travelled together")];
+  },
 };
 
 /** What each kind means, for the "?" legend. */
 export function kindHelp(kind, radiusM = 100, windowMin = 15) {
   return {
-    same_place: `You were both at the same spot (within ${radiusM} m), mostly staying put - a café, a mall, a mosque. You may have been there up to ${windowMin} min apart: one arriving as the other left.`,
-    passing: "You were both on the move and went through the same spot within a few minutes of each other - walking or driving past. Over in a few minutes.",
-    shared_route: "You moved the same way at the same time for a while - the same road, bus or train.",
+    same_place: T("You were both at the same spot (within {r} m), mostly staying put - a café, a mall, a mosque. You may have been there up to {w} min apart: one arriving as the other left.", { r: radiusM, w: windowMin }),
+    passing: T("You were both on the move and went through the same spot within a few minutes of each other - walking or driving past. Over in a few minutes."),
+    shared_route: T("You moved the same way at the same time for a while - the same road, bus or train."),
   }[kind];
 }
 
-// The interface is English, so dates are too: an Arabic-language phone would otherwise mix
-// Hijri dates and Arabic digits into English sentences. Place names still follow the language.
-function deviceLocale() {
-  try {
-    return Intl.DateTimeFormat().resolvedOptions().locale || "en-GB";
-  } catch (e) {
-    return "en-GB";
-  }
-}
-export const DEVICE_LOCALE = deviceLocale();
-export const UI_LOCALE = /^en\b/i.test(DEVICE_LOCALE) ? DEVICE_LOCALE : "en-GB";
-export const PREFERS_ARABIC = /^ar\b/i.test(DEVICE_LOCALE);
+// Dates and numbers come from i18n.js (Gregorian with Latin digits in both languages).
+export { fmtDate, fmtDay, fmtNum, fmtTime } from "./i18n";
 
-export function fmtDay(d) {
-  return d.toLocaleDateString(UI_LOCALE, { weekday: "short", day: "numeric", month: "short", year: "numeric" });
-}
-export function fmtTime(d) {
-  return d.toLocaleTimeString(UI_LOCALE, { hour: "2-digit", minute: "2-digit" });
-}
 export function fmtRange(startIso, endIso) {
   const a = new Date(startIso), b = new Date(endIso);
   return `${fmtDay(a)} · ${fmtTime(a)}–${fmtTime(b)}`;
 }
 export function dateStr(ts) {
   if (!ts) return "";
-  return new Date(ts * 1000).toLocaleDateString(UI_LOCALE, { day: "numeric", month: "short", year: "numeric" });
+  return fmtDate(new Date(ts * 1000));
 }
 export function hoursLeft(ts) {
-  if (ts == null) return "kept until you delete it";
+  if (ts == null) return T("kept until you delete it");
   const h = (ts * 1000 - Date.now()) / 3600000;
-  if (h <= 0) return "expired";
-  if (h < 1) return "<1 h left";
-  if (h < 48) return `${Math.round(h)} h left`;
-  return `${Math.round(h / 24)} days left`;
+  if (h <= 0) return T("expired");
+  if (h < 1) return T("<1 h left");
+  if (h < 48) return T("{n} h left", { n: Math.round(h) });
+  return TP(Math.round(h / 24), "{n} day left", "{n} days left");
 }
 /** 24 -> "24 hours", 168 -> "7 days", 0 -> "Until I delete them". */
 export function keepLabel(h) {
-  if (!h) return "Until I delete them";
-  if (h === 24) return "24 hours";
-  if (h % 24) return `${h} hours`;
-  return `${h / 24} days`;
+  if (!h) return T("Until I delete them");
+  if (h === 24) return T("24 hours");
+  if (h === 168) return T("7 days");
+  if (h === 720) return T("30 days");
+  if (h % 24) return TP(h, "{n} hour", "{n} hours");
+  return TP(h / 24, "{n} day", "{n} days");
 }
 /** "deleted 24 hours after you upload it" / "kept (encrypted) until you delete it" */
 export function keepPhrase(h) {
-  return h ? `deleted ${keepLabel(h)} after you upload it` : "kept (encrypted) until you delete it";
+  return h ? T("deleted {when} after you upload it", { when: keepLabel(h) }) : T("kept (encrypted) until you delete it");
 }
 export function offsetText(m) {
-  return Math.abs(m) <= 2 ? "at about the same time" : `about ${Math.abs(m)} min apart`;
+  return Math.abs(m) <= 2 ? T("at about the same time") : T("about {n} min apart", { n: Math.abs(m) });
 }
 export function trustLabel(level) {
   return (
-    { high: "Looks authentic", medium: "Some anomalies", low: "Looks unusual", insufficient: "Too little data" }[
-      level
-    ] || level
+    {
+      high: T("Looks authentic"),
+      medium: T("Some anomalies"),
+      low: T("Looks unusual"),
+      insufficient: T("Too little data"),
+    }[level] || level
+  );
+}
+/** "awaiting_consent" -> "awaiting consent" in the interface language */
+export function statusLabel(s) {
+  return (
+    {
+      awaiting_consent: T("awaiting consent"),
+      pending: T("pending"),
+      running: T("running"),
+      done: T("done"),
+      failed: T("failed"),
+      declined: T("declined"),
+      expired: T("expired"),
+    }[s] || String(s).replace("_", " ")
   );
 }
 
 // ---------- place names (from the server's offline place database) ----------
 export function placeOf(e) {
-  return (PREFERS_ARABIC && e.place_ar) || e.place || "";
+  return (getLang() === "ar" && e.place_ar) || e.place || "";
 }
 export function markOf(e) {
-  return (PREFERS_ARABIC && e.landmark_ar) || e.landmark || "";
+  return (getLang() === "ar" && e.landmark_ar) || e.landmark || "";
 }
 /** The city part of a place ("Al Murūj, Riyadh" -> "Riyadh"), for the city filter. */
 export function cityOf(e) {
   const p = placeOf(e);
-  const sep = PREFERS_ARABIC && e.place_ar ? "،" : ",";
+  const sep = getLang() === "ar" && e.place_ar ? "،" : ",";
   const i = p.lastIndexOf(sep);
   return (i >= 0 ? p.slice(i + 1) : p).trim();
 }
@@ -169,5 +181,5 @@ export function whereText(e) {
   const named = [markOf(e), placeOf(e)].filter(Boolean).join(" · ");
   if (named) return named;
   // Not named yet (or nowhere near anything): the coordinates are still useful.
-  return Number.isFinite(e.lat) && Number.isFinite(e.lon) ? `${e.lat.toFixed(4)}, ${e.lon.toFixed(4)}` : "Unnamed area";
+  return Number.isFinite(e.lat) && Number.isFinite(e.lon) ? `\u202A${e.lat.toFixed(4)}, ${e.lon.toFixed(4)}\u202C` : T("Unnamed area"); // (left-to-right embedding, so the pair keeps its order in Arabic)
 }
