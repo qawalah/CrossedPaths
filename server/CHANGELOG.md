@@ -14,6 +14,7 @@ To check what's running on your server, visit `/api/config` — it reports the r
   disk/database size, failed sign-ins, users at a daily limit, and a 14-day activity table.
   Counts only: no tracks, places or who-connected-with-whom. API: `GET /api/admin/stats`
   (403 for everyone else); `/api/me` adds `is_admin: true` for admins.
+- The Admin tab never shows for other accounts, even after an admin signs out in the same browser.
 - Sign-ins and opened results are now written to the audit log (feeds the activity numbers).
 
 ## 0.12.0

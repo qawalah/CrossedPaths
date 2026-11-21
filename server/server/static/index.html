@@ -279,7 +279,7 @@ const pill = (cls, txt) => `<span class="pill ${esc(cls)}">${esc(txt)}</span>`;
 
 /* ---------- auth ---------- */
 function logout(silent) {
-  localStorage.removeItem("cp_token"); state.token = null; state.user = null; clearInterval(pollTimer);
+  localStorage.removeItem("cp_token"); state.token = null; state.user = null; state.tab = "uploads"; clearInterval(pollTimer);
   if (!silent) toast("Signed out");
   boot();
 }
@@ -336,7 +336,9 @@ function renderTabs() {
   if (state.user && state.user.is_admin) tabs.push(["admin", "Admin"]);
   $("#tabs").innerHTML = tabs.map(([k, l]) => `<button data-act="tab" data-t="${k}" class="${state.tab === k ? "on" : ""}"><svg viewBox="0 0 24 24">${ICONS[k]}</svg>${l}${k === "checks" && n ? `<span class="dot">${n}</span>` : ""}</button>`).join("");
 }
-function render() { ({ uploads: renderTimeline, mytimeline: renderMyTimeline, people: renderPeople, checks: renderChecks, admin: renderAdmin })[state.tab](); }
+function render() {
+  if (state.tab === "admin" && !(state.user && state.user.is_admin)) state.tab = "uploads";   // only admins ever see it
+  ({ uploads: renderTimeline, mytimeline: renderMyTimeline, people: renderPeople, checks: renderChecks, admin: renderAdmin })[state.tab](); }
 
 /* ---------- admin tab (only for ADMIN_HANDLES; server-wide counts, nothing about anyone's places) ---------- */
 const fmtN = n => n == null ? "–" : Number(n).toLocaleString(UI_LOCALE);
