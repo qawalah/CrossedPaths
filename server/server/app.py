@@ -23,7 +23,7 @@ from . import admin as admin_stats_mod
 from . import analysis, identity, otp, retention, runner, whatsapp
 from .roads import roads_for
 from .config import Config
-from .notifications import send_expo_push
+from .notifications import send_localized
 from .db import audit, close_db, get_db, init_db, new_id
 from .security import hash_password, make_token, read_token, verify_password
 from .store import delete_points, load_points, save_points
@@ -110,11 +110,12 @@ def create_app(overrides=None, start_background=True):
     def opt_ts(v):
         return None if v in (None, "") else float(v)
 
-    def notify(user_id, title, msg, data=None):
-        toks = [r["push_token"] for r in get_db().execute(
-            "SELECT push_token FROM devices WHERE user_id=?", (user_id,)).fetchall()]
-        if toks:
-            threading.Thread(target=send_expo_push, args=(toks, title, msg, data), daemon=True).start()
+    def notify(user_id, kind, data=None, **vars):
+        """Push a notification (see messages.py for the kinds), in each device's own language."""
+        devs = [(r["push_token"], r["lang"]) for r in get_db().execute(
+            "SELECT push_token, lang FROM devices WHERE user_id=?", (user_id,)).fetchall()]
+        if devs:
+            threading.Thread(target=send_localized, args=(devs, kind, data), kwargs=vars, daemon=True).start()
 
     # ---------------- static / config ----------------
     @app.get("/")
@@ -344,10 +345,12 @@ def create_app(overrides=None, start_background=True):
         platform, token = d.get("platform"), str(d.get("push_token", "")).strip()
         if platform not in ("ios", "android") or not token:
             err("platform (ios|android) and push_token are required")
+        lang = d.get("lang") if d.get("lang") in ("ar", "en") else None   # which language to send notifications in
         db, now = get_db(), time.time()
-        db.execute("INSERT INTO devices (id, user_id, platform, push_token, created_at, last_seen) VALUES (?,?,?,?,?,?) "
-                   "ON CONFLICT(user_id, push_token) DO UPDATE SET last_seen=excluded.last_seen, platform=excluded.platform",
-                   (new_id(), g.user["id"], platform, token, now, now))
+        db.execute("INSERT INTO devices (id, user_id, platform, push_token, created_at, last_seen, lang) VALUES (?,?,?,?,?,?,?) "
+                   "ON CONFLICT(user_id, push_token) DO UPDATE SET last_seen=excluded.last_seen, platform=excluded.platform, "
+                   "lang=COALESCE(excluded.lang, devices.lang)",
+                   (new_id(), g.user["id"], platform, token, now, now, lang))
         db.commit()
         return jsonify({"ok": True})
 
@@ -713,7 +716,7 @@ def create_app(overrides=None, start_background=True):
                        (new_id(), me_id, other["id"], now))
         audit(db, me_id, "connection_request", other["id"])
         db.commit()
-        notify(other["id"], "New request", f"@{g.user['handle']} wants to check paths with you")
+        notify(other["id"], "new_request", who=g.user["handle"])
         return jsonify({"ok": True}), 201
 
     @app.post("/api/connections/<cid>/respond")
@@ -731,7 +734,7 @@ def create_app(overrides=None, start_background=True):
         audit(db, g.user["id"], f"connection_{status}", cid)
         db.commit()
         if status == "accepted":
-            notify(c["requester_id"], "Request accepted", f"@{g.user['handle']} accepted your request")
+            notify(c["requester_id"], "request_accepted", who=g.user["handle"])
         return jsonify({"ok": True, "status": status})
 
     @app.delete("/api/connections/<cid>")
@@ -809,7 +812,7 @@ def create_app(overrides=None, start_background=True):
         claim_participant(db, cid, me_id, upload, d)
         audit(db, me_id, "check_created", cid)
         db.commit()
-        notify(other_id, "Check paths?", f"@{g.user['handle']} wants to check if your paths crossed")
+        notify(other_id, "check_request", who=g.user["handle"])
         return jsonify(check_summary(my_check(cid))), 201
 
     @app.get("/api/checks")
@@ -1125,7 +1128,7 @@ def create_app(overrides=None, start_background=True):
         db.commit()
         if start:
             threading.Thread(target=runner.run_check_job, args=(app, check_id), daemon=True).start()
-        notify(a_id, "Connected", f"You're connected with @{handle_of(b_id)}" + (" - checking your paths now" if start else ""))
+        notify(a_id, "connected", who=handle_of(b_id), checking=start)
         return conn_id, check_id, note
 
     def pair_result(conn_id, check_id, note, other_id):

@@ -269,6 +269,34 @@ def test_device_registration_and_unregister():
     shutil.rmtree(d, ignore_errors=True)
 
 
+def test_push_text_follows_the_device_language():
+    from server.messages import push_text
+    assert push_text("new_request", "en", who="sara") == ("New request", "@sara wants to check paths with you")
+    assert push_text("new_request", "ar", who="sara")[1].startswith("\u200e@sara\u200e ")     # handle stays one LTR unit
+    assert push_text("new_request", None, who="sara")[0] == "New request"                      # unknown language: English
+    assert push_text("check_done", "ar", n=1)[1] == "لقينا تقاطع واحد"
+    assert push_text("check_done", "ar", n=2)[1] == "لقينا تقاطعين"
+    assert push_text("check_done", "ar", n=5)[1] == "لقينا 5 تقاطعات"
+    assert push_text("check_done", "ar", n=12)[1] == "لقينا 12 تقاطع"
+    assert push_text("check_done", "ar", n=0)[1] == "ما لقينا أي تقاطع"
+    assert push_text("check_done", "en", n=1)[1] == "1 crossing found"
+    assert push_text("check_done", "en", n=3)[1] == "3 crossings found"
+    assert push_text("connected", "en", who="omar", checking=True)[1] == "You're connected with @omar - checking your paths now"
+
+
+def test_device_language_is_kept_and_not_wiped_by_a_later_registration():
+    app, c, d = make_client()
+    h = reg(c, "alice")
+    tok = "ExponentPushToken[lang1]"
+    assert c.post("/api/devices", headers=h, json={"platform": "android", "push_token": tok, "lang": "ar"}).status_code == 200
+    assert c.post("/api/devices", headers=h, json={"platform": "android", "push_token": tok}).status_code == 200      # an older app: no lang
+    assert c.post("/api/devices", headers=h, json={"platform": "android", "push_token": "ExponentPushToken[lang2]", "lang": "fr"}).status_code == 200
+    con = sqlite3.connect(os.path.join(d, "crosspaths.db")); con.row_factory = sqlite3.Row
+    langs = {r["push_token"]: r["lang"] for r in con.execute("SELECT push_token, lang FROM devices")}
+    assert langs == {tok: "ar", "ExponentPushToken[lang2]": None}
+    shutil.rmtree(d, ignore_errors=True)
+
+
 def test_notify_is_best_effort_and_never_breaks_the_request():
     # No real network in this sandbox; send_expo_push should fail closed without raising.
     from server.notifications import send_expo_push

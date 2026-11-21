@@ -31,3 +31,16 @@ def send_expo_push(tokens: list[str], title: str, body: str, data: dict | None =
             return resp.status == 200
     except (urllib.error.URLError, TimeoutError, OSError):
         return False
+
+
+def send_localized(devices, kind, data=None, **vars):
+    """Send one notification to devices [(push_token, lang), ...], each in its own language.
+    Same best-effort rules as send_expo_push; must run off the request thread (it waits on the network)."""
+    from .messages import push_text
+    by_lang = {}
+    for token, lang in devices:
+        by_lang.setdefault("ar" if lang == "ar" else "en", []).append(token)
+    for lang, tokens in by_lang.items():
+        title, body = push_text(kind, lang, **vars)
+        send_expo_push(tokens, title, body, data)
+

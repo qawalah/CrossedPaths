@@ -367,6 +367,14 @@ route files then. Separate workouts close together in place (within 200 m and 6 
   `android:supportsRtl="true"` is in the manifest and the config plugin. Time axes (date bar, welcome
   pager, chip rows) are forced `direction: ltr`; back/next icons mirror (`components/Icon.js`).
   Hermes has no `Intl.PluralRules`, so `pl()` writes the rules out.
+  - **Arabic style:** plain everyday Arabic with a *light* Hijazi flavour (not Najdi, not formal
+    Modern Standard), by meaning and not word for word. Hijazi function words only where they read
+    naturally: إيش, فين, مو, عشان, لسه, كمان, بس, ما في, يبغى, "على طول"; imperatives and
+    nouns stay close to the standard language. Avoid Najdi/Gulf markers (وش, الحين, يبي/تبي, الثنين,
+    ما فيه, كذا, هالـ, وحدة for "one"). Duals are colloquial (تقاطعين, يومين). Terms: check = مقارنة,
+    crossing = تقاطع, timeline = خط زمني, People = الأشخاص. Keep the same term everywhere.
+  - **Push notifications** are written by the server (`server/messages.py`) in the language the app
+    sent when registering the device (`devices.lang`); no language, or an older app, means English.
 - **Typeface:** IBM Plex Sans Arabic everywhere (it has matching Latin), weights 400–700 only.
   Web: self-hosted woff2 in `server/server/static/fonts/`, never Google's CDN. Mobile: TTFs in
   `mobile/assets/fonts/`, copied into `android/app/src/main/assets/fonts/` by the config plugin;

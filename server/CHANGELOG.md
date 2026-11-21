@@ -7,6 +7,15 @@ migration), MINOR for new features, PATCH for bugfixes. Pre-1.0, expect MINOR bu
 To check what's running on your server, visit `/api/config` — it reports the running
 `version`. That's the number to compare against this file when deciding whether to update.
 
+## 0.26.0
+- **Arabic wording reworked** on the web client: plain, everyday Arabic (light Hijazi) instead of
+  formal Modern Standard Arabic, by meaning rather than word for word. Messages the server returns
+  are translated by the browser as before, so the API is unchanged.
+- **Push notifications in the app's language.** The app tells the server its interface language when
+  it registers for push (`lang` on `POST /api/devices`, stored in `devices.lang`, added to existing
+  databases on start-up) and the server writes the notification in it. Devices that don't send one,
+  and older apps, keep getting English.
+
 ## 0.25.0
 - **Server stats for admins.** On the web, usernames in `ADMIN_HANDLES` get *Account → Server
   (admin) → Server stats*: users (total, new, active today / 7 / 30 days, sign-in methods), checks

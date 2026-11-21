@@ -1,7 +1,7 @@
 import * as SecureStore from "expo-secure-store";
 import Constants from "expo-constants";
 import { AppState } from "react-native";
-import { serverMsg, t } from "./i18n";
+import { LANG, serverMsg, t } from "./i18n";
 
 // ---------- which address to use: the main address, or the backup when it can't be reached ----------
 // You can give the app two addresses of the same server: a main address and a backup one.
@@ -351,6 +351,7 @@ export const Api = {
   shake: (lat, lon, acc, uploadId) => request("/api/pair/shake", { method: "POST", body: { lat, lon, acc, upload_id: uploadId || null } }),
   shakeStatus: (id) => request(`/api/pair/shake/${id}`),
 
-  registerDevice: (platform, pushToken) => request("/api/devices", { method: "POST", body: { platform, push_token: pushToken } }),
+  // lang: the interface language, so the server writes notifications in it (older servers ignore it)
+  registerDevice: (platform, pushToken) => request("/api/devices", { method: "POST", body: { platform, push_token: pushToken, lang: LANG } }),
   unregisterDevice: (pushToken) => request("/api/devices", { method: "DELETE", body: { push_token: pushToken } }),
 };

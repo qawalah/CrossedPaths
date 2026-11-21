@@ -12,7 +12,7 @@ from crosspaths.snap import snap_points
 from .db import audit, connect
 from .places import places_for
 from .roads import roads_for
-from .notifications import send_expo_push
+from .notifications import send_localized
 from .store import delete_points, load_points
 
 _one_at_a_time = threading.Semaphore(1)   # keep RAM bounded on a small server
@@ -197,11 +197,10 @@ def _run(app, con, check_id):
     con.commit()
 
     n = len(res["events"])
-    msg = f"{n} crossing{'s' if n != 1 else ''} found" if n else "No crossings found"
     for p in parts:
-        toks = [r["push_token"] for r in con.execute("SELECT push_token FROM devices WHERE user_id=?", (p["user_id"],)).fetchall()]
-        if toks:
-            threading.Thread(target=send_expo_push, args=(toks, "Check finished", msg), daemon=True).start()
+        devs = [(r["push_token"], r["lang"]) for r in con.execute("SELECT push_token, lang FROM devices WHERE user_id=?", (p["user_id"],)).fetchall()]
+        if devs:
+            threading.Thread(target=send_localized, args=(devs, "check_done"), kwargs={"n": n}, daemon=True).start()
 
 
 def purge(app):
